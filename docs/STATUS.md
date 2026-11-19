@@ -6,8 +6,9 @@ No code yet, so there's nothing to run.
 
 - **Plan:** `docs/intent.md` has the answers to the interview.
 - **Design:** `docs/spec.md` has the requirements and design for the MVP.
-- **Mockups:** three mockups of the dashboard and pipeline in `docs/mockups/` (Ledger, Agenda and Midnight), each with a screenshot of both screens. Mockup 2, Agenda, was chosen, and `docs/spec.md` now follows it.
+- **Mockups:** three mockups of the dashboard and pipeline in `docs/mockups/` (Ledger, Agenda and Midnight), each with a screenshot of both screens. Mockup 2, Agenda, was chosen, and `docs/spec.md` now follows it. The mockups are git-ignored, so they're only on this computer.
+- **Build plan:** `docs/plan.md` has the files that change, the build in nine phases, the risks and the tests that prove it.
 
 ## Next
 
-- `docs/plan.md`, then the build.
+- The build, from phase 1 of `docs/plan.md`, in a fresh session.

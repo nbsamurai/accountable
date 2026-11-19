@@ -511,9 +511,9 @@ The sample data is written by hand, so it reads like a real business. It's the s
 package.json        npm scripts; frontend/ is a workspace
 pyproject.toml      Python project, with uv.lock beside it
 scripts/dev.mjs     the one command: install, start both servers, open the browser
-backend/app/        FastAPI app: tables, rules, routes, seed and sample data
+backend/app/        FastAPI app: shared database code, then one folder per area
 backend/tests/      pytest
-frontend/src/       React app: pages, components, API hooks, styles/tokens.css
+frontend/src/       React app: shared components, helpers and styles, then one folder per area
 e2e/                Playwright Test, with its config and the accessibility and performance tests
 data/               the SQLite databases (git-ignored)
 ```
