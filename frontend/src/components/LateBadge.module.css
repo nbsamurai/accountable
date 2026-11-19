@@ -1,0 +1,13 @@
+.late {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px 1px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--alert-ink);
+  color: var(--on-dark);
+  font-size: var(--text-min);
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}

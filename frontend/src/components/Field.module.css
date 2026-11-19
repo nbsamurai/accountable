@@ -1,0 +1,71 @@
+.field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.label {
+  font-weight: 600;
+  font-size: var(--text-table);
+}
+
+.required {
+  font-weight: 400;
+  color: var(--ink-muted);
+}
+
+.input,
+.textarea,
+.control {
+  width: 100%;
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1px solid var(--control);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--ink);
+  font-size: var(--text-body);
+  line-height: 1.4;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.input[data-invalid],
+.textarea[data-invalid],
+.control[data-invalid],
+.field[data-invalid] .control {
+  border-color: var(--alert-ink);
+  box-shadow: inset 0 0 0 1px var(--alert-ink);
+}
+
+.input[data-focus-visible],
+.textarea[data-focus-visible] {
+  outline: 2px solid var(--info-ink);
+  outline-offset: 2px;
+}
+
+.error {
+  color: var(--alert-ink);
+  font-size: var(--text-caption);
+  font-weight: 500;
+}
+
+.description {
+  color: var(--ink-muted);
+  font-size: var(--text-caption);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+@media (max-width: 520px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}

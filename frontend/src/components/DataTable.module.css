@@ -1,0 +1,181 @@
+.wrap {
+  display: grid;
+  /* minmax(0, …) lets the table scroll inside its panel instead of widening the page. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+}
+
+.add {
+  margin-left: auto;
+}
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: min(340px, 100%);
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 36px;
+  border: 1px solid var(--control);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  font-size: var(--text-body);
+}
+
+.searchInput::placeholder {
+  color: var(--ink-muted);
+}
+
+.searchInput::-webkit-search-cancel-button {
+  display: none;
+}
+
+.clear {
+  position: absolute;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.clear[data-hovered] {
+  background: var(--subtle);
+}
+
+.panel {
+  background: var(--panel);
+  border-radius: var(--radius-panel);
+  padding: var(--space-2) var(--space-6);
+  min-width: 0;
+}
+
+.scroller {
+  /* Positioned, so screen-reader text inside the table is clipped with it too. */
+  position: relative;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  font-size: var(--text-table);
+}
+
+.table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--ink-muted);
+  font-size: var(--text-caption);
+  padding: var(--space-3) var(--space-3) var(--space-2);
+  white-space: nowrap;
+  border-bottom: 1px solid var(--line);
+}
+
+.table td {
+  padding: 10px var(--space-3);
+  vertical-align: middle;
+  border-bottom: 1px solid var(--line);
+}
+
+.table th:first-child,
+.table td:first-child {
+  padding-left: 0;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table tbody tr:hover td {
+  background: color-mix(in srgb, var(--subtle) 50%, transparent);
+}
+
+.table td:first-child a {
+  font-weight: 600;
+}
+
+.end {
+  text-align: right !important;
+}
+
+.end .sort {
+  margin-left: auto;
+}
+
+.sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 0 4px;
+  margin: 0 -4px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.sort[data-hovered] {
+  background: var(--subtle);
+  color: var(--ink);
+}
+
+.actionsHead {
+  width: 80px;
+}
+
+.actions {
+  white-space: nowrap;
+  text-align: right;
+  padding-right: 0 !important;
+}
+
+.actions > * + * {
+  margin-left: 2px;
+}
+
+.paging {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: var(--text-table);
+  color: var(--ink-muted);
+}
+
+.pageButtons {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  padding: var(--space-6) 0;
+}

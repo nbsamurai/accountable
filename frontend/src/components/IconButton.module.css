@@ -1,0 +1,35 @@
+.button {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color var(--ease);
+}
+
+.button[data-hovered],
+.button[data-pressed],
+.button[aria-expanded="true"] {
+  background: var(--subtle);
+}
+
+.button[data-disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tooltip {
+  background: var(--ink);
+  color: var(--on-dark);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 6px;
+  max-width: 240px;
+  box-shadow: var(--shadow-card);
+}

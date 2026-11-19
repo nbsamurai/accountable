@@ -1,0 +1,140 @@
+/* Fonts, base type, the focus ring and reduced motion. Fonts are bundled, so nothing loads from the internet. */
+@import "@fontsource-variable/instrument-sans/wght.css";
+@import "@fontsource/instrument-serif/400-italic.css";
+@import "@fontsource-variable/jetbrains-mono/wght.css";
+@import "./tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* The sticky top bar never covers focused content (WCAG 2.4.11). */
+  scroll-padding-top: calc(var(--topbar-height) + var(--space-4));
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--page);
+  color: var(--ink);
+  font: 400 var(--text-body) / 1.5 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: var(--text-title);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: var(--text-panel);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+h3 {
+  font-size: var(--text-body);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+a {
+  color: var(--info-ink);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+img,
+svg {
+  display: block;
+  flex: none;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+/* The focus ring: 2 px Cerulean ink with a 2 px gap, on everything that can take focus. */
+:focus-visible {
+  outline: 2px solid var(--info-ink);
+  outline-offset: 2px;
+}
+
+/* A heading that takes focus when a new screen opens shows no ring. */
+[tabindex="-1"]:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.mono {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Sonner's messages, in the brand's colors */
+[data-sonner-toaster] {
+  --normal-bg: var(--panel);
+  --normal-text: var(--ink);
+  --normal-border: transparent;
+  --border-radius: var(--radius-card);
+  font-family: var(--sans);
+}
+
+[data-sonner-toaster] [data-sonner-toast] {
+  box-shadow: var(--shadow-menu);
+  font-size: var(--text-table);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="error"] [data-icon] {
+  color: var(--alert-ink);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="success"] [data-icon] {
+  color: var(--primary-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
