@@ -2,6 +2,8 @@
 
 This spec describes what the MVP does, how it looks and how it's built. `docs/intent.md` says why. The look follows the brand skill (`.claude/skills/brand/`), and the stack follows `docs/TECH_STACK.md`.
 
+The dashboard and pipeline follow the chosen mockup, mockup 2 ("Agenda"): `docs/mockups/2-agenda.html`, with its screenshots `2-agenda-dashboard.png` and `2-agenda-pipeline.png` beside it. Mockups 1 and 3 weren't chosen and stay only for reference. The other screens use the same components and styles.
+
 ## 1. Scope
 
 The MVP is a sales CRM for one salesperson on their own computer. It has five sections (Dashboard, Organizations, Contacts, Deals and Pipeline) and four kinds of record (organization, contact, deal and activity). It runs locally, in light mode, and is designed for a laptop or desktop screen.
@@ -148,7 +150,7 @@ The database enforces these rules with foreign keys: `SET NULL` for links to org
 
 ### 3.9 Formats
 
-- **Money:** US dollars, whole dollars, with thousands separators, such as `$48,000`. Chart axes use the short form, such as `$40K` and `$1.2M`. The value field is labelled "Value (US$)".
+- **Money:** US dollars, whole dollars, with thousands separators, such as `$48,000`. Chart axes and the funnel's labels use the short form, such as `$40K` and `$1.2M`. The value field is labelled "Value (US$)".
 - **Percent:** whole numbers, such as `75%`.
 - **Dates:** `Nov 19, 2026`. Timeline entries add the time: `Nov 19, 2026, 2:30 PM`. Follow-ups say "Due today", "Due tomorrow", "Due Mon, Nov 23" or "3 days overdue".
 - **Empty values:** shown as "–", with no value shown as "No value" on cards.
@@ -167,23 +169,28 @@ The database enforces these rules with foreign keys: `SET NULL` for links to org
 
 ### 4.2 Dashboard
 
-The landing page shows how sales are going at a glance. On a 1,280 px screen it uses a 12-column grid with 24 px gaps. The mockups may arrange the panels differently, but every panel below appears.
+The landing page shows how sales are going at a glance, with the day's work first. It follows mockup 2. A left column, a third of the width, holds the follow-ups and recent activity. A right column, two thirds of the width, holds the figures and charts. The gaps are 24 px. Below 1,100 px wide, the columns stack, follow-ups first.
 
-- **Header:** "Dashboard", today's date, and the tagline "Here's how sales are going." in Instrument Serif.
-- **Four figure tiles,** 3 columns each, with each figure in JetBrains Mono:
-  - **Open pipeline:** the total, and "16 open deals".
-  - **Expected revenue:** the total, and "Value × probability of close".
-  - **Won this month:** the total, and "3 deals".
-  - **Win rate:** the percent, and "10 won of 14 closed in 12 months".
-- **Revenue won by month,** a line chart, 8 columns: 12 months, with a Sea Green line and a light Sea Green fill under it. The tooltip shows the month, the revenue and the number of deals.
-- **Sales funnel,** 4 columns: one horizontal bar per stage from New to Won, each in its stage's color, as wide as its share of New's value. Next to each bar: the stage, its value, its number of deals and its share.
-- **Deals won by month,** a bar chart, 4 columns: 12 Cerulean bars, with each month's count above its bar.
-- **Follow-ups,** 4 columns, in two groups:
-  - **Overdue,** oldest first, in Raspberry ink: "3 days overdue".
-  - **Next 7 days,** soonest first: "Due today", "Due Mon, Nov 23".
-  - Each row has a "Done" checkbox, its description cut to one line, and a link to its contact or deal. Each group shows 5 rows and a "Show all 12" button that opens the rest in place.
-  - With none due: "Nothing overdue or due in the next 7 days."
-- **Recent activity,** 4 columns: the 10 newest activities with `occurred_at` up to now, stage changes included. Each has its type's icon, its description, a link to its record and when it happened.
+- **Header:** "Dashboard", with the tagline "Here's how sales are going." beside it in Instrument Serif, and today's date on the right.
+- **Left column:**
+  - **Follow-ups,** set out like a diary, with a summary such as "4 overdue and 5 due in the next 7 days." Each group has its name on the left and its follow-ups on the right:
+    - **Overdue,** in Raspberry ink, with "4 to do" under it, oldest first. Each one says how late it is, after its record: "Lab results integration, 6 days overdue".
+    - **One group for each day** in the next 7 days that has follow-ups due: "Today", "Tomorrow", then "Mon, Nov 23" and so on.
+    - Each follow-up has a "Done" checkbox, its description, and a link to its contact or deal.
+    - Overdue and the next 7 days each show up to 5 follow-ups. A "Show all 12" button opens the rest in place.
+    - With none due: "Nothing overdue or due in the next 7 days."
+  - **Recent activity,** under the follow-ups, as a timeline: the 10 newest activities with `occurred_at` up to now, stage changes included, joined by a grey line. Each has its type's icon in a circle (Sea Green for stage changes), its description, and then its record and when it happened: "Payments gateway, Today, 10:42 AM".
+- **Right column:**
+  - **The scoreboard,** one panel with the four figures side by side, each in JetBrains Mono:
+    - **Open pipeline:** the total, and "16 open deals".
+    - **Expected revenue:** the total, and "Value × probability of close".
+    - **Won this month:** the total, and "1 deal".
+    - **Win rate:** the percent, and "10 won of 14 closed in 12 months".
+    - Under the figures, **Open pipeline by stage** (section 5.6), with "$612,000 in 16 deals" on the right of its heading.
+  - **Revenue won by month,** a line chart across the column: 12 months, with a Sea Green line and a light Sea Green fill under it. The tooltip shows the month, the revenue and the number of deals.
+  - **Sales funnel** and **Deals won by month,** side by side:
+    - **Sales funnel:** one bar per stage from New to Won, centered, in its stage's color, and as wide as its share of New's value. The stage and its number of deals are on the left. Its value, in the short form, and its share are on the right.
+    - **Deals won by month:** 12 Cerulean bars, with each month's count above its bar.
 
 Every chart panel has a title, a one-line summary in text, such as "Revenue won in the last 12 months: $412,000. Best month: June, $96,000.", and a "Show as table" button that swaps the chart for a table of the same figures.
 
@@ -236,23 +243,34 @@ Organizations, Contacts and Deals share one table design:
 
 ### 4.7 Pipeline
 
-- **Header:** "Pipeline", with "Open pipeline $612,000 · Expected revenue $284,500 · 16 open deals" under it, and "Add deal" on the right.
-- **Board:** six columns side by side, in stage order. Each is at least 220 px wide and they share the width equally. If the window is too narrow, the board scrolls sideways inside its area.
-- **Columns** sit on the page background with no panel. Each one has a header with a dot in its stage color, the stage, its card count, its value and its expected revenue, and a "+" button labelled "Add deal to Proposal". Won and Lost add "Closed in the last 30 days" under their header, and show only deals with a close date from 30 days ago to today.
-- **Cards** are white, with:
-  - the deal name, which links to the deal
+The pipeline follows mockup 2.
+
+- **Header:** "Pipeline", with "Add deal" on the right.
+- **Summary panel:** open pipeline, expected revenue and open deals, in JetBrains Mono. Beside them is the same open-pipeline-by-stage bar as the dashboard's, headed "By stage".
+- **Board:** six columns side by side, in stage order. Each is at least 200 px wide and they share the width equally. If the window is too narrow, the board scrolls sideways inside its area.
+- **Columns** sit on the page background with no panel. Each column header has:
+  - a stage pill (section 5.6) with the stage's name and its card count
+  - a "+" button labelled "Add deal to Proposal"
+  - under them, the column's value, and "Expected" with its expected revenue
+  - for Won and Lost, "Closed in the last 30 days". These two columns show only deals with a close date from 30 days ago to today.
+- **Cards** are white. From top to bottom, each one has:
+  - a grip handle button ("Move Website redesign"), the deal name, which links to the deal, and a "More" menu button
   - the organization
-  - the value and probability, in JetBrains Mono
-  - the close date, with the late badge when it's late
-  - a grip handle button, "Move Website redesign"
-  - a "More" menu button
+  - the value in JetBrains Mono, with the main contact's initials in a circle on the right. The contact's full name is the circle's tooltip and accessible name. A deal with no main contact has no circle.
+  - a probability meter (section 5.6), with the percent beside it
+  - the close date with a calendar icon, or the late badge and the date
 - **Dragging:** a card can be dragged by the card or its handle to any column, and to any place in a column. A drop line shows where it will land. When it's dropped:
   - the card stays where it was dropped
   - the totals change straight away
   - the server saves the move
   - if the save fails, the card goes back and a message says so
 - **Moving to Won:** the message says "Website redesign moved to Won. Jane Doe is now a customer." when the contact's status changed.
-- **The "More" menu:** "Move to" each other stage, "Move up", "Move down", "Open" and "Edit". It gives a way to do every move without dragging, for keyboards, screen readers and people who can't drag. A card moved to another stage from the menu goes to the top of that column.
+- **The "More" menu** opens under its button. It has three groups:
+  - "Move to", then each other stage, each with a small square in its color.
+  - "Move up" and "Move down".
+  - "Open" and "Edit".
+
+  The menu gives a way to make every move without dragging, for keyboard users, screen-reader users and people who can't drag. A card moved to another stage from the menu goes to the top of that column.
 - **Keyboard dragging:** see section 6.
 - **Adding:** a deal added from a column starts at that stage, at the top of the column. A deal added from the header starts at New.
 
@@ -377,7 +395,7 @@ All fonts are bundled from npm (Fontsource), so the app needs no internet connec
   - Tables and cards: 14 px.
   - Captions: 13 px.
   - Nothing is smaller than 12 px.
-- **JetBrains Mono** for numbers: money, percentages, counts and the figure tiles, with tabular figures. The figure tiles use 32 px, weight 500. Money in tables is right-aligned.
+- **JetBrains Mono** for numbers: money, percentages, counts and the scoreboard's figures, with tabular figures. The scoreboard's figures use 34 px, weight 500. Money in tables is right-aligned.
 - **Instrument Serif,** italic, only for the dashboard's tagline (22 px).
 
 ### 5.5 Space, shape and depth
@@ -400,13 +418,18 @@ All fonts are bundled from npm (Fontsource), so the app needs no internet connec
 - **Pills:** 13 px, weight 600, fully round, with the fills from section 5.3.
 - **Icons:** Lucide, at 16 or 20 px.
 - **Panels:** white, with 16 px corners and 24 px padding, and the title at top left.
+- **Open pipeline by stage:** a 14 px bar split into the four open stages. Each part is in its stage's color and as wide as its share of the open value, with 2 px gaps and 4 px rounded outer ends. Under each part are the stage's name, with a small square in its color, and its value in JetBrains Mono. The bar itself is decoration. The names and values carry the meaning.
+- **Stage pill with count:** the stage's fill and text color (section 5.3), 30 px tall, with the count in JetBrains Mono on a small white badge at 55% opacity.
+- **Contact initials:** a 26 px `--subtle` circle with up to two initials, 11 px, weight 700.
+- **Probability meter:** a 4 px `--subtle` track with a Midnight fill as wide as the probability, and the percent in JetBrains Mono beside it. The meter is decoration. The percent is the text.
+- **Menus:** a white panel with 12 px corners, 6 px padding and a dialog-like shadow. Items are 34 px tall, with a `--subtle` background on hover and focus. Groups are separated by a 1 px `--line` rule.
 
 ### 5.7 Charts
 
 - **Recharts.** Each chart shows one series, so no chart needs a legend.
 - **The revenue line:** `--primary-ink`, 2.5 px, with points on hover and a Sea Green fill under it that fades to transparent.
 - **The deals-won bars:** `--info`, with the count above each bar in Midnight.
-- **The funnel bars:** in each stage's fill, with the figures in text beside them. Light fills always have their value in text next to them, which WCAG accepts in place of 3:1 contrast for the shape.
+- **The funnel bars:** centered, 30 px tall, in each stage's fill, with the figures in text on either side. Light fills always have their value in text next to them, which WCAG accepts in place of 3:1 contrast for the shape.
 - **Grid lines:** horizontal only, in `--line`.
 - **Axes:** 13 px `--ink-muted` labels, with money in the short form.
 - **Tooltips:** a white panel with a shadow and numbers in JetBrains Mono. They can be reached with the keyboard (Recharts' accessibility layer).
