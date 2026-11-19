@@ -29,7 +29,7 @@ export function Column({ column, today, drop, activeId, visible, showMore, actio
       <header className={styles.columnHead}>
         <div className={styles.columnTitle}>
           <h2><StagePill value={column.stage} count={column.count} /></h2>
-          <IconButton label={`Add deal to ${info.name}`} icon={<Plus size={18} aria-hidden="true" />} onPress={() => onAdd(column.stage)} />
+          <IconButton className={styles.smallIcon} label={`Add deal to ${info.name}`} icon={<Plus size={18} aria-hidden="true" />} onPress={() => onAdd(column.stage)} />
         </div>
         <div className={styles.columnFigures}>
           <span className="mono">{money(column.value)}</span>

@@ -42,7 +42,8 @@ export function FollowUps({ activities, today }: { activities: Activity[]; today
     return shown.length ? [{ ...group, activities: shown }] : [];
   });
   return (
-    <Panel title="Follow-ups" titleId="follow-ups">
+    <Panel aria-label="Follow-ups">
+      <h2>Follow-ups</h2>
       <p className={styles.summary} role="status">
         {overdue.length || upcomingCount ? `${number(overdue.length)} overdue and ${number(upcomingCount)} due in the next 7 days.` : "Nothing overdue or due in the next 7 days."}
       </p>

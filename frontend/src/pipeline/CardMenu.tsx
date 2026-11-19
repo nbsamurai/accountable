@@ -9,8 +9,8 @@ import styles from "./Board.module.css";
 export function CardMenu({ deal, actions }: { deal: CardDeal; actions: CardActions }) {
   return (
     <MenuTrigger>
-      <Button className={icons.button} aria-label={`More actions for ${deal.name}`}>
-        <Ellipsis size={18} aria-hidden="true" />
+      <Button className={`${icons.button} ${styles.smallIcon}`} aria-label={`More actions for ${deal.name}`}>
+        <Ellipsis size={16} aria-hidden="true" />
       </Button>
       <Popover className={styles.menu} placement="bottom end" offset={4}>
         <Menu aria-label={`Actions for ${deal.name}`}>

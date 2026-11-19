@@ -17,7 +17,7 @@ Run them from this folder.
 |---|---|
 | `npm run dev` | Installs what's missing, starts the backend on `127.0.0.1:8000` and the app on `127.0.0.1:5173`, and opens the browser. Ctrl+C stops both |
 | `npm run seed` | Resets the database to the sample data. It works while the app runs: refresh the page to see it. `npm run seed -- --large` loads the large data set instead, for the performance test |
-| `npm test` | Runs the frontend unit tests, the backend unit tests, then the end-to-end tests in Chrome. Stops at the first failure |
+| `npm test` | Runs the frontend type check, both unit suites, and the end-to-end suite in Chrome. Attempts every check and exits nonzero if any fail |
 
 The end-to-end tests start their own servers on ports 8100 and 5174, with their own database, `data/test.db`. They need Google Chrome installed.
 
@@ -70,9 +70,14 @@ The end-to-end tests start their own servers on ports 8100 and 5174, with their 
   - Revenue, deals won, and the funnel each have a summary and a table view. Chrome tests compare the figures with the deals API and verify updates after a win.
 - **Phase 9, verification**
   - `npm test` passed 45 frontend, 99 backend, and 52 Chrome tests. The suite includes keyboard workflows, axe checks, and page reflow at 320 px.
+  - The root command now attempts all suites after a failure. A temporary failing test in each suite verified that every suite ran and that `npm test` returned exit status 1.
   - After one warm-up navigation per screen on the large data set, Chrome measured 647 ms for the dashboard, 693–738 ms for the tables, 608–732 ms for the record pages, and 901 ms for the pipeline.
   - Dashboard and pipeline screenshots were compared with mockup 2 at 1,440 px. Organization, contact, and deal screenshots were checked against the spec.
   - `npm run dev` installed dependencies and opened the sample dashboard from a temporary copy with no `node_modules/`, `.venv/`, or `data/`.
+- **Agenda mockup review**
+  - Playwright captured the live dashboard and pipeline at 1,440 px against the Agenda mockup. The review aligned the follow-up rows, activity timeline, figures, chart labels, stage legends, pipeline columns, and cards.
+  - Both screens fit at 320 px, with horizontal scrolling contained inside the pipeline board. The chart table toggle and keyboard focus restoration after closing the card menu passed. The comparison PNGs are in the local `logs/agenda-review/` folder.
+  - `npm test` passed all 196 tests after the visual changes. Chrome measured the dashboard at 714 ms and pipeline at 888 ms on the large data set.
 
 ## Known limits
 

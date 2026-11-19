@@ -1,4 +1,4 @@
-import { money, monthName, plural } from "../lib/format";
+import { money, monthName, number, plural } from "../lib/format";
 import type { Month } from "./queries";
 
 export function revenueSummary(months: Month[]) {
@@ -13,6 +13,6 @@ export function dealsWonSummary(months: Month[]) {
   const total = months.reduce((sum, month) => sum + month.count, 0);
   const best = months.reduce<Month | undefined>((best, month) => !best || month.count > best.count ? month : best, undefined);
   return total > 0 && best
-    ? `${plural(total, "deal")} won in the last 12 months. Best month: ${monthName(best.month)}, ${plural(best.count, "deal")}.`
+    ? `${plural(total, "deal")} won in the last 12 months. Most in ${monthName(best.month)}: ${number(best.count)}.`
     : "No deals won in the last 12 months.";
 }

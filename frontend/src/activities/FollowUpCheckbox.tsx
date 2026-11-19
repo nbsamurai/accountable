@@ -9,6 +9,7 @@ export function FollowUpCheckbox({ activity, showLabel = true }: { activity: Act
   return (
     <Checkbox
       className={styles.check}
+      data-icon-only={!showLabel || undefined}
       isSelected={done}
       isReadOnly={patch.isPending}
       aria-label={`Done, ${activity.description}`}

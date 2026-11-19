@@ -16,8 +16,8 @@
 .count {
   display: inline-grid;
   place-items: center;
-  min-width: 20px;
-  height: 18px;
+  min-width: 22px;
+  height: 20px;
   padding: 0 4px;
   border-radius: var(--radius-pill);
   background: rgb(255 255 255 / 55%);
@@ -25,4 +25,4 @@
   font-size: var(--text-min);
 }
 
-.pill:has(.count) { min-height: 30px; padding-inline: 12px 6px; font-size: var(--text-table); }
+.pill:has(.count) { min-height: 30px; gap: 8px; padding-inline: 12px 6px; font-size: var(--text-table); }

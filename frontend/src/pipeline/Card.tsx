@@ -1,5 +1,5 @@
 import { useDraggable } from "@dnd-kit/react";
-import { CalendarDays, GripVertical } from "lucide-react";
+import { Calendar, GripVertical } from "lucide-react";
 import { Link } from "react-router";
 import { LateBadge } from "../components/LateBadge";
 import { dateNear, EMPTY, initials, money, percent } from "../lib/format";
@@ -48,7 +48,7 @@ export function Card({ deal, today, dropBefore, active, actions }: {
           <span className="mono">{percent(deal.probability)}</span>
         </div>
         <p className={styles.cardDate}>
-          {deal.late ? <LateBadge /> : <CalendarDays size={14} aria-hidden="true" />}
+          {deal.late ? <LateBadge /> : <Calendar size={14} aria-hidden="true" />}
           {deal.close_date ? <time dateTime={deal.close_date}>{dateNear(deal.close_date, today)}</time> : <span aria-label="No close date">{EMPTY}</span>}
         </p>
       </div>

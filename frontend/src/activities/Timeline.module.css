@@ -27,6 +27,7 @@
   flex: none;
 }
 .icon[data-type="stage_change"] { background: var(--primary); }
+.icon[data-compact] { width: 28px; height: 28px; }
 .body { min-width: 0; }
 .description { white-space: pre-wrap; overflow-wrap: anywhere; }
 .muted { color: var(--ink-muted); font-size: var(--text-caption); }
@@ -46,6 +47,7 @@
   line-height: 1;
 }
 .check[data-selected] .box { background: var(--ink); color: var(--on-dark); border-color: var(--ink); }
+.check[data-icon-only] .box { width: 20px; height: 20px; border-width: 1.5px; border-radius: 6px; }
 .check[data-focus-visible] .box { outline: 2px solid var(--info-ink); outline-offset: 2px; }
 .older { margin-top: var(--space-4); }
 

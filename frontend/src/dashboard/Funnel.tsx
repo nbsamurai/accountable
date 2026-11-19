@@ -12,11 +12,12 @@ export function Funnel({ steps }: { steps: FunnelStep[] }) {
         <ol className={styles.funnel} aria-label="Sales funnel by stage">
           {steps.map((step) => {
             const label = stage(step.stage);
+            const displayValue = step.value >= 1_000 && step.value < 1_000_000 ? Math.round(step.value / 1_000) * 1_000 : step.value;
             return (
               <li key={step.stage} className={label.className}>
                 <p>{label.name}<small>{plural(step.count, "deal")}</small></p>
                 <span className={styles.funnelBar} aria-hidden="true" style={{ width: `${step.share}%` }} />
-                <p className="mono">{moneyShort(step.value)}<small>{percent(step.share)}</small></p>
+                <p className="mono">{moneyShort(displayValue)}<small>{percent(step.share)}</small></p>
               </li>
             );
           })}

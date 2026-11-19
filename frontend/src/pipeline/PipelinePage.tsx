@@ -30,7 +30,7 @@ export default function PipelinePage() {
   return (
     <>
       <PageHeader title="Pipeline" actions={
-        <Button variant="primary" icon={<Plus size={16} aria-hidden="true" />} onPress={() => setDialog({ stage: "new" })}>Add deal</Button>
+        <Button variant="primary" icon={<Plus size={18} aria-hidden="true" />} onPress={() => setDialog({ stage: "new" })}>Add deal</Button>
       } />
       {pipeline.isPending && <Panel as="div"><SkeletonLines label="Loading pipeline" /></Panel>}
       {pipeline.isError && <Panel title="Couldn't load the pipeline"><Button onPress={() => void pipeline.refetch()}>Try again</Button></Panel>}

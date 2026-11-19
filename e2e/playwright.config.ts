@@ -15,7 +15,7 @@ export default defineConfig({
   testMatch: "*.spec.ts",
   workers: 1,
   fullyParallel: false,
-  forbidOnly: !!process.env.CI,
+  forbidOnly: true,
   reporter: [["list"]],
   timeout: 30_000,
   // A browser that hangs can't block npm test for good.
