@@ -1,0 +1,25 @@
+[project]
+name = "accountable"
+version = "0.1.0"
+description = "Accountable: a sales CRM for one salesperson"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.165",
+    "uvicorn>=0.54",
+    "pydantic>=2.14",
+    "sqlalchemy>=2.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2",
+    "httpx2>=2.16",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["."]
+addopts = "-q"

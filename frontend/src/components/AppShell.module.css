@@ -1,0 +1,134 @@
+.skip {
+  position: absolute;
+  left: var(--space-4);
+  top: -60px;
+  z-index: 30;
+  background: var(--ink);
+  color: var(--on-dark);
+  padding: var(--space-2) 14px;
+  border-radius: var(--radius-control);
+  font-weight: 600;
+}
+
+.skip:focus {
+  top: var(--space-3);
+  text-decoration: none;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: var(--topbar-height);
+  background: var(--page);
+}
+
+.inner {
+  max-width: var(--content-width);
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.wordmark:hover {
+  text-decoration: none;
+}
+
+.list {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  color: var(--ink);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color var(--ease);
+}
+
+.link:hover {
+  background: var(--subtle);
+  text-decoration: none;
+}
+
+.link[aria-current="page"] {
+  background: var(--ink);
+  color: var(--on-dark);
+  font-weight: 600;
+}
+
+.narrow {
+  display: none;
+  position: relative;
+  margin-left: auto;
+}
+
+.menuButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--subtle);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.narrowNav {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: min(240px, calc(100vw - 32px));
+  padding: 6px;
+  border-radius: var(--radius-card);
+  background: var(--panel);
+  box-shadow: var(--shadow-menu);
+}
+
+.narrowList {
+  display: grid;
+  gap: 2px;
+}
+
+.narrowList .link {
+  display: flex;
+  border-radius: 8px;
+}
+
+.main {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: var(--space-4) var(--gutter) 64px;
+  outline: none;
+}
+
+@media (max-width: 860px) {
+  .wide {
+    display: none;
+  }
+
+  .narrow {
+    display: block;
+  }
+}

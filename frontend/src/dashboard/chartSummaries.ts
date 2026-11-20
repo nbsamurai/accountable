@@ -1,0 +1,25 @@
+import { money, monthName, number, percent, plural } from "../lib/format";
+import { stage } from "../lib/stages";
+import type { FunnelStep, Month } from "./queries";
+
+export function revenueSummary(months: Month[]) {
+  const total = months.reduce((sum, month) => sum + month.value, 0);
+  const best = months.reduce<Month | undefined>((best, month) => !best || month.value > best.value ? month : best, undefined);
+  return total > 0 && best
+    ? `Revenue won in the last 12 months: ${money(total)}. Best month: ${monthName(best.month)}, ${money(best.value)}.`
+    : "No revenue won in the last 12 months.";
+}
+
+export function dealsWonSummary(months: Month[]) {
+  const total = months.reduce((sum, month) => sum + month.count, 0);
+  const best = months.reduce<Month | undefined>((best, month) => !best || month.count > best.count ? month : best, undefined);
+  return total > 0 && best
+    ? `${plural(total, "deal")} won in the last 12 months. Most in ${monthName(best.month)}: ${number(best.count)}.`
+    : "No deals won in the last 12 months.";
+}
+
+export function funnelSummary(steps: FunnelStep[]) {
+  return steps.map((step) => (
+    `${stage(step.stage).name}, ${plural(step.count, "deal")} worth ${money(step.value)} (${percent(step.share)}).`
+  )).join(" ");
+}

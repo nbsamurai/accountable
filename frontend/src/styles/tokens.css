@@ -1,0 +1,89 @@
+/* Accountable's design tokens (spec 5.2 and 5.5). Every color is a custom property on :root,
+   so a dark mode can later redefine them in one place. */
+
+:root {
+  /* Surfaces and ink */
+  --page: #f0f4f5;
+  --panel: #ffffff;
+  --ink: #073b4c; /* Midnight: 12.1:1 on white */
+  --ink-muted: #456c79; /* 5.7:1 on white, 5.2:1 on the page */
+  --line: #dae2e4; /* decorative dividers and grid lines */
+  --control: #77939d; /* input, checkbox and radio borders: 3.3:1 on white */
+  --subtle: #e6ebed; /* hover, the Lost fill, drop areas */
+  --on-dark: #ffffff;
+
+  /* Brand colors, for fills with Midnight text, large shapes and chart areas */
+  --primary: #06d6a0; /* Sea Green */
+  --primary-hover: #05c291;
+  --secondary: #ffc145; /* Marigold */
+  --tertiary: #f78c6b; /* Coral */
+  --info: #118ab2; /* Cerulean */
+  --alert: #ef476f; /* Raspberry */
+
+  /* Ink shades, for text, lines, icons and badges with white text: 4.5:1 or more */
+  --primary-ink: #008050;
+  --secondary-ink: #9b6200;
+  --tertiary-ink: #b65132;
+  --info-ink: #00789f;
+  --alert-ink: #d22758;
+
+  /* Type */
+  --sans: "Instrument Sans Variable", "Instrument Sans", system-ui, sans-serif;
+  --serif: "Instrument Serif", Georgia, serif;
+  --mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
+  --text-title: 28px;
+  --text-panel: 18px;
+  --text-body: 15px;
+  --text-table: 14px;
+  --text-caption: 13px;
+  --text-min: 12px;
+
+  /* Space: a 4 px scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  /* Shape */
+  --radius-panel: 16px;
+  --radius-card: 12px;
+  --radius-control: 10px;
+  --radius-pill: 999px;
+
+  /* Depth */
+  --shadow-card: 0 1px 2px rgb(7 59 76 / 8%);
+  --shadow-drag: 0 12px 24px rgb(7 59 76 / 18%);
+  --shadow-dialog: 0 24px 48px rgb(7 59 76 / 24%);
+  --shadow-menu: 0 12px 32px rgb(7 59 76 / 20%), 0 1px 2px rgb(7 59 76 / 10%);
+  --backdrop: rgb(7 59 76 / 40%);
+
+  /* Layout */
+  --topbar-height: 64px;
+  --content-width: 1440px;
+  --gutter: 32px;
+
+  /* Motion */
+  --ease: 150ms ease-out;
+}
+
+@media (max-width: 720px) {
+  :root {
+    --gutter: 16px;
+  }
+}
+
+/* Stage colors (spec 5.3): set --st (the fill) and --st-on (the text on it). */
+.st-new { --st: var(--primary); --st-on: var(--ink); --st-ink: var(--primary-ink); }
+.st-qualified { --st: var(--secondary); --st-on: var(--ink); --st-ink: var(--secondary-ink); }
+.st-proposal { --st: var(--tertiary); --st-on: var(--ink); --st-ink: var(--tertiary-ink); }
+.st-negotiation { --st: var(--info-ink); --st-on: var(--on-dark); --st-ink: var(--info-ink); }
+.st-won { --st: var(--ink); --st-on: var(--on-dark); --st-ink: var(--ink); }
+.st-lost { --st: var(--subtle); --st-on: var(--ink); --st-ink: var(--control); }
+
+/* Contact status colors */
+.status-lead { --st: var(--tertiary); --st-on: var(--ink); }
+.status-qualified { --st: var(--secondary); --st-on: var(--ink); }
+.status-customer { --st: var(--primary); --st-on: var(--ink); }
