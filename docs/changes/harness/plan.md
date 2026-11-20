@@ -4,3 +4,6 @@
 2. Reuse the npm task runner to attempt every check and report failures. Scan Git history, the index and the working tree for secrets.
 3. Resolve the findings and add unit tests for app behavior needed to meet the coverage threshold.
 4. Document the commands and run the quick and full checks.
+5. Configure Lefthook to format staged files before running lint, type and secret checks.
+6. Configure and verify the Codex Stop and PreToolUse hooks and the read-only `.env` permission.
+7. Configure and verify the same two hooks for Claude Code in `.claude/settings.json`.

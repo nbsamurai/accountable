@@ -17,3 +17,5 @@ Follow the [coding standards](docs/STANDARDS.md) when changing code.
 Run `npm run check` from the repository root before finishing a code change. It checks formatting, linting, cyclomatic complexity (maximum 15 per function), types and secrets, then runs `npm test`. The test command enforces at least 80% unit coverage in both the frontend and backend and runs the Playwright end-to-end tests in Google Chrome. The checks continue after a failure and the command exits nonzero if any check fails. Fix failures and rerun the full command.
 
 Use `npm run check:quick` during development to skip the end-to-end suite. Use `npm run format` to apply Prettier and Ruff formatting.
+
+Leave `.env` for the user to manage. The Codex and Claude Code Stop hooks run `npm run check:quick` and give the agent one follow-up attempt if it fails. See the [hook setup](docs/STATUS.md#development-hooks).

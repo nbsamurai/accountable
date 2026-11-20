@@ -1,0 +1,8 @@
+default_permissions = "accountable-workspace"
+
+[permissions.accountable-workspace]
+description = "Workspace access with a read-only .env file."
+extends = ":workspace"
+
+[permissions.accountable-workspace.filesystem.":workspace_roots"]
+".env" = "read"

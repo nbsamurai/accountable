@@ -13,6 +13,7 @@
     "check": "node scripts/test.mjs check:static test",
     "check:quick": "node scripts/test.mjs check:static test:quick",
     "check:static": "node scripts/test.mjs format:check:frontend format:check:backend lint:frontend lint:backend typecheck:backend check:secrets",
+    "check:precommit": "node scripts/test.mjs lint:frontend lint:backend typecheck:frontend typecheck:backend check:secrets",
     "check:secrets": "node scripts/check-secrets.mjs",
     "format": "node scripts/test.mjs format:frontend format:backend",
     "format:frontend": "npm run format --workspace frontend",
@@ -21,6 +22,7 @@
     "format:check:backend": "uv run ruff format --check backend",
     "lint:frontend": "npm run lint --workspace frontend",
     "lint:backend": "uv run ruff check backend",
+    "typecheck:frontend": "npm run typecheck --workspace frontend",
     "typecheck:backend": "uv run ty check backend",
     "test": "node scripts/test.mjs test:frontend test:backend test:e2e",
     "test:quick": "node scripts/test.mjs test:frontend test:backend",
@@ -31,6 +33,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
-    "@playwright/test": "^1.65.1"
+    "@playwright/test": "^1.65.1",
+    "lefthook": "^2.2.2"
   }
 }

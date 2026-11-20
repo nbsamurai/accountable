@@ -30,6 +30,14 @@ The end-to-end tests start their own servers on ports 8100 and 5174, with their 
 
 The frontend check uses TypeScript 6.0, the newest series supported by the installed typescript-eslint, and ESLint 9, the newest major supported by the installed jsx-a11y plugin. Gitleaks scans Git history, staged changes, and the working tree, excluding files ignored by Git from the working-tree scan.
 
+## Development hooks
+
+- `npm ci` installs Lefthook and its Git pre-commit hook. Run `npm exec --no -- lefthook install` if your npm setup skipped install scripts. The hook formats and re-stages eligible frontend and backend files, then runs ESLint, Ruff lint, TypeScript, ty and Gitleaks. The pre-commit hook skips tests.
+- Start a fresh local Codex session in this trusted workspace and review the two project hooks in **Settings > Hooks** in the desktop app or `/hooks` in the CLI. Once trusted, the Stop hook runs `npm run check:quick` on the first stop attempt and sends any failure back to Codex for one follow-up pass. [Codex hook setup](https://learn.chatgpt.com/docs/hooks)
+- The PreToolUse hook blocks patch edits and shell or filesystem tool calls that explicitly name `.env`. The `accountable-workspace` permission profile also makes the root `.env` read-only for sandboxed tools, including indirect writes. Use that profile for the filesystem restriction. Codex's full-access mode and tools outside its local sandbox do not get filesystem enforcement from the profile. [Codex hooks](https://learn.chatgpt.com/docs/hooks) · [Codex permissions](https://learn.chatgpt.com/docs/permissions)
+- Claude Code reads its two project hooks from `.claude/settings.json`, and a running session picks up changes to them. The Stop hook runs `npm run check:quick` when Claude finishes a turn and sends any failure back for one follow-up pass. On the next stop, `stop_hook_active` is true, so the hook lets Claude stop. [Claude Code hooks](https://code.claude.com/docs/en/hooks)
+- The Claude Code PreToolUse hook denies Edit and Write calls on any file named `.env`, and shell commands that name `.env`, reads included. It can't see a write that a script makes without naming the file in the command.
+
 ## Done
 
 - **Phase 1, skeleton and the one command:**

@@ -1,0 +1,15 @@
+glob_matcher: doublestar
+
+pre-commit:
+  piped: true
+  jobs:
+    - name: format-frontend
+      glob: "frontend/**"
+      run: npm exec --no -- prettier --write --ignore-unknown --ignore-path .gitignore -- {staged_files}
+      stage_fixed: true
+    - name: format-backend
+      glob: "backend/**/*.{py,pyi,ipynb}"
+      run: uv run ruff format --force-exclude -- {staged_files}
+      stage_fixed: true
+    - name: lint-types-and-secrets
+      run: npm run check:precommit
