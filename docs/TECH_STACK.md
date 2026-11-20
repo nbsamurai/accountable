@@ -26,3 +26,5 @@ Testing will cover:
 3. End-to-end tests of the whole app in a browser, in `e2e/`, using Playwright Test (`@playwright/test`) with the installed Google Chrome. They start the app themselves, so `npm test` needs nothing else running.
 
 The tests use a database of their own, so running them never changes your data.
+
+GitHub Actions runs `npm run check` on every push to any branch, after a Gitleaks scan of the whole history.

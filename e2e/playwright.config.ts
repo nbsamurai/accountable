@@ -16,7 +16,11 @@ export default defineConfig({
   workers: 1,
   fullyParallel: false,
   forbidOnly: true,
-  reporter: [["list"]],
+  // CI uploads the HTML report, traces included, when a run fails.
+  reporter: [
+    ["list"],
+    ["html", { outputFolder: join(root, "playwright-report"), open: "never" }],
+  ],
   timeout: 30_000,
   // A browser that hangs can't block npm test for good.
   globalTimeout: 15 * 60_000,

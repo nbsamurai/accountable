@@ -38,6 +38,16 @@ The frontend check uses TypeScript 6.0, the newest series supported by the insta
 - Claude Code reads its two project hooks from `.claude/settings.json`, and a running session picks up changes to them. The Stop hook runs `npm run check:quick` when Claude finishes a turn and sends any failure back for one follow-up pass. On the next stop, `stop_hook_active` is true, so the hook lets Claude stop. [Claude Code hooks](https://code.claude.com/docs/en/hooks)
 - The Claude Code PreToolUse hook denies Edit and Write calls on any file named `.env`, and shell commands that name `.env`, reads included. It can't see a write that a script makes without naming the file in the command.
 
+## Continuous integration
+
+`.github/workflows/ci.yml` runs one job, `check`, on every push to any branch, on GitHub's `ubuntu-latest` runner. It uses no secrets.
+
+1. It installs Gitleaks and checks the download against a pinned SHA-256. Gitleaks then scans the history of every branch, so a leaked secret fails the run before anything else is installed. To update Gitleaks, change `VERSION` and `SHA256` together, from the release's checksums file.
+2. It installs the current Node.js LTS and the latest uv, runs `npm ci` and `uv sync --locked`, then runs `npm run check`. The end-to-end tests use the Google Chrome on the runner.
+3. If the run fails, it uploads the Playwright HTML report, with traces of failed tests, as the `playwright-report` artifact for 14 days.
+
+`npm test` also writes the HTML report to `playwright-report/` locally. Open it with `npx playwright show-report`.
+
 ## Done
 
 - **Phase 1, skeleton and the one command:**

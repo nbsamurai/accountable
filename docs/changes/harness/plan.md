@@ -7,3 +7,4 @@
 5. Configure Lefthook to format staged files before running lint, type and secret checks.
 6. Configure and verify the Codex Stop and PreToolUse hooks and the read-only `.env` permission.
 7. Configure and verify the same two hooks for Claude Code in `.claude/settings.json`.
+8. Add a GitHub Actions workflow that scans for secrets, runs `npm run check` and uploads the Playwright report on failure.
