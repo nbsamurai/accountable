@@ -10,6 +10,7 @@ Make a separate pass over every change for each of these:
 - **Security:** no secrets or personal data are exposed, and nobody can do what they shouldn't.
 - **Matches the spec and current change plan.** Check the change against `docs/spec.md` and the current branch's `docs/changes/<branch name>/plan.md`.
   - Flag missing requirements and any code in the change that implements behavior `docs/spec.md` doesn't describe.
+- **Coding standards.** Check the change against [docs/STANDARDS.md](STANDARDS.md).
 
 ## Important
 

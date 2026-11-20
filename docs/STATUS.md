@@ -4,6 +4,8 @@ All nine phases in the [MVP plan](changes/mvp/plan.md) are complete. The finding
 
 The [product spec](spec.md) now describes Accountable as it runs today. The MVP's intent and plan live in [its change folder](changes/mvp/), and the review policy checks for product behavior missing from the spec.
 
+`AGENTS.md` points to the [coding standards](STANDARDS.md), and the review policy checks changes against them.
+
 ## Install once
 
 1. **Node.js 24 or later.** Install the current LTS from [nodejs.org](https://nodejs.org).
