@@ -127,7 +127,7 @@ Resolved the six findings in [the Nov 19 review](mvp-review.md) on Nov 20, 2026.
 
 `npm test` passed the frontend type check and all 200 tests (45 frontend, 102 backend and 53 Chrome). The large-data Chrome checks measured all eight screens under a second.
 
-On a clean copy with a fresh sample database, a scripted Chrome walkthrough visited all five sections, created a linked lead and a deal directly in Won, confirmed the lead became a customer, and logged and completed a follow-up from the dashboard. The records and completion persisted after restart. The walkthrough recorded zero console or page errors. Screenshots of all sections, record pages and the missing-page screen were reviewed against the spec, with the dashboard and pipeline compared to the Agenda mockup. The desktop Chrome controls became unavailable during the hands-on walkthrough.
+On a clean copy with a fresh sample database, a scripted Chrome walkthrough visited all five sections, created a linked lead and a deal directly in Won, confirmed the lead became a customer, and logged and completed a follow-up from the dashboard. The records and completion persisted after restart. The walkthrough recorded zero console or page errors. Screenshots of all sections, record pages and the missing-page screen were reviewed against the spec, with the dashboard and pipeline compared to the Agenda mockup. The hands-on walkthrough stopped partway, when the desktop Chrome controls became unavailable. The full check passed later, with [dark mode](#the-hands-on-check-nov-20-2026).
 
 ## Second review (Nov 20, 2026)
 
@@ -153,7 +153,7 @@ How each was fixed:
 
 ## Dark mode (Nov 20, 2026)
 
-Built in the four phases of the [dark mode plan](changes/dark-mode/plan.md). Nothing is committed yet.
+Built in the four phases of the [dark mode plan](changes/dark-mode/plan.md).
 
 - **Tokens by role.** `--ink`, `--alert-ink` and `--info-ink` were also fills behind white text. Each fill now has its own token: `--fill-strong`, `--on-fill-strong`, `--on-bright`, `--alert-fill`, `--alert-fill-hover`, `--info-fill` and `--count-bg`. The two colors written in component styles moved into `tokens.css`. `STAGE_COLORS`, an unused copy of the stage colors, is gone.
 - **Light mode is unchanged.** A temporary Playwright test compared 17 light-mode screenshots pixel for pixel before and after each phase, then was deleted. They matched, apart from the Menu button at 320 px, which moved 36 px left to make room for the toggle.
@@ -168,7 +168,7 @@ Built in the four phases of the [dark mode plan](changes/dark-mode/plan.md). Not
   - `keyboard.spec.ts` switches modes with Space.
 - **Screenshots** at a 1,440 × 1,000 px window with the sample data, as full pages: [dashboard, light](changes/dark-mode/dashboard-light.png), [dashboard, dark](changes/dark-mode/dashboard-dark.png), [pipeline, light](changes/dark-mode/pipeline-light.png) and [pipeline, dark](changes/dark-mode/pipeline-dark.png).
 - **Checks.** The latest `npm run check` passed all 325 tests (140 frontend, 103 backend and 82 Chrome), including the full axe suite in both modes. Frontend line coverage is 82.5% and backend statement coverage is 96.53%. A separate Playwright run passed all four dashboard and pipeline axe cases and refreshed the screenshots. An earlier one-off run of the whole Chrome suite with dark mode stored first passed 74 of 75 tests, with no console errors. The one failure was the new keyboard test, which expects to start in light mode.
-- **Tooltips work.** An earlier note said icon-button tooltips didn't open on hover in Playwright's Chrome. React Aria counts a hover only once the mouse has moved over the page, and Playwright's `hover()` jumps onto the button in one step. With the mouse moving there in steps, or with keyboard focus, the tooltip opens, and it did with a real mouse in desktop Chrome. A new test in `accessibility.spec.ts` checks both, with axe, in both modes.
+- **Tooltips.** Icon-button tooltips open on mouse hover and on keyboard focus. React Aria counts a hover only once the mouse has moved over the page, and Playwright's `hover()` jumps onto the button in one step, so the test in `accessibility.spec.ts` moves the mouse there in steps. It checks the mouse and the keyboard, with axe, in both modes.
 
 ### The hands-on check (Nov 20, 2026)
 
@@ -196,6 +196,15 @@ Differences from the plan:
 - The plan's fallback for a flash, the script in `index.html`, was needed. It also sets `color-scheme`, which isn't a color, so the colors still live only in `tokens.css`.
 - The Timeline's stage-change icon sits on Sea Green, so it uses `--on-bright` too.
 - At 860 px and below, the top bar's smallest gap is now 8 px. At 320 px, the wordmark, Menu and the toggle fill the width with that 8 px to spare.
+
+### Improve the harness (Nov 20, 2026)
+
+[docs/IMPROVE.md](IMPROVE.md) ran before any review of dark mode, so it had no review findings to use. Two mistakes had happened in the MVP too, so `AGENTS.md` now covers them:
+
+- **The hands-on check was left for the user.** The MVP ended with it open, and the dark mode build first reported it as needing a person. The agent now does it in desktop Chrome before reporting a change as done. While doing it, a tooltip "bug" came from aiming the mouse at a button out of view, and a wrong time came from a scaled-down screenshot. So the rule also says to read values from the page and reproduce a bug before reporting it.
+- **Departures from the plan were written only in STATUS.md.** The MVP review flagged this, and dark mode did it again. Departures now go into `plan.md`.
+
+IMPROVE.md now has a watch list of mistakes seen once, so the next round can tell when one happens twice.
 
 ## Known limits
 
