@@ -12,6 +12,8 @@ See `docs/TECH_STACK.md` for the stack and `docs/STATUS.md` for progress and set
 
 Follow the [coding standards](docs/STANDARDS.md) when changing code.
 
+At Deploy, after the review fixes and before the merge, follow [Improve the harness](docs/IMPROVE.md).
+
 ## Testing
 
 Run `npm run check` from the repository root before finishing a code change. It checks formatting, linting, cyclomatic complexity (maximum 15 per function), types and secrets, then runs `npm test`. The test command enforces at least 80% unit coverage in both the frontend and backend and runs the Playwright end-to-end tests in Google Chrome. The checks continue after a failure and the command exits nonzero if any check fails. Fix failures and rerun the full command.
