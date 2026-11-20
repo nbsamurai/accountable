@@ -40,7 +40,7 @@
 }
 
 .segment[data-focused] {
-  background: var(--info-ink);
+  background: var(--info-fill);
   color: var(--on-dark);
 }
 
@@ -113,8 +113,8 @@
 }
 
 .cell[data-selected] {
-  background: var(--ink);
-  color: var(--on-dark);
+  background: var(--fill-strong);
+  color: var(--on-fill-strong);
   font-weight: 600;
 }
 

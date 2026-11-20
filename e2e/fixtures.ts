@@ -20,7 +20,14 @@ export { API_URL };
 // The tests run one file at a time in one worker. The database is reset when a new file starts.
 let lastFile: string | undefined;
 
+type Options = {
+  /** The mode every page in the test opens in. Light is the default, as in the app. */
+  theme: "light" | "dark";
+};
+
 type Fixtures = {
+  /** Stores the theme option's choice before each page loads, as the toggle would. */
+  applyTheme: void;
   /** The console and page errors this test causes on purpose. */
   allowedErrors: RegExp[];
   /** Lets one test allow an error it causes on purpose, such as a failed save. */
@@ -31,7 +38,19 @@ type Fixtures = {
   freshData: void;
 };
 
-export const test = base.extend<Fixtures>({
+export const test = base.extend<Options & Fixtures>({
+  theme: ["light", { option: true }],
+
+  applyTheme: [
+    async ({ context, theme }, use) => {
+      if (theme === "dark") {
+        await context.addInitScript(() => localStorage.setItem("accountable-theme", "dark"));
+      }
+      await use();
+    },
+    { auto: true },
+  ],
+
   freshData: [
     async ({}, use, testInfo) => {
       if (testInfo.file !== lastFile) {

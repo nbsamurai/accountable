@@ -1,14 +1,5 @@
 import { expect, test } from "vitest";
-import {
-  FUNNEL_STAGES,
-  isClosed,
-  isOpen,
-  OPEN_STAGES,
-  STAGE_COLORS,
-  STAGES,
-  stage,
-  status,
-} from "./stages";
+import { FUNNEL_STAGES, isClosed, isOpen, OPEN_STAGES, STAGES, stage, status } from "./stages";
 
 test("the stages in pipeline order", () => {
   expect(STAGES.map((s) => s.name)).toEqual([
@@ -46,13 +37,7 @@ test("open and closed", () => {
   expect(isClosed("lost")).toBe(true);
 });
 
-test("each stage's colors follow spec 5.3", () => {
-  expect(STAGE_COLORS.new).toEqual({ fill: "var(--primary)", text: "var(--ink)" });
-  expect(STAGE_COLORS.qualified).toEqual({ fill: "var(--secondary)", text: "var(--ink)" });
-  expect(STAGE_COLORS.proposal).toEqual({ fill: "var(--tertiary)", text: "var(--ink)" });
-  expect(STAGE_COLORS.negotiation).toEqual({ fill: "var(--info-ink)", text: "var(--on-dark)" });
-  expect(STAGE_COLORS.won).toEqual({ fill: "var(--ink)", text: "var(--on-dark)" });
-  expect(STAGE_COLORS.lost).toEqual({ fill: "var(--subtle)", text: "var(--ink)" });
+test("each stage has a class for its colors in tokens.css", () => {
   expect(stage("proposal").className).toBe("st-proposal");
 });
 

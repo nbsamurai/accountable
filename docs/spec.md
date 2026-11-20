@@ -8,7 +8,7 @@ A small business keeps track of its customers and sales in spreadsheets, inboxes
 
 Accountable is a sales CRM that one salesperson runs on their own computer. It brings organizations, contacts, deals and activities together in five sections. The Dashboard shows sales figures, recent activity and follow-ups. Organizations, Contacts and Deals are where the salesperson finds and manages records. The Pipeline shows deals by stage and lets the salesperson move and reorder them.
 
-The app is account-free and uses a desktop light-mode layout. It uses US dollars and a fixed set of sales stages and record fields. The salesperson logs notes, calls and emails in the app. Sales reporting is on the dashboard.
+The app is account-free and uses a desktop layout, in light mode or dark mode. Light mode is the default. It uses US dollars and a fixed set of sales stages and record fields. The salesperson logs notes, calls and emails in the app. Sales reporting is on the dashboard.
 
 Data is stored on the same computer and persists across browser refreshes and server restarts. The first run installs dependencies and opens the dashboard with sample data. Once installed, the app can be used offline. Section 9.6 covers starting the app and resetting its data. See the [setup instructions](STATUS.md#install-once) and [technical stack](TECH_STACK.md).
 
@@ -164,10 +164,11 @@ The database enforces these rules with foreign keys: `SET NULL` for links to org
 
 ### 4.1 The app shell
 
-- **Top bar,** 64 px tall, on the page background with no line under it. It has the Accountable wordmark on the left, which links to the dashboard, and the five sections: Dashboard, Organizations, Contacts, Deals and Pipeline. The current section is a Midnight pill with white text, and has `aria-current="page"`. The bar stays at the top as the page scrolls.
+- **Top bar,** 64 px tall, on the page background with no line under it. It has the Accountable wordmark on the left, which links to the dashboard, and the five sections: Dashboard, Organizations, Contacts, Deals and Pipeline. The current section is a `--fill-strong` pill (Midnight with white text, or Sea Mist with Midnight text in dark mode), and has `aria-current="page"`. The "Dark mode" toggle is at the right end. The bar stays at the top as the page scrolls.
+- **Light and dark mode:** light mode is the default. The "Dark mode" toggle switches the whole app to dark mode, charts, dialogs and messages included, and back. The browser remembers the choice per browser profile, across reloads and restarts, in `localStorage` under `accountable-theme`. A dark choice applies before the page first shows, so it never flashes white or light. If the browser blocks storage, the toggle still works until the page reloads. The app doesn't follow the device's own dark mode setting.
 - **Main area:** at most 1,440 px wide and centered, with 32 px side margins. Each screen has one `h1`, its title, with the screen's main action on the right of it, such as "Add contact".
 - **Skip link:** "Skip to main content" is the first thing on the page, and shows when it has focus.
-- **Narrow windows** reflow down to 320 px, the equivalent of a 1,280 px screen at 400% zoom. At 860 px and below, a “Menu” button holds the sections. Grids stack as space narrows, and tables and the board scroll sideways within their panels.
+- **Narrow windows** reflow down to 320 px, the equivalent of a 1,280 px screen at 400% zoom. At 860 px and below, a “Menu” button holds the sections. The “Dark mode” toggle stays in the top bar, outside the menu, at every width. Grids stack as space narrows, and tables and the board scroll sideways within their panels.
 - **Addresses:** `/`, `/organizations`, `/organizations/:id`, `/contacts`, `/contacts/:id`, `/deals`, `/deals/:id` and `/pipeline`. Any other address shows "Page not found", with a link to the dashboard.
 - **Page titles:** "Contacts · Accountable", or "Jane Doe · Accountable" on a record's page.
 
@@ -337,34 +338,51 @@ Parts with a count of 0 are left out. After deleting from a record's page, the a
 
 ### 5.1 Approach
 
-The interface follows the [Accountable brand guidelines](../.claude/skills/brand/SKILL.md). White panels sit on a cool grey page with Midnight text. Color identifies stages, statuses, alerts and the main action. Monospace figures line up, and the revenue line has a gradient fill.
+The interface follows the [Accountable brand guidelines](../.claude/skills/brand/SKILL.md). White panels sit on a cool grey page with Midnight text. In dark mode, black panels sit on a deep Midnight page with Sea Mist text. Color identifies stages, statuses, alerts and the main action. Monospace figures line up, and the revenue line has a gradient fill.
 
 ### 5.2 Color tokens
 
 The brand's colors are too light for small text on white, and two of its pairings are below WCAG AA for small text. White on Cerulean is 3.96:1, and white on Raspberry is 3.62:1, where AA needs 4.5:1. Each brand color therefore has an "ink" shade, a darker version of the same hue that reaches 4.5:1 on both white and the page background. The brand skill lists the same shades. The brand colors stay for fills with Midnight text, large shapes and chart areas. The ink shades are for text, lines, icons, and badges with white text.
 
-All colors are CSS custom properties on `:root`.
+All colors are CSS custom properties in `styles/tokens.css`, on `:root` for light mode. For dark mode, `:root[data-theme="dark"]` redefines every one of them, and `data-theme="dark"` on `<html>` turns it on. No other file sets a color, and a unit test checks this (section 10.2).
 
-| Token | Value | Used for | Contrast |
-|---|---|---|---|
-| `--page` | `#F0F4F5` | Page background | |
-| `--panel` | `#FFFFFF` | Panels, cards, dialogs, inputs | |
-| `--ink` | `#073B4C` Midnight | Text, icons, the Won fill | 12.1:1 on white, 10.9:1 on page |
-| `--ink-muted` | `#456C79` | Secondary text, captions, axis labels | 5.7:1 on white, 5.2:1 on page |
-| `--line` | `#DAE2E4` | Table dividers, chart grid lines | Decorative |
-| `--control` | `#77939D` | Input, checkbox and radio borders | 3.3:1 on white |
-| `--subtle` | `#E6EBED` | Row hover, the Lost fill, column drop area | Midnight text 10.0:1 |
-| `--primary` | `#06D6A0` Sea Green | Primary buttons, New, Customer | Midnight text 6.4:1 |
-| `--primary-hover` | `#05C291` | Primary button hover | Midnight text 5.2:1 |
-| `--primary-ink` | `#008050` | Sea Green text, the revenue line | 5.0:1 on white |
-| `--secondary` | `#FFC145` Marigold | Qualified (stage and status) | Midnight text 7.5:1 |
-| `--secondary-ink` | `#9B6200` | Marigold text | 5.1:1 on white |
-| `--tertiary` | `#F78C6B` Coral | Proposal, Lead | Midnight text 5.1:1 |
-| `--tertiary-ink` | `#B65132` | Coral text | 5.0:1 on white |
-| `--info` | `#118AB2` Cerulean | Chart bars, large shapes | 4.0:1 on white |
-| `--info-ink` | `#00789F` | Links, the focus ring, the Negotiation fill with white text | 5.0:1 on white |
-| `--alert` | `#EF476F` Raspberry | Large alert shapes | 3.6:1 on white |
-| `--alert-ink` | `#D22758` | Late and Overdue badges, delete buttons, error text | White text 5.0:1 |
+In dark mode the page is `#04232E` and panels are black, as the brand skill says. The ink shades are lighter there: each reaches 4.5:1 on the dark page and on black. The brand fills keep their colors in both modes.
+
+Contrast is given on white and the light page, then on the dark page and black.
+
+| Token | Light | Dark | Used for | Contrast (light; dark) |
+|---|---|---|---|---|
+| `--page` | `#F0F4F5` | `#04232E` | Page background | |
+| `--panel` | `#FFFFFF` | `#000000` | Panels, cards, dialogs, menus, inputs, messages | |
+| `--ink` | `#073B4C` Midnight | `#CDD8DB` Sea Mist | Text, icons, the probability meter | 12.1:1 on white, 10.9:1 on page; 11.2:1 on page, 14.4:1 on black |
+| `--ink-muted` | `#456C79` | `#8AA3AB` | Secondary text, captions, axis labels | 5.7:1 on white, 5.2:1 on page; 6.2:1, 7.9:1 |
+| `--line` | `#DAE2E4` | `#1E3E49` | Table dividers, chart grid lines | Decorative |
+| `--control` | `#77939D` | `#5C7A84` | Input, checkbox and radio borders | 3.3:1 on white; 3.6:1 on page, 4.6:1 on black |
+| `--subtle` | `#E6EBED` | `#153844` | Row hover, the Lost fill, column drop area, secondary buttons | `--ink` text 10.0:1; 8.6:1 |
+| `--primary` | `#06D6A0` Sea Green | same | Primary buttons, New, Customer | Midnight text 6.4:1 |
+| `--primary-hover` | `#05C291` | same | Primary button hover | Midnight text 5.2:1 |
+| `--primary-ink` | `#008050` | `#06D6A0` | Sea Green text, the revenue line | 5.0:1 on white; 8.7:1 on page |
+| `--secondary` | `#FFC145` Marigold | same | Qualified (stage and status) | Midnight text 7.5:1 |
+| `--secondary-ink` | `#9B6200` | `#FFC145` | Marigold text | 5.1:1 on white; 10.1:1 on page |
+| `--tertiary` | `#F78C6B` Coral | same | Proposal, Lead | Midnight text 5.1:1 |
+| `--tertiary-ink` | `#B65132` | `#F78C6B` | Coral text | 5.0:1 on white; 6.9:1 on page |
+| `--info` | `#118AB2` Cerulean | same | Chart bars, large shapes | 4.0:1 on white; 4.1:1 on page, 5.3:1 on black |
+| `--info-ink` | `#00789F` | `#4BB8DF` | Links, the focus ring | 5.0:1 on white; 7.2:1 on page |
+| `--alert` | `#EF476F` Raspberry | same | Large alert shapes | 3.6:1 on white; 4.5:1 on page |
+| `--alert-ink` | `#D22758` | `#F4769A` | Overdue and error text, fields with errors | 5.0:1 on white; 6.2:1 on page |
+
+Some fills have text on them. Each has its own token, so dark mode can change one without breaking another.
+
+| Token | Light | Dark | Used for | Contrast (light; dark) |
+|---|---|---|---|---|
+| `--fill-strong` | `#073B4C` Midnight | `#CDD8DB` Sea Mist | The current section, the chosen status filter, Won, the chosen date, checked boxes, the chosen activity type, tooltips, the skip link | |
+| `--on-fill-strong` | `#FFFFFF` | `#073B4C` | Text and icons on `--fill-strong` | 12.1:1; 8.3:1 |
+| `--on-bright` | `#073B4C` | same | Text on Sea Green, Marigold and Coral, and on pill counts | See those colors |
+| `--alert-fill` | `#D22758` | same | The Late badge, delete buttons | White text 5.0:1 |
+| `--alert-fill-hover` | `#B81E4A` | same | Delete button hover | White text 6.3:1 |
+| `--info-fill` | `#00789F` | same | Negotiation, the focused part of a date | White text 5.0:1 |
+| `--on-dark` | `#FFFFFF` | same | Text on `--alert-fill` and `--info-fill` | |
+| `--count-bg` | `rgb(255 255 255 / 55%)` | same | The count badge on stage pills | Midnight text 4.8:1 or more on every stage, in both modes |
 
 ### 5.3 Stage and status colors
 
@@ -372,12 +390,12 @@ The pipeline has six stages and the brand has five colors. The four open stages 
 
 | Stage | Fill | Text on it |
 |---|---|---|
-| New | Sea Green `--primary` | Midnight |
-| Qualified | Marigold `--secondary` | Midnight |
-| Proposal | Coral `--tertiary` | Midnight |
-| Negotiation | Cerulean ink `--info-ink` | White |
-| Won | Midnight `--ink` | White |
-| Lost | Grey `--subtle` | Midnight |
+| New | Sea Green `--primary` | Midnight `--on-bright` |
+| Qualified | Marigold `--secondary` | Midnight `--on-bright` |
+| Proposal | Coral `--tertiary` | Midnight `--on-bright` |
+| Negotiation | Cerulean ink `--info-fill` | White |
+| Won | `--fill-strong`: Midnight, or Sea Mist in dark mode | `--on-fill-strong`: white, or Midnight in dark mode |
+| Lost | Grey `--subtle` | `--ink` |
 
 | Contact status | Fill | Text on it |
 |---|---|---|
@@ -385,7 +403,7 @@ The pipeline has six stages and the brand has five colors. The four open stages 
 | Qualified | Marigold | Midnight |
 | Customer | Sea Green | Midnight |
 
-Stages and statuses always show their name in text, so color is never the only sign. The late badge is `--alert-ink` with white text, a clock icon and the word "Late".
+Stages and statuses always show their name in text, so color is never the only sign. They keep their hues in dark mode. Won turns Sea Mist, a light Midnight, because a Midnight pill would almost disappear on the dark page. The late badge is `--alert-fill` with white text, a clock icon and the word "Late".
 
 ### 5.4 Type
 
@@ -407,6 +425,7 @@ All fonts are bundled from npm (Fontsource), so the app needs no internet connec
 - **Corners:** 16 px on panels and dialogs, 12 px on cards, 10 px on buttons and inputs, and fully round on pills.
 - **No outlines on panels,** and no line on just one edge of anything. White panels on the grey page give the separation.
 - **Shadows:** none on panels. Board cards have `0 1px 2px rgb(7 59 76 / 8%)`. A card being dragged has `0 12px 24px rgb(7 59 76 / 18%)`. Dialogs have `0 24px 48px rgb(7 59 76 / 24%)` over a backdrop of `rgb(7 59 76 / 40%)`.
+- **Shadows in dark mode** are black and stronger: `0 1px 2px rgb(0 0 0 / 40%)` on cards, and `0 12px 24px` or `0 24px 48px` at 60% when dragging and on dialogs. A black shadow doesn't show on black, so dialogs, menus, messages and a dragged card also get a faint 1 px Sea Mist edge, `rgb(205 216 219 / 16%)` (20% when dragging). The dialog backdrop is `rgb(4 35 46 / 75%)`.
 - **Focus:** a 2 px `--info-ink` outline with a 2 px gap, on everything that can take focus.
 - **Click targets:** at least 32 px tall for buttons and inputs, and never under 24 × 24 px.
 - **Motion** uses a 150 ms ease-out transition on hover where applicable and respects the system's reduced-motion setting.
@@ -415,27 +434,28 @@ All fonts are bundled from npm (Fontsource), so the app needs no internet connec
 
 - **Primary button:** Sea Green with Midnight text, weight 600.
 - **Secondary button:** `--subtle` with Midnight text.
-- **Destructive button:** `--alert-ink` with white text.
-- **Icon buttons:** Midnight icons, with a `--subtle` background on hover, a visible label in a tooltip, and the same text as their accessible name.
-- **Inputs:** white, with a 1 px `--control` border and 10 px corners. Fields in an error state get an `--alert-ink` border and the error text under them.
+- **Destructive button:** `--alert-fill` with white text, and `--alert-fill-hover` on hover.
+- **Icon buttons:** `--ink` icons, with a `--subtle` background on hover, a visible label in a tooltip, and the same text as their accessible name.
+- **The "Dark mode" toggle:** an icon button with a Lucide moon and `aria-pressed`. The moon fills in when dark mode is on.
+- **Inputs:** `--panel`, with a 1 px `--control` border and 10 px corners. Fields in an error state get an `--alert-ink` border and the error text under them.
 - **Pills:** 13 px, weight 600, fully round, with the fills from section 5.3.
 - **Icons:** Lucide, at 16 or 20 px.
-- **Panels:** white, with 16 px corners and 24 px padding, and the title at top left.
+- **Panels:** `--panel`, with 16 px corners and 24 px padding, and the title at top left.
 - **Open pipeline by stage:** a 14 px bar split into the four open stages. Each part is in its stage's color and as wide as its share of the open value, with 2 px gaps and 4 px rounded outer ends. Under each part are the stage's name, with a small square in its color, and its value in JetBrains Mono. The bar itself is decoration. The names and values carry the meaning.
 - **Stage pill with count:** the stage's fill and text color (section 5.3), 30 px tall, with the count in JetBrains Mono on a small white badge at 55% opacity.
 - **Contact initials:** a 26 px `--subtle` circle with up to two initials, 11 px, weight 700.
-- **Probability meter:** a 4 px `--subtle` track with a Midnight fill as wide as the probability, and the percent in JetBrains Mono beside it. The meter is decoration. The percent is the text.
-- **Menus:** a white panel with 12 px corners, 6 px padding and a dialog-like shadow. Items are 34 px tall, with a `--subtle` background on hover and focus. Groups are separated by a 1 px `--line` rule.
+- **Probability meter:** a 4 px `--subtle` track with an `--ink` fill as wide as the probability, and the percent in JetBrains Mono beside it. The meter is decoration. The percent is the text.
+- **Menus:** a `--panel` panel with 12 px corners, 6 px padding and a dialog-like shadow. Items are 34 px tall, with a `--subtle` background on hover and focus. Groups are separated by a 1 px `--line` rule.
 
 ### 5.7 Charts
 
 - **Recharts.** Each chart shows one series, so no chart needs a legend.
 - **The revenue line** uses a 2 px stroke in `--primary-ink` and a Sea Green fill that fades to transparent. It labels the peak and latest values when the peak is above zero, and highlights the active point.
-- **The deals-won bars:** `--info`, with the count above each bar in Midnight.
+- **The deals-won bars:** `--info`, with the count above each bar in `--ink`.
 - **The funnel bars:** centered, 30 px tall, in each stage's fill, with the figures in text on either side. Light fills always have their value in text next to them, which WCAG accepts in place of 3:1 contrast for the shape.
 - **Grid lines:** horizontal only, in `--line`.
 - **Axes** use 12 px `--ink-muted` labels, with money in the short form.
-- **Tooltips:** a white panel with a shadow and numbers in JetBrains Mono. They can be reached with the keyboard (Recharts' accessibility layer).
+- **Tooltips:** a `--panel` panel with a shadow and numbers in JetBrains Mono. They can be reached with the keyboard (Recharts' accessibility layer).
 
 ### 5.8 Words
 
@@ -464,7 +484,7 @@ The accessibility standard is WCAG 2.2 AA across all screens. Section 10 describ
   - The "More" menu does the same moves without dragging.
 - **Dragging (2.5.7):** every move a drag can make, the "More" menu can make too.
 - **Focus (2.4.7 and 2.4.11):** the focus ring always shows, and the top bar never covers focused content: `scroll-padding-top` matches its height.
-- **Contrast:** text is at least 4.5:1, and large text, controls and chart shapes at least 3:1, through the tokens in section 5.2.
+- **Contrast:** text is at least 4.5:1, and large text, controls and chart shapes at least 3:1, through the tokens in section 5.2. This holds in light mode and in dark mode.
 - **Color:** stages, statuses, late and overdue always have text as well.
 - **Reflow, zoom and spacing:** the layout works at 320 px wide and at 200% text size, and with the text spacing WCAG 1.4.12 describes. Tables and the board may scroll sideways, which WCAG allows.
 - **Forms:** visible labels, errors linked to their fields, and required fields marked in text.
@@ -535,7 +555,7 @@ data/               the SQLite databases (git-ignored)
 | Messages | Sonner |
 | Icons | Lucide |
 | Fonts | Fontsource: Instrument Sans, Instrument Serif and JetBrains Mono |
-| Styles | CSS Modules, with tokens as custom properties in `styles/tokens.css` |
+| Styles | CSS Modules, with tokens as custom properties in `styles/tokens.css`, and their dark values under `:root[data-theme="dark"]` |
 
 The lockfiles record the dependency versions used by the app.
 
@@ -637,6 +657,10 @@ The first run needs an internet connection to download packages and Python. Afte
 - The delete messages for each record, with counts of 0 left out.
 - Chart summaries and follow-up groups.
 - Pipeline ordering, totals and move announcements.
+- **Light and dark mode:**
+  - reading, saving and showing the choice, with light when nothing usable is stored or storage is blocked
+  - the "Dark mode" toggle, by mouse and keyboard
+  - the color tokens: every contrast pair in section 5.2 in both modes, a dark value for every color, and no color written outside `tokens.css`
 
 ### 10.3 End-to-end tests (Playwright Test, installed Chrome)
 
@@ -649,7 +673,8 @@ The first run needs an internet connection to download packages and Python. Afte
   4. the pipeline, by mouse: moves, Won, reopening, order kept after a reload, totals, adding from a column, late cards
   5. timelines and follow-ups
   6. the dashboard's figures against the data
-- **Accessibility:** axe (`@axe-core/playwright`, with the tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa` and `wcag22aa`) on every screen, on each form dialog and on each delete dialog. It must find no violations.
+  7. dark mode: light by default, the toggle, the choice kept after a reload and a restart, on every screen and at 320 px, and charts, dialogs and messages following it
+- **Accessibility:** axe (`@axe-core/playwright`, with the tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa` and `wcag22aa`) on every screen, on each form dialog and on each delete dialog, and with an icon button's tooltip open, in light mode and in dark mode. It must find no violations in either. The tooltip shows the button's name on hover and on keyboard focus.
 - **Keyboard only:**
   - add a contact
   - log an activity and mark its follow-up done
@@ -657,8 +682,9 @@ The first run needs an internet connection to download packages and Python. Afte
   - move one with the "More" menu
   - choose a far stage on a deal's stage path, passing other stages with the arrow keys without changing them
   - delete a deal
+  - switch to dark mode and back
 - **Performance:** section 7.
 
 ### 10.4 The hands-on check
 
-For the hands-on acceptance check, start Accountable with `npm run dev` from a fresh clone and follow the salesperson's workflow through all five sections in Chrome. Check the actions in section 10.3, confirm saved changes survive a restart and verify that the reset restores the sample data. Check each screen against the visual design and accessibility requirements, exercise the workflow with the keyboard and watch the console for errors. Record the results in [STATUS.md](STATUS.md).
+For the hands-on acceptance check, start Accountable with `npm run dev` from a fresh clone and follow the salesperson's workflow through all five sections in Chrome. Check the actions in section 10.3, confirm saved changes survive a restart and verify that the reset restores the sample data. Check each screen against the visual design and accessibility requirements in light mode and in dark mode, exercise the workflow with the keyboard and watch the console for errors. Record the results in [STATUS.md](STATUS.md).

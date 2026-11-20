@@ -44,16 +44,6 @@ export function isClosed(key: Stage): boolean {
   return !BY_KEY[key].open;
 }
 
-/** Each stage's colors, as CSS custom properties: the fill, and the text on it. */
-export const STAGE_COLORS: Record<Stage, { fill: string; text: string }> = {
-  new: { fill: "var(--primary)", text: "var(--ink)" },
-  qualified: { fill: "var(--secondary)", text: "var(--ink)" },
-  proposal: { fill: "var(--tertiary)", text: "var(--ink)" },
-  negotiation: { fill: "var(--info-ink)", text: "var(--on-dark)" },
-  won: { fill: "var(--ink)", text: "var(--on-dark)" },
-  lost: { fill: "var(--subtle)", text: "var(--ink)" },
-};
-
 export type StatusInfo = { key: Status; name: string; plural: string; className: string };
 
 export const STATUSES: StatusInfo[] = [

@@ -1,6 +1,8 @@
 # Status
 
-All nine phases in the [MVP plan](changes/mvp/plan.md) are complete. The findings of both MVP reviews are resolved. The [hands-on Chrome acceptance check](spec.md#104-the-hands-on-check) is still open.
+All nine phases in the [MVP plan](changes/mvp/plan.md) are complete. The findings of both MVP reviews are resolved. The [hands-on Chrome acceptance check](spec.md#104-the-hands-on-check) passed on Nov 20, 2026, in light and dark mode.
+
+[Dark mode](#dark-mode-nov-20-2026) is built from [its plan](changes/dark-mode/plan.md) and waits for review.
 
 The [product spec](spec.md) now describes Accountable as it runs today. The MVP's intent and plan live in [its change folder](changes/mvp/), and the review policy checks for product behavior missing from the spec.
 
@@ -149,6 +151,52 @@ How each was fixed:
 
 `npm run check:quick` passed without starting Chrome. A temporary Git repository verified that Gitleaks skips an ignored `.env`. It flagged a force-staged `.env` and credentials in untracked files, staged changes, and earlier commits. The findings were redacted.
 
+## Dark mode (Nov 20, 2026)
+
+Built in the four phases of the [dark mode plan](changes/dark-mode/plan.md). Nothing is committed yet.
+
+- **Tokens by role.** `--ink`, `--alert-ink` and `--info-ink` were also fills behind white text. Each fill now has its own token: `--fill-strong`, `--on-fill-strong`, `--on-bright`, `--alert-fill`, `--alert-fill-hover`, `--info-fill` and `--count-bg`. The two colors written in component styles moved into `tokens.css`. `STAGE_COLORS`, an unused copy of the stage colors, is gone.
+- **Light mode is unchanged.** A temporary Playwright test compared 17 light-mode screenshots pixel for pixel before and after each phase, then was deleted. They matched, apart from the Menu button at 320 px, which moved 36 px left to make room for the toggle.
+- **The toggle.** "Dark mode" sits at the right end of the top bar at every width. `lib/theme.ts` keeps the choice in `localStorage` under `accountable-theme`.
+- **No white flash.** Before the fix, a dark reload showed a white page for about 0.65 s locally, and 7.6 s on a slowed network, until the scripts loaded. A short script and one `color-scheme` rule in `index.html` now make that blank page dark.
+- **The palette.** `:root[data-theme="dark"]` sets every color, the shadows and the backdrop, with the values in spec 5.2. Dialogs, menus and messages get a faint Sea Mist edge, because a black shadow doesn't show on black panels.
+- **Tests:**
+  - `tokens.test.ts` checks every contrast pair in both modes, that dark mode sets every color, and that no other file writes a color.
+  - `theme.test.ts` and `ThemeToggle.test.tsx` cover the stored choice and the toggle.
+  - `7-dark-mode.spec.ts` covers light as the default, a reload, a restart, the toggle at 320 px, and charts, dialogs and messages following the mode.
+  - The axe suite runs in both modes.
+  - `keyboard.spec.ts` switches modes with Space.
+- **Screenshots** at a 1,440 × 1,000 px window with the sample data, as full pages: [dashboard, light](changes/dark-mode/dashboard-light.png), [dashboard, dark](changes/dark-mode/dashboard-dark.png), [pipeline, light](changes/dark-mode/pipeline-light.png) and [pipeline, dark](changes/dark-mode/pipeline-dark.png).
+- **Checks.** `npm run check` passed: 140 frontend, 103 backend and 82 Chrome tests. Frontend line coverage is 82.5% and backend statement coverage is 96.53%. A one-off run of the whole Chrome suite with dark mode stored first passed 74 of 75 tests, with no console errors. The one failure was the new keyboard test, which expects to start in light mode.
+- **Tooltips work.** An earlier note said icon-button tooltips didn't open on hover in Playwright's Chrome. React Aria counts a hover only once the mouse has moved over the page, and Playwright's `hover()` jumps onto the button in one step. With the mouse moving there in steps, or with keyboard focus, the tooltip opens, and it did with a real mouse in desktop Chrome. A new test in `accessibility.spec.ts` checks both, with axe, in both modes.
+
+### The hands-on check (Nov 20, 2026)
+
+Claude ran spec 10.4 in desktop Chrome through the Claude in Chrome extension, at a 1,440 px window. It used a fresh copy of the working tree: the files Git tracks plus the new ones, with no `node_modules/`, `.venv/` or `data/`.
+
+1. `npm run dev` installed the packages, started both servers and opened the browser on the dashboard with the sample data.
+2. **Light mode:** added an organization and found it by search. The moon's tooltip showed on mouse hover, and a click switched to dark mode.
+3. **Dark mode, keyboard only:** added a contact. The organization picker found the new organization, and the arrow keys chose the Qualified status.
+4. **Dark mode, by mouse:**
+   - The Qualified filter and a sort by name both worked.
+   - In a new deal, choosing the organization limited the main contacts to its one person.
+   - Dragging the card from New to Qualified, then to Won, updated the totals and said "Hana Check is now a customer".
+   - A call logged on the deal with a follow-up today showed on the dashboard under Today, with Won this month at $30,000 from 2 deals. Marking it done there removed it.
+   - Editing the organization's website saved.
+5. **Restart:** after Ctrl+C and `npm run dev` again, every change was still there, and dark mode was still on.
+6. **Delete:** the dialog said the organization's contact and deal would be kept, and the organization went.
+7. **Reset:** `npm run seed` restored the sample data in the running app.
+8. **Back to light:** 8 Tab presses reached "Dark mode", its tooltip showed, and Space switched to light mode.
+
+Chrome's console showed no errors. The end-to-end suite covers the rest of spec 10.3 in both modes, including reopening a deal, adding from a column, the More menu and 320 px.
+
+Differences from the plan:
+
+- The toggle uses the icon button's styles, so it has no style file of its own.
+- The plan's fallback for a flash, the script in `index.html`, was needed. It also sets `color-scheme`, which isn't a color, so the colors still live only in `tokens.css`.
+- The Timeline's stage-change icon sits on Sea Green, so it uses `--on-bright` too.
+- At 860 px and below, the top bar's smallest gap is now 8 px. At 320 px, the wordmark, Menu and the toggle fill the width with that 8 px to spare.
+
 ## Known limits
 
 - Search ignores case only for A to Z, as SQLite does, so "émile" won't find "Émile".
@@ -157,4 +205,4 @@ How each was fixed:
 
 ## Next
 
-- Complete the hands-on salesperson workflow in desktop Chrome from spec 10.4 and record the findings here.
+- Review dark mode, then merge it.

@@ -165,3 +165,16 @@ test("choose a far stage on a deal's stage path with the keyboard only", async (
   const contact = await (await request.get(`${API_URL}/api/contacts/${deal.contact.id}`)).json();
   expect(contact.status).toBe("qualified");
 });
+
+test("switch to dark mode and back with the keyboard only", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Dashboard");
+  const toggle = page.getByRole("button", { name: "Dark mode" });
+  await tabTo(page, toggle);
+  await page.keyboard.press("Space");
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.keyboard.press("Space");
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator("html")).not.toHaveAttribute("data-theme");
+});

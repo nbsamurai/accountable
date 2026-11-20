@@ -2,8 +2,10 @@ import { Menu as MenuIcon, X } from "lucide-react";
 import { useId, useRef, useState, type KeyboardEvent } from "react";
 import { Link, NavLink, Outlet, ScrollRestoration, useLocation } from "react-router";
 import { Toaster } from "sonner";
+import { useTheme } from "../lib/theme";
 import styles from "./AppShell.module.css";
 import { ServerBanner } from "./ServerBanner";
+import { ThemeToggle } from "./ThemeToggle";
 
 const SECTIONS = [
   { to: "/", label: "Dashboard", end: true },
@@ -21,7 +23,7 @@ function Wordmark() {
         <path
           d="M8 14.5l4 4 8-9"
           fill="none"
-          stroke="var(--ink)"
+          stroke="var(--on-bright)"
           strokeWidth="2.6"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -89,6 +91,7 @@ function NarrowMenu() {
 export function AppShell() {
   const main = useRef<HTMLElement>(null);
   const { pathname } = useLocation();
+  const [theme] = useTheme();
   return (
     <>
       <a
@@ -108,14 +111,23 @@ export function AppShell() {
           <nav aria-label="Sections" className={styles.wide}>
             <SectionLinks className={styles.list} />
           </nav>
-          <NarrowMenu key={pathname} />
+          <div className={styles.end}>
+            <NarrowMenu key={pathname} />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
       <main id="main" ref={main} tabIndex={-1} className={styles.main}>
         <ServerBanner />
         <Outlet />
       </main>
-      <Toaster position="bottom-right" duration={5000} closeButton containerAriaLabel="Messages" />
+      <Toaster
+        theme={theme}
+        position="bottom-right"
+        duration={5000}
+        closeButton
+        containerAriaLabel="Messages"
+      />
       <ScrollRestoration />
     </>
   );

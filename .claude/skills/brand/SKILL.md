@@ -41,6 +41,20 @@ The colors above are too light for small text and thin lines on white. White tex
 
 Keep the brand colors for fills with Midnight text, large shapes and chart areas. When a chart uses a light fill, show its value in text next to it.
 
+### Lighter shades for dark backgrounds
+
+On the dark page and black panels, use these shades for text, lines and icons. Each one reaches 4.5:1 on both. Badges with white text keep the darker shades above, because white text needs a dark fill.
+
+| Color | Lighter shade |
+|---|---|
+| Sea Green | `#06D6A0` |
+| Marigold | `#FFC145` |
+| Coral | `#F78C6B` |
+| Cerulean | `#4BB8DF` |
+| Raspberry | `#F4769A` |
+
+Sea Green, Marigold and Coral fills keep Midnight text in dark mode.
+
 ## Surfaces
 
 - **Light mode**: page background `#F0F4F5`, white panels and cards

@@ -24,8 +24,8 @@
 }
 
 .tooltip {
-  background: var(--ink);
-  color: var(--on-dark);
+  background: var(--fill-strong);
+  color: var(--on-fill-strong);
   font-size: var(--text-caption);
   font-weight: 500;
   padding: 4px 8px;

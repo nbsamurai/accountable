@@ -20,8 +20,8 @@
   height: 20px;
   padding: 0 4px;
   border-radius: var(--radius-pill);
-  background: rgb(255 255 255 / 55%);
-  color: var(--ink);
+  background: var(--count-bg);
+  color: var(--on-bright);
   font-size: var(--text-min);
 }
 

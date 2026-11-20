@@ -1,7 +1,9 @@
 /* Accountable's design tokens (spec 5.2 and 5.5). Every color is a custom property on :root,
-   so a dark mode can later redefine them in one place. */
+   and the dark mode block below redefines them. No other file sets a color. */
 
 :root {
+  color-scheme: light;
+
   /* Surfaces and ink */
   --page: #f0f4f5;
   --panel: #ffffff;
@@ -10,7 +12,16 @@
   --line: #dae2e4; /* decorative dividers and grid lines */
   --control: #77939d; /* input, checkbox and radio borders: 3.3:1 on white */
   --subtle: #e6ebed; /* hover, the Lost fill, drop areas */
-  --on-dark: #ffffff;
+  --on-dark: #ffffff; /* text on --info-fill and --alert-fill */
+
+  /* Fills with text on them. Each has its own token, so a mode can change one without the others. */
+  --fill-strong: #073b4c; /* Midnight: the current section, chosen options, Won, tooltips */
+  --on-fill-strong: #ffffff;
+  --on-bright: #073b4c; /* Midnight text on Sea Green, Marigold and Coral */
+  --alert-fill: #d22758; /* the Late badge and delete buttons: white text 5.0:1 */
+  --alert-fill-hover: #b81e4a;
+  --info-fill: #00789f; /* Negotiation and the focused date segment: white text 5.0:1 */
+  --count-bg: rgb(255 255 255 / 55%); /* the count badge on stage pills */
 
   /* Brand colors, for fills with Midnight text, large shapes and chart areas */
   --primary: #06d6a0; /* Sea Green */
@@ -69,6 +80,53 @@
   --ease: 150ms ease-out;
 }
 
+/* Dark mode (spec 5.2): set by data-theme="dark" on <html>. It redefines every color, so nothing
+   falls back to a light value. Contrast is on the dark page, then on black panels. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Surfaces and ink */
+  --page: #04232e;
+  --panel: #000000;
+  --ink: #cdd8db; /* Sea Mist: 11.2:1, 14.4:1 */
+  --ink-muted: #8aa3ab; /* 6.2:1, 7.9:1 */
+  --line: #1e3e49;
+  --control: #5c7a84; /* 3.6:1, 4.6:1 */
+  --subtle: #153844; /* Sea Mist text 8.6:1 */
+  --on-dark: #ffffff;
+
+  /* Fills with text on them */
+  --fill-strong: #cdd8db; /* Won and chosen options turn Sea Mist, a light Midnight */
+  --on-fill-strong: #073b4c; /* 8.3:1 */
+  --on-bright: #073b4c;
+  --alert-fill: #d22758;
+  --alert-fill-hover: #b81e4a;
+  --info-fill: #00789f;
+  --count-bg: rgb(255 255 255 / 55%);
+
+  /* Brand colors stay the same */
+  --primary: #06d6a0;
+  --primary-hover: #05c291;
+  --secondary: #ffc145;
+  --tertiary: #f78c6b;
+  --info: #118ab2; /* chart bars: 5.3:1 on black */
+  --alert: #ef476f;
+
+  /* Ink shades, lighter on dark (the brand skill): 4.5:1 or more on the page and on panels */
+  --primary-ink: #06d6a0; /* 8.7:1 */
+  --secondary-ink: #ffc145; /* 10.1:1 */
+  --tertiary-ink: #f78c6b; /* 6.9:1 */
+  --info-ink: #4bb8df; /* 7.2:1 */
+  --alert-ink: #f4769a; /* 6.2:1 */
+
+  /* Depth. A black shadow doesn't show on black, so lifted surfaces get a faint Sea Mist edge. */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-drag: 0 0 0 1px rgb(205 216 219 / 20%), 0 12px 24px rgb(0 0 0 / 60%);
+  --shadow-dialog: 0 0 0 1px rgb(205 216 219 / 16%), 0 24px 48px rgb(0 0 0 / 60%);
+  --shadow-menu: 0 0 0 1px rgb(205 216 219 / 16%), 0 12px 32px rgb(0 0 0 / 60%);
+  --backdrop: rgb(4 35 46 / 75%);
+}
+
 @media (max-width: 720px) {
   :root {
     --gutter: 16px;
@@ -78,28 +136,28 @@
 /* Stage colors (spec 5.3): set --st (the fill) and --st-on (the text on it). */
 .st-new {
   --st: var(--primary);
-  --st-on: var(--ink);
+  --st-on: var(--on-bright);
   --st-ink: var(--primary-ink);
 }
 .st-qualified {
   --st: var(--secondary);
-  --st-on: var(--ink);
+  --st-on: var(--on-bright);
   --st-ink: var(--secondary-ink);
 }
 .st-proposal {
   --st: var(--tertiary);
-  --st-on: var(--ink);
+  --st-on: var(--on-bright);
   --st-ink: var(--tertiary-ink);
 }
 .st-negotiation {
-  --st: var(--info-ink);
+  --st: var(--info-fill);
   --st-on: var(--on-dark);
-  --st-ink: var(--info-ink);
+  --st-ink: var(--info-fill);
 }
 .st-won {
-  --st: var(--ink);
-  --st-on: var(--on-dark);
-  --st-ink: var(--ink);
+  --st: var(--fill-strong);
+  --st-on: var(--on-fill-strong);
+  --st-ink: var(--fill-strong);
 }
 .st-lost {
   --st: var(--subtle);
@@ -110,13 +168,13 @@
 /* Contact status colors */
 .status-lead {
   --st: var(--tertiary);
-  --st-on: var(--ink);
+  --st-on: var(--on-bright);
 }
 .status-qualified {
   --st: var(--secondary);
-  --st-on: var(--ink);
+  --st-on: var(--on-bright);
 }
 .status-customer {
   --st: var(--primary);
-  --st-on: var(--ink);
+  --st-on: var(--on-bright);
 }

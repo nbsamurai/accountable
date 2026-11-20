@@ -28,8 +28,8 @@
 }
 
 .option[data-selected] {
-  background: var(--ink);
-  color: var(--on-dark);
+  background: var(--fill-strong);
+  color: var(--on-fill-strong);
   font-weight: 600;
 }
 

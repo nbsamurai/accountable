@@ -32,6 +32,7 @@
 }
 .icon[data-type="stage_change"] {
   background: var(--primary);
+  color: var(--on-bright);
 }
 .icon[data-compact] {
   width: 28px;
@@ -88,9 +89,9 @@
   line-height: 1;
 }
 .check[data-selected] .box {
-  background: var(--ink);
-  color: var(--on-dark);
-  border-color: var(--ink);
+  background: var(--fill-strong);
+  color: var(--on-fill-strong);
+  border-color: var(--fill-strong);
 }
 .check[data-icon-only] .box {
   width: 20px;

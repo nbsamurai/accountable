@@ -21,9 +21,9 @@
 }
 
 .radio[data-selected] {
-  background: var(--ink);
-  color: var(--on-dark);
-  border-color: var(--ink);
+  background: var(--fill-strong);
+  color: var(--on-fill-strong);
+  border-color: var(--fill-strong);
 }
 .radio[data-focus-visible] {
   outline: 2px solid var(--info-ink);
