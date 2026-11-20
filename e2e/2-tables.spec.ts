@@ -222,6 +222,18 @@ test("search, sort and page come back after a reload and after Back", async ({ p
   await expect(page).toHaveURL(/\/organizations$/);
 });
 
+test("a sort clicked right after a search keeps the search, on a slow computer", async ({ page }) => {
+  // A slower CPU, as on GitHub's runners, gives a click time to land before the search renders.
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Emulation.setCPUThrottlingRate", { rate: 6 });
+  await page.goto("/contacts");
+  await search(page, "Search contacts", "an");
+  await expect(page).toHaveURL(/q=an/);
+  await page.getByRole("columnheader", { name: "Email" }).getByRole("button").click();
+  await page.getByRole("columnheader", { name: "Email" }).getByRole("button").click();
+  await expect(page).toHaveURL(/\?q=an&sort=email&dir=desc$/);
+});
+
 test("paging comes back after a reload", async ({ page, request }) => {
   const before = (await (await request.get(`${API_URL}/api/contacts`)).json()).total as number;
   for (let n = 0; n < 60 - before; n++) {

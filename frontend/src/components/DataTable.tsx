@@ -48,7 +48,10 @@ type Props<T extends Row> = {
   /** True while a new page is on its way. The table says it's busy until it arrives. */
   isFetching?: boolean;
   state: TableState;
-  onChange: (change: Partial<TableState>, options?: { replace?: boolean }) => void;
+  onChange: (
+    change: Partial<TableState>,
+    options?: { replace?: boolean; flushSync?: boolean },
+  ) => void;
   /** The add button in the empty state. The page header has the main one. */
   addLabel: string;
   onAdd: () => void;
@@ -102,7 +105,9 @@ export function DataTable<T extends Row>(props: Props<T>) {
   const pageOutOfRange = total !== undefined && state.page > lastPage;
 
   useEffect(() => {
-    if (pageOutOfRange && !isFetching) onChange({ page: lastPage }, { replace: true });
+    if (pageOutOfRange && !isFetching) {
+      onChange({ page: lastPage }, { replace: true, flushSync: false });
+    }
   }, [pageOutOfRange, isFetching, lastPage, onChange]);
 
   return (

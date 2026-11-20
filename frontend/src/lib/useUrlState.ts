@@ -40,7 +40,7 @@ export function useUrlState(defaultSort = "name", filterNames: readonly string[]
   }, [params, defaultSort, filterNames]);
 
   const update = useCallback(
-    (change: Change, options: { replace?: boolean } = {}) => {
+    (change: Change, options: { replace?: boolean; flushSync?: boolean } = {}) => {
       setParams(
         (current) => {
           const next = new URLSearchParams(current);
@@ -63,7 +63,15 @@ export function useUrlState(defaultSort = "name", filterNames: readonly string[]
           if (page !== undefined) set("page", page, 1);
           return next;
         },
-        { replace: options.replace ?? false, preventScrollReset: true },
+        // React Router hands this callback the address of the last render and, by default,
+        // renders a new address in a transition. A sort clicked before the search renders
+        // would then drop the search. flushSync renders each change before the next one.
+        // An effect must pass flushSync: false, as React can't render during an effect.
+        {
+          replace: options.replace ?? false,
+          preventScrollReset: true,
+          flushSync: options.flushSync ?? true,
+        },
       );
     },
     [setParams, defaultSort],
