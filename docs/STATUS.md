@@ -1,6 +1,8 @@
 # Status
 
-All nine build phases in `docs/plan.md` are complete. The findings of both MVP reviews are resolved. The hands-on Chrome acceptance check in spec 10.4 is still open.
+All nine phases in the [MVP plan](changes/mvp/plan.md) are complete. The findings of both MVP reviews are resolved. The [hands-on Chrome acceptance check](spec.md#104-the-hands-on-check) is still open.
+
+The [product spec](spec.md) now describes Accountable as it runs today. The MVP's intent and plan live in [its change folder](changes/mvp/), and the review policy checks for product behavior missing from the spec.
 
 ## Install once
 

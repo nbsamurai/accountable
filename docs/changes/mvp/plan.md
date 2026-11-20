@@ -1,6 +1,6 @@
 # Plan: building the Accountable MVP
 
-This plan builds the MVP that `docs/spec.md` describes, for the intent in `docs/intent.md`. The spec says what to build. This plan says which files change, in what order to build them, what could go wrong, and which tests prove it works. "Spec 3.2" means section 3.2 of the spec.
+This is the build plan for the [MVP intent](intent.md). It covers the files, build order, risks and tests. References such as "Spec 3.2" point to sections of the [product spec](../../spec.md).
 
 The dashboard and pipeline follow mockup 2, `docs/mockups/2-agenda.html`. The mockups are git-ignored, so they're only on this computer.
 

@@ -8,7 +8,8 @@ Make a separate pass over every change for each of these:
 
 - **Bugs:** the code does what it's meant to, including when something goes wrong.
 - **Security:** no secrets or personal data are exposed, and nobody can do what they shouldn't.
-- **Matches spec.md and plan.md:** the change does what those documents say, with nothing missing and nothing extra.
+- **Matches the spec and current change plan.** Check the change against `docs/spec.md` and the current branch's `docs/changes/<branch name>/plan.md`.
+  - Flag missing requirements and any code in the change that implements behavior `docs/spec.md` doesn't describe.
 
 ## Important
 

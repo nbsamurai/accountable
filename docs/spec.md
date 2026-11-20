@@ -1,14 +1,16 @@
-# Spec: the Accountable MVP
+# Accountable product spec
 
-This spec describes what the MVP does, how it looks and how it's built. `docs/intent.md` says why. The look follows the brand skill (`.claude/skills/brand/`), and the stack follows `docs/TECH_STACK.md`.
+## Problem
 
-The dashboard and pipeline follow the chosen mockup, mockup 2 ("Agenda"): `docs/mockups/2-agenda.html`, with its screenshots `2-agenda-dashboard.png` and `2-agenda-pipeline.png` beside it. Mockups 1 and 3 weren't chosen and stay only for reference. The other screens use the same components and styles.
+A small business keeps track of its customers and sales in spreadsheets, inboxes and people's heads. That makes it hard to see at a glance which companies it deals with, who its contacts are, what's in the sales pipeline, what happened last with a customer or what needs doing next.
 
 ## 1. Scope
 
-The MVP is a sales CRM for one salesperson on their own computer. It has five sections (Dashboard, Organizations, Contacts, Deals and Pipeline) and four kinds of record (organization, contact, deal and activity). It runs locally, in light mode, and is designed for a laptop or desktop screen.
+Accountable is a sales CRM that one salesperson runs on their own computer. It brings organizations, contacts, deals and activities together in five sections. The Dashboard shows sales figures, recent activity and follow-ups. Organizations, Contacts and Deals are where the salesperson finds and manages records. The Pipeline shows deals by stage and lets the salesperson move and reorder them.
 
-These aren't in the MVP: sign-in, user accounts or several users; dark mode or a phone layout; AI features; email, calendar or phone integrations; currencies other than US dollars; reports beyond the dashboard; tags or custom fields; changing the pipeline stages; importing or exporting data.
+The app is account-free and uses a desktop light-mode layout. It uses US dollars and a fixed set of sales stages and record fields. The salesperson logs notes, calls and emails in the app. Sales reporting is on the dashboard.
+
+Data is stored on the same computer and persists across browser refreshes and server restarts. The first run installs dependencies and opens the dashboard with sample data. Once installed, the app can be used offline. Section 9.6 covers starting the app and resetting its data. See the [setup instructions](STATUS.md#install-once) and [technical stack](TECH_STACK.md).
 
 ## 2. Records
 
@@ -58,7 +60,7 @@ Every record has an `id`, a `created_at` and an `updated_at` (UTC timestamps), a
 | follow_up_date | date | Optional |
 | done | yes or no | No when not given. Used only when there's a follow-up date |
 
-Activities have no name, so they don't follow the "only the name is required" rule. A logged activity needs its type, its description and when it happened.
+The activity form supplies the current time by default. The API also defaults to the current time when the request omits it.
 
 ## 3. Rules
 
@@ -81,19 +83,19 @@ A probability set by hand is kept until the stage changes.
 
 All stage changes go through one function on the server, whichever screen they come from. When a deal's stage changes:
 
-1. Its probability becomes the new stage's usual probability.
-2. If the new stage is Won or Lost, its close date becomes today.
+1. Its probability defaults to the new stage's usual probability.
+2. If the new stage is Won or Lost, its close date defaults to today.
 3. If the new stage is Won and the deal has a main contact, the contact's status becomes customer.
 4. A `stage_change` activity is written on the deal, such as "Moved from Proposal to Negotiation", dated now.
-5. If the change didn't come from a drag on the board, the card goes to the top of its new column.
+5. Board moves place the card according to the drop or menu action. Changes made from the deal form or stage path put the card at the top of its new column.
 
 When a Won or Lost deal moves back to an open stage, steps 1, 4 and 5 still apply. Its close date and its contact's status stay as they are. If the close date has passed, the deal shows as late until someone sets a new one.
 
-Moving a card within its own column changes only its place, and writes no activity. Creating a deal at a stage isn't a change of stage, so it writes no activity either. No other change writes an activity by itself.
+Moving a card within its own column changes only its place. The app logs an activity automatically only when an existing deal changes stage.
 
-When a deal is created directly in Won, its main contact becomes a customer if one is set.
+New deals go to the top of their stage's column. A new deal in Won or Lost defaults to today's close date. When a deal is created directly in Won, its main contact becomes a customer if one is set. If that changes the contact's status, the app names the contact in the confirmation message.
 
-The server applies steps 1 and 2 only to the fields the request doesn't send. The board sends only the stage, so it gets them all. The deal form fills in the new probability, and today's date for Won or Lost, as soon as the stage changes in the form, and the person can change them before saving.
+The board and stage path use the server defaults. When the stage changes in the deal form, the form fills in the new probability and, for Won or Lost, today's date. The salesperson can change either field before saving. The API uses explicitly supplied values in place of the defaults.
 
 ### 3.3 Late deals
 
@@ -140,14 +142,14 @@ The database enforces these rules with foreign keys: `SET NULL` for links to org
 
 ### 3.8 Figures
 
-- **Expected revenue** of a deal: its value × its probability. Totals add up the exact amounts and round to the dollar once.
+- **Expected revenue** of a deal is its value multiplied by its probability as a fraction (50% is 0.5). Totals add up the exact amounts and round to the dollar once.
 - **Open pipeline:** the total value of open deals.
 - **Won this month:** the total value and the number of Won deals with a close date in the current month.
 - **Win rate:** of the deals closed in the last 12 months, the share that were Won, by count. With no closed deals it shows "–".
 - **Last 12 months:** the current month and the 11 before it, by close date. Months with nothing show $0 and 0.
 - **Revenue won by month** and **deals won by month:** Won deals, grouped by the month of their close date.
 - **Funnel:** for each of New, Qualified, Proposal, Negotiation and Won, the total value and number of deals now at that stage or a later one. Won counts at every stage, and Lost isn't counted. Each stage also shows its value as a share of New's.
-- **Board totals:** the value and expected revenue of every open deal. Each column shows the number of its cards, their value and their expected revenue. The Won and Lost columns count only the cards they show.
+- **Board totals** include the value and expected revenue of every open deal. Each column shows the count, value and expected revenue of all eligible deals in its stage, including cards behind “Show more.” For Won and Lost, eligibility depends on the close date window in section 4.7.
 - **Today** is the date on the computer that runs Accountable.
 
 ### 3.9 Formats
@@ -155,7 +157,7 @@ The database enforces these rules with foreign keys: `SET NULL` for links to org
 - **Money:** US dollars, whole dollars, with thousands separators, such as `$48,000`. Chart axes and the funnel's labels use the short form, such as `$40K` and `$1.2M`. The value field is labelled "Value (US$)".
 - **Percent:** whole numbers, such as `75%`.
 - **Dates:** `Nov 19, 2026`. Timeline entries add the time: `Nov 19, 2026, 2:30 PM`. Follow-ups say "Due today", "Due tomorrow", "Due Mon, Nov 23" or "3 days overdue".
-- **Empty values:** shown as "–", with no value shown as "No value" on cards.
+- **Empty values** display as “–”, including on pipeline cards.
 - Formatting uses the browser's `Intl` API with the `en-US` locale.
 
 ## 4. Screens
@@ -165,13 +167,13 @@ The database enforces these rules with foreign keys: `SET NULL` for links to org
 - **Top bar,** 64 px tall, on the page background with no line under it. It has the Accountable wordmark on the left, which links to the dashboard, and the five sections: Dashboard, Organizations, Contacts, Deals and Pipeline. The current section is a Midnight pill with white text, and has `aria-current="page"`. The bar stays at the top as the page scrolls.
 - **Main area:** at most 1,440 px wide and centered, with 32 px side margins. Each screen has one `h1`, its title, with the screen's main action on the right of it, such as "Add contact".
 - **Skip link:** "Skip to main content" is the first thing on the page, and shows when it has focus.
-- **Narrow windows,** down to 320 px wide, which is a 1,280 px screen at 400% zoom: the sections move into a "Menu" button, grids become one column, and tables and the board scroll sideways inside their panel. This is the reflow WCAG asks for, not a phone design.
+- **Narrow windows** reflow down to 320 px, the equivalent of a 1,280 px screen at 400% zoom. At 860 px and below, a “Menu” button holds the sections. Grids stack as space narrows, and tables and the board scroll sideways within their panels.
 - **Addresses:** `/`, `/organizations`, `/organizations/:id`, `/contacts`, `/contacts/:id`, `/deals`, `/deals/:id` and `/pipeline`. Any other address shows "Page not found", with a link to the dashboard.
 - **Page titles:** "Contacts · Accountable", or "Jane Doe · Accountable" on a record's page.
 
 ### 4.2 Dashboard
 
-The landing page shows how sales are going at a glance, with the day's work first. It follows mockup 2. A left column, a third of the width, holds the follow-ups and recent activity. A right column, two thirds of the width, holds the figures and charts. The gaps are 24 px. Below 1,100 px wide, the columns stack, follow-ups first.
+The landing page shows how sales are going at a glance, with the day's work first. A left column, a third of the width, holds the follow-ups and recent activity. A right column, two thirds of the width, holds the figures and charts. The gaps are 24 px. Below 1,100 px wide, the columns stack, follow-ups first.
 
 - **Header:** "Dashboard", with the tagline "Here's how sales are going." beside it in Instrument Serif, and today's date on the right.
 - **Left column:**
@@ -203,7 +205,7 @@ The dashboard loads its figures in one request, and loads them again whenever it
 Organizations, Contacts and Deals share one table design:
 
 - **Toolbar:** a search box ("Search contacts") and any filters. The page header holds the add button ("Add contact").
-- **Search:** it waits 250 ms after typing stops, ignores case, and matches any part of the fields listed for each table. A live region says how many matched: "12 contacts".
+- **Search** waits 250 ms after typing stops and matches any part of the fields listed for each table. Case folding covers A to Z. A live region announces the number of matches, such as “12 contacts.”
 - **Sorting:** every column heading is a button. The first click sorts A to Z or smallest first, and the second reverses it. The heading shows an arrow and sets `aria-sort`. Empty values always go last. Each table sorts by name, A to Z, to begin with.
 - **Paging:** 50 rows a page, with "1–50 of 5,000" and Previous and Next buttons under the table. If a deletion or an old address leaves the page past the end, the table opens the last available page and replaces the address. With zero results it returns to page one.
 - **Rows:** the name links to the record's page. Each row has Edit and Delete icon buttons, always visible, with labels such as "Edit Northpeak".
@@ -245,8 +247,6 @@ Organizations, Contacts and Deals share one table design:
 
 ### 4.7 Pipeline
 
-The pipeline follows mockup 2.
-
 - **Header:** "Pipeline", with "Add deal" on the right.
 - **Summary panel:** open pipeline, expected revenue and open deals, in JetBrains Mono. Beside them is the same open-pipeline-by-stage bar as the dashboard's, headed "By stage".
 - **Board:** six columns side by side, in stage order. Each is at least 200 px wide and they share the width equally. If the window is too narrow, the board scrolls sideways inside its area.
@@ -255,6 +255,7 @@ The pipeline follows mockup 2.
   - a "+" button labelled "Add deal to Proposal"
   - under them, the column's value, and "Expected" with its expected revenue
   - for Won and Lost, "Closed in the last 30 days". These two columns show only deals with a close date from 30 days ago to today.
+- **Card visibility.** Each column initially displays up to 50 cards. “Show N more” reveals the remaining cards in that column. Dropping below the last visible card inserts the moved card before any hidden cards.
 - **Cards** are white. From top to bottom, each one has:
   - a grip handle button ("Move Website redesign"), the deal name, which links to the deal, and a "More" menu button
   - the organization
@@ -302,7 +303,7 @@ The pipeline follows mockup 2.
   - **Description**
   - **When:** date and time, set to now.
   - **Follow-up date:** optional.
-  - **"Log activity":** saving clears the form and adds the entry to the top of the timeline.
+  - **“Log activity”** saves the entry in the timeline at its occurrence time and clears the form.
 - **A timeline entry** shows:
   - its type's icon and name
   - its description
@@ -336,13 +337,13 @@ Parts with a count of 0 are left out. After deleting from a record's page, the a
 
 ### 5.1 Approach
 
-Sharp, calm and businesslike. Plenty of white space, white panels on a cool grey page, Midnight text, and color used for meaning: stages, statuses, alerts and the main action. Numbers are set in a monospace font, so figures line up. Gradients appear in one place only, the fill under the revenue line.
+The interface follows the [Accountable brand guidelines](../.claude/skills/brand/SKILL.md). White panels sit on a cool grey page with Midnight text. Color identifies stages, statuses, alerts and the main action. Monospace figures line up, and the revenue line has a gradient fill.
 
 ### 5.2 Color tokens
 
 The brand's colors are too light for small text on white, and two of its pairings are below WCAG AA for small text. White on Cerulean is 3.96:1, and white on Raspberry is 3.62:1, where AA needs 4.5:1. Each brand color therefore has an "ink" shade, a darker version of the same hue that reaches 4.5:1 on both white and the page background. The brand skill lists the same shades. The brand colors stay for fills with Midnight text, large shapes and chart areas. The ink shades are for text, lines, icons, and badges with white text.
 
-All colors are CSS custom properties on `:root`, so dark mode can later redefine them in one place.
+All colors are CSS custom properties on `:root`.
 
 | Token | Value | Used for | Contrast |
 |---|---|---|---|
@@ -408,7 +409,7 @@ All fonts are bundled from npm (Fontsource), so the app needs no internet connec
 - **Shadows:** none on panels. Board cards have `0 1px 2px rgb(7 59 76 / 8%)`. A card being dragged has `0 12px 24px rgb(7 59 76 / 18%)`. Dialogs have `0 24px 48px rgb(7 59 76 / 24%)` over a backdrop of `rgb(7 59 76 / 40%)`.
 - **Focus:** a 2 px `--info-ink` outline with a 2 px gap, on everything that can take focus.
 - **Click targets:** at least 32 px tall for buttons and inputs, and never under 24 × 24 px.
-- **Motion:** 150 ms ease-out for hovers and menus, and a short slide when a card drops. Off when the system asks for reduced motion.
+- **Motion** uses a 150 ms ease-out transition on hover where applicable and respects the system's reduced-motion setting.
 
 ### 5.6 Components
 
@@ -429,11 +430,11 @@ All fonts are bundled from npm (Fontsource), so the app needs no internet connec
 ### 5.7 Charts
 
 - **Recharts.** Each chart shows one series, so no chart needs a legend.
-- **The revenue line:** `--primary-ink`, 2.5 px, with points on hover and a Sea Green fill under it that fades to transparent.
+- **The revenue line** uses a 2 px stroke in `--primary-ink` and a Sea Green fill that fades to transparent. It labels the peak and latest values when the peak is above zero, and highlights the active point.
 - **The deals-won bars:** `--info`, with the count above each bar in Midnight.
 - **The funnel bars:** centered, 30 px tall, in each stage's fill, with the figures in text on either side. Light fills always have their value in text next to them, which WCAG accepts in place of 3:1 contrast for the shape.
 - **Grid lines:** horizontal only, in `--line`.
-- **Axes:** 13 px `--ink-muted` labels, with money in the short form.
+- **Axes** use 12 px `--ink-muted` labels, with money in the short form.
 - **Tooltips:** a white panel with a shadow and numbers in JetBrains Mono. They can be reached with the keyboard (Recharts' accessibility layer).
 
 ### 5.8 Words
@@ -442,7 +443,7 @@ Plain business English. Short labels, sentence case, and no exclamation marks. B
 
 ## 6. Accessibility
 
-The MVP meets WCAG 2.2 AA on every screen.
+The accessibility standard is WCAG 2.2 AA across all screens. Section 10 describes how keyboard access, reflow and axe checks are verified.
 
 - **Structure:**
   - Landmarks: header, nav and main.
@@ -457,7 +458,7 @@ The MVP meets WCAG 2.2 AA on every screen.
 - **The board with a keyboard:**
   - Tab to a card's grip handle, and press Space or Enter to pick the card up.
   - Up and Down move it within its column, and Left and Right move it to the next column.
-  - Space or Enter drops it, and Escape puts it back.
+  - Space or Enter drops it. Escape or Tab cancels the move.
   - A live region says each step: "Picked up Website redesign, in Proposal, position 2 of 5", "Over Negotiation, position 1 of 3", "Dropped in Negotiation, position 1 of 3".
   - The "More" menu does the same moves without dragging.
 - **Dragging (2.5.7):** every move a drag can make, the "More" menu can make too.
@@ -478,8 +479,7 @@ Every screen opens in under a second with about 1,000 organizations, 5,000 conta
 
 - **Tables** search, sort and page on the server, 50 rows at a time. Each table has indexes on its links and the columns it sorts by.
 - **The dashboard** works out its figures in SQL and sends them in one response.
-- **The board** loads in one request: open deals, and Won and Lost deals closed in the last 30 days. Cards are kept light, with no per-card requests.
-- **If the board is too slow:** the build measures the board at full scale early, before the rest of the pipeline work. If it takes 1,000 ms or more, each column shows its first 50 cards with a "Show 120 more" button under them. The totals still count every card. A card dropped after the last card shown goes after that card.
+- **The board** loads the cards and totals in one request. It renders up to 50 cards per column initially, as described in section 4.7.
 - **Timelines** load 50 entries at a time.
 - **Pickers** ask for 20 matches at a time.
 - **SQLite** runs in WAL mode, with foreign keys on.
@@ -536,11 +536,11 @@ data/               the SQLite databases (git-ignored)
 | Fonts | Fontsource: Instrument Sans, Instrument Serif and JetBrains Mono |
 | Styles | CSS Modules, with tokens as custom properties in `styles/tokens.css` |
 
-Each version above is the current major version. The build uses the latest release of each.
+The lockfiles record the dependency versions used by the app.
 
 ### 9.3 Backend
 
-- Python 3.12, with FastAPI, Uvicorn, Pydantic 2 and SQLAlchemy 2.1 Core. No raw SQL.
+- Python 3.12, with FastAPI, Uvicorn, Pydantic 2 and SQLAlchemy 2.1 Core for application queries.
 - The tables and the rules in section 3 live in their own modules, so the routes stay thin and the rules can be unit tested without HTTP.
 - Functions that depend on today take it as an argument, so tests can fix the date.
 - Errors use FastAPI's shapes: 422 for invalid input, with the field and the message, 404 for a missing record, and 409 for editing or deleting a stage change.
@@ -577,7 +577,7 @@ Each record's `GET` also returns the counts its delete message needs (section 4.
 
 - One SQLite file, `data/accountable.db`, made on first start and filled with the sample data. The `ACCOUNTABLE_DB` environment variable points elsewhere, and the tests use it to keep their own databases.
 - Foreign keys are switched on for every connection, so the delete rules in section 3.7 hold.
-- There are no migrations in the MVP. If the schema changes during the build, `npm run seed` rebuilds the database.
+- The app creates the schema when it starts. `npm run seed` rebuilds the tables and replaces their contents in one transaction.
 
 ### 9.6 Commands
 
@@ -589,7 +589,7 @@ Each record's `GET` also returns the counts its delete message needs (section 4.
   5. Ctrl+C stops both servers.
   6. If a port is in use, it says "Port 5173 is in use. Is Accountable already running?".
 - **`npm test`** runs the frontend type check, both unit test suites and the end-to-end tests. It attempts every check and exits nonzero if any fail. The end-to-end tests start their own servers on other ports, with their own database.
-- **`npm run seed`** resets the database to the sample data. It works while the app is running, and a refresh then shows the sample data.
+- **`npm run seed`** resets the database to the sample data. It works while the app is running, and a refresh then shows the sample data. `npm run seed -- --large` loads the performance data set instead.
 
 The first run needs an internet connection to download packages and Python. After that, Accountable needs none.
 
@@ -597,9 +597,9 @@ The first run needs an internet connection to download packages and Python. Afte
 
 - Both servers listen on `127.0.0.1` only, so other computers on the network can't reach the app.
 - The backend accepts only `localhost` and `127.0.0.1` in the `Host` header.
-- Every query goes through SQLAlchemy with bound parameters.
+- Application queries use SQLAlchemy with bound parameters.
 - React escapes all text. Website links must be `http` or `https`, and open with `rel="noopener noreferrer"`.
-- There are no secrets in the MVP, and the database file is git-ignored.
+- The local setup uses no credentials, and Git ignores the database file.
 
 ## 10. Testing
 
@@ -620,6 +620,7 @@ The first run needs an internet connection to download packages and Python. Afte
   - late deals
 - **Card order:** midpoints, the top and bottom of a column, and renumbering.
 - **Sample data:** the counts in section 8, and dates that move with the day it's loaded.
+- **Persistence:** saved records are available when the app starts again.
 
 ### 10.2 Frontend unit tests (Vitest)
 
@@ -630,13 +631,14 @@ The first run needs an internet connection to download packages and Python. Afte
   - picking a contact fills in their organization
   - changing the stage fills in the probability and, for Won and Lost, the date
 - The delete messages for each record, with counts of 0 left out.
-- Chart summaries.
+- Chart summaries and follow-up groups.
+- Pipeline ordering, totals and move announcements.
 
 ### 10.3 End-to-end tests (Playwright Test, installed Chrome)
 
-- They run with `channel: "chrome"`, start the app themselves, and use their own database, reset to the sample data before each file.
-- Any console error or uncaught page error fails the test.
-- **There's one test file per success criterion in the intent:**
+- The tests run in installed Google Chrome. They start the app themselves and reset their own database to sample data before each file.
+- Unexpected console errors, uncaught page errors and requests to addresses other than `127.0.0.1` fail the tests.
+- **Product workflows covered by the suite**
   1. start, dashboard first, sample data everywhere
   2. add, search, sort, edit and delete on each table, kept after a reload, and reset
   3. the status filter, linked records, and the deal form's contacts
@@ -655,19 +657,4 @@ The first run needs an internet connection to download packages and Python. Afte
 
 ### 10.4 The hands-on check
 
-Before the MVP is called done, someone uses it end to end in Chrome, the way a salesperson would. They go through every section and every action above, check each screen by eye against this spec and the chosen mockup, and watch the console for errors. They write what they found in `docs/STATUS.md`.
-
-### 10.5 Success criteria and their proof
-
-| Intent criterion | Proved by |
-|---|---|
-| 1. Starts with one command, sample data everywhere | E2E 1, and the hands-on check from a fresh clone |
-| 2. Add, find, sort, edit, delete, kept, reset | E2E 2, and the backend list and delete tests |
-| 3. Status filter, linked records, the deal's contacts | E2E 3, and the deal form unit tests |
-| 4. Pipeline moves and their effects | E2E 4, and the stage-change and card-order tests |
-| 5. Timelines and follow-ups | E2E 5, and the follow-up window tests |
-| 6. The dashboard's figures | E2E 6, and the figure tests |
-| 7. Sharp, on brand, stunning dashboard | Comparison with the chosen mockup, and the hands-on check |
-| 8. WCAG 2.2 AA and keyboard only | The axe and keyboard-only tests, and the hands-on check |
-| 9. Under a second at scale | The performance test |
-| 10. Used end to end in Chrome | The hands-on check |
+For the hands-on acceptance check, start Accountable with `npm run dev` from a fresh clone and follow the salesperson's workflow through all five sections in Chrome. Check the actions in section 10.3, confirm saved changes survive a restart and verify that the reset restores the sample data. Check each screen against the visual design and accessibility requirements, exercise the workflow with the keyboard and watch the console for errors. Record the results in [STATUS.md](STATUS.md).

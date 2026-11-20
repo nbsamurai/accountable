@@ -1,7 +1,7 @@
 # Review: `mvp` branch against `main`
 
 - **Date:** Nov 19, 2026
-- **Policy:** `docs/REVIEW.md`, with its three passes: bugs, security, and a match with `docs/spec.md` and `docs/plan.md`
+- **Policy:** `docs/REVIEW.md`, with its three passes: bugs, security, and a match with `docs/spec.md` and the [MVP plan](changes/mvp/plan.md)
 - **Scope:** all 189 changed files, about 16,000 lines. Style nits are left out.
 - **Tests:** all 196 pass. That's 99 backend (pytest), 45 frontend (Vitest, with a clean type check) and 52 end-to-end tests in Chrome. The AGENTS.md rule that `npm test` passes is met.
 
@@ -76,10 +76,10 @@ The summary always says "Value of the deals that reached each stage, Won include
 
 Both are recorded in `docs/STATUS.md`, but the documents they depart from weren't updated:
 
-- **`npm test` runs every suite, even after one fails, and adds a type check.** Plan §1 says the suites are joined with `&&`, so the first failure stops the run. AGENTS.md was updated to match the code; `docs/plan.md` wasn't.
+- **`npm test` runs every suite, even after one fails, and adds a type check.** Plan §1 says the suites are joined with `&&`, so the first failure stops the run. AGENTS.md was updated to match the code; the MVP plan wasn't.
 - **The add button is only in the page header.** Spec 4.3 also puts it in the table toolbar. STATUS.md gives the reason: two identical buttons would be read out twice.
 
-**Suggested fix:** update `docs/plan.md` and `docs/spec.md` to match.
+**Suggested fix:** update the MVP plan and `docs/spec.md` to match.
 
 ## Still open
 
