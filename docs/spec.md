@@ -91,6 +91,8 @@ When a Won or Lost deal moves back to an open stage, steps 1, 4 and 5 still appl
 
 Moving a card within its own column changes only its place, and writes no activity. Creating a deal at a stage isn't a change of stage, so it writes no activity either. No other change writes an activity by itself.
 
+When a deal is created directly in Won, its main contact becomes a customer if one is set.
+
 The server applies steps 1 and 2 only to the fields the request doesn't send. The board sends only the stage, so it gets them all. The deal form fills in the new probability, and today's date for Won or Lost, as soon as the stage changes in the form, and the person can change them before saving.
 
 ### 3.3 Late deals
@@ -192,7 +194,7 @@ The landing page shows how sales are going at a glance, with the day's work firs
     - **Sales funnel:** one bar per stage from New to Won, centered, in its stage's color, and as wide as its share of New's value. The stage and its number of deals are on the left. Its value, in the short form, and its share are on the right.
     - **Deals won by month:** 12 Cerulean bars, with each month's count above its bar.
 
-Every chart panel has a title, a one-line summary in text, such as "Revenue won in the last 12 months: $412,000. Best month: June, $96,000.", and a "Show as table" button that swaps the chart for a table of the same figures.
+Every chart panel has a title, a text summary that states its key figures, and a "Show as table" button that swaps the chart for a table of the same figures. The funnel summary gives each stage's deal count, value and share.
 
 The dashboard loads its figures in one request, and loads them again whenever it opens, so a deal just marked Won or a follow-up just added shows straight away.
 
@@ -200,10 +202,10 @@ The dashboard loads its figures in one request, and loads them again whenever it
 
 Organizations, Contacts and Deals share one table design:
 
-- **Toolbar:** a search box ("Search contacts"), any filters, and the add button ("Add contact") on the right.
+- **Toolbar:** a search box ("Search contacts") and any filters. The page header holds the add button ("Add contact").
 - **Search:** it waits 250 ms after typing stops, ignores case, and matches any part of the fields listed for each table. A live region says how many matched: "12 contacts".
 - **Sorting:** every column heading is a button. The first click sorts A to Z or smallest first, and the second reverses it. The heading shows an arrow and sets `aria-sort`. Empty values always go last. Each table sorts by name, A to Z, to begin with.
-- **Paging:** 50 rows a page, with "1–50 of 5,000" and Previous and Next buttons under the table.
+- **Paging:** 50 rows a page, with "1–50 of 5,000" and Previous and Next buttons under the table. If a deletion or an old address leaves the page past the end, the table opens the last available page and replaces the address. With zero results it returns to page one.
 - **Rows:** the name links to the record's page. Each row has Edit and Delete icon buttons, always visible, with labels such as "Edit Northpeak".
 - **State in the address:** search, sort, page and filters live in the address, such as `/contacts?q=ann&status=lead&sort=name&dir=asc&page=2`. A refresh or the Back button brings them back. Typing in the search box replaces the address instead of adding to the browser's history.
 - **No rows:** "No contacts yet." with the add button, or "No contacts match "ann"." with a "Clear search" button.
@@ -238,7 +240,7 @@ Organizations, Contacts and Deals share one table design:
 - **A deal's page:**
   - **Header:** name, stage pill, late badge, and Edit and Delete buttons.
   - **Facts:** value, probability, expected revenue, close date, organization (a link) and main contact (a link).
-  - **Stage path:** the six stages as a row of buttons, New to Negotiation joined left to right, then Won and Lost. The current stage is filled in its color, with a check icon. Choosing another stage changes it at once, following section 3.2, and a message says what changed. It's a radio group, so the arrow keys move along it.
+  - **Stage path:** the six stages as a row of buttons, New to Negotiation joined left to right, then Won and Lost. The current stage is filled in its color, with a check icon. Choosing another stage with a click, Space or Enter changes it at once, following section 3.2, and a message says what changed. The arrow keys only move focus along the row, so passing a stage, such as Won on the way to Lost, never changes the deal.
   - **Below:** the log-activity form, then the timeline.
 
 ### 4.7 Pipeline
@@ -559,7 +561,7 @@ All paths start with `/api`. Lists return `{ "items": [...], "total": n }`.
 | `POST /contacts`, `GET`, `PATCH` and `DELETE /contacts/{id}` | As for organizations. `GET` includes their deals |
 | `GET /contacts/{id}/timeline?offset&limit` | The contact's timeline (section 3.6) |
 | `GET /deals?q&sort&dir&page&page_size` | Lists deals, with their organization, contact, expected revenue, late flag and activity count |
-| `POST /deals`, `GET`, `PATCH` and `DELETE /deals/{id}` | As above. A stage in `POST` or `PATCH` follows section 3.2 |
+| `POST /deals`, `GET`, `PATCH` and `DELETE /deals/{id}` | As above. A stage in `POST` or `PATCH` follows section 3.2. `POST` and `PATCH` return the deal and any contact they made a customer |
 | `POST /deals/{id}/move` | Body `{ "stage", "before_id" }`: moves a card to a stage and to just above the card `before_id`, or to the bottom when it's null. Returns the deal and any contact it changed |
 | `GET /deals/{id}/timeline?offset&limit` | The deal's timeline |
 | `POST /activities` | Logs a note, call or email on a contact or a deal |
@@ -581,12 +583,12 @@ Each record's `GET` also returns the counts its delete message needs (section 4.
 
 - **`npm run dev`** runs `scripts/dev.mjs`, which uses only Node's own modules:
   1. It checks that Node.js 24 or later and uv are installed, and if not, says how to install them.
-  2. It runs `npm install` when `node_modules` is missing or older than `package-lock.json`, and `uv sync`.
+  2. It runs `npm install` when `node_modules/.package-lock.json` is missing or older than `package-lock.json`. It runs `uv sync` on every start.
   3. It starts the backend on `127.0.0.1:8000` and Vite on `127.0.0.1:5173`, which passes `/api` to the backend.
   4. It waits for `/api/health`, then opens the browser at the dashboard.
   5. Ctrl+C stops both servers.
   6. If a port is in use, it says "Port 5173 is in use. Is Accountable already running?".
-- **`npm test`** runs the frontend unit tests, the backend unit tests and the end-to-end tests, and fails if any test fails. The end-to-end tests start their own servers on other ports, with their own database.
+- **`npm test`** runs the frontend type check, both unit test suites and the end-to-end tests. It attempts every check and exits nonzero if any fail. The end-to-end tests start their own servers on other ports, with their own database.
 - **`npm run seed`** resets the database to the sample data. It works while the app is running, and a refresh then shows the sample data.
 
 The first run needs an internet connection to download packages and Python. After that, Accountable needs none.
@@ -594,6 +596,7 @@ The first run needs an internet connection to download packages and Python. Afte
 ### 9.7 Security
 
 - Both servers listen on `127.0.0.1` only, so other computers on the network can't reach the app.
+- The backend accepts only `localhost` and `127.0.0.1` in the `Host` header.
 - Every query goes through SQLAlchemy with bound parameters.
 - React escapes all text. Website links must be `http` or `https`, and open with `rel="noopener noreferrer"`.
 - There are no secrets in the MVP, and the database file is git-ignored.
@@ -646,6 +649,7 @@ The first run needs an internet connection to download packages and Python. Afte
   - log an activity and mark its follow-up done
   - move a deal to another column and to another place with the keyboard drag
   - move one with the "More" menu
+  - choose a far stage on a deal's stage path, passing other stages with the arrow keys without changing them
   - delete a deal
 - **Performance:** section 7.
 

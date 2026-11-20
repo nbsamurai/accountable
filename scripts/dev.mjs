@@ -42,7 +42,7 @@ function checkTools() {
   }
 }
 
-// 2. npm install when node_modules is missing or older than package-lock.json, then uv sync.
+// 2. npm install when the installed lockfile is missing or out of date, then uv sync.
 function run(command, args) {
   const result = spawnSync(command, args, { cwd: root, stdio: "inherit", shell: isWindows });
   if (result.error || result.status !== 0) {
@@ -51,10 +51,10 @@ function run(command, args) {
 }
 
 function installPackages() {
-  const modules = join(root, "node_modules");
+  const installedLock = join(root, "node_modules", ".package-lock.json");
   const lock = join(root, "package-lock.json");
   const stale =
-    !existsSync(modules) || (existsSync(lock) && statSync(modules).mtimeMs < statSync(lock).mtimeMs);
+    !existsSync(installedLock) || (existsSync(lock) && statSync(installedLock).mtimeMs < statSync(lock).mtimeMs);
   if (stale) {
     say("Installing the frontend's packages. The first time takes a minute or two.");
     run("npm", ["install"]);

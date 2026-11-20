@@ -24,7 +24,7 @@ def list_deals(
     return service.list_deals(conn, q=q, sort=sort, direction=dir, page=page, today=today)
 
 
-@router.post("", status_code=201, response_model=DealDetail)
+@router.post("", status_code=201, response_model=DealChange)
 def add_deal(data: DealIn, conn: Conn, today: Today, now: Now):
     return service.create(conn, data, today=today, now=now)
 

@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { expect, test } from "./fixtures";
+import { API_URL, expect, test } from "./fixtures";
 
 /** Presses Tab until the element is focused, as a keyboard user would. */
 async function tabTo(page: Page, target: ReturnType<Page["getByRole"]>, max = 60) {
@@ -133,4 +133,35 @@ test("move, reorder and cancel a card using the keyboard and its menu", async ({
   await expect(page.getByRole("menuitem", { name: "Move up" })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(negotiation.getByRole("listitem").nth(1)).toContainText("Website redesign");
+});
+
+test("choose a far stage on a deal's stage path with the keyboard only", async ({ page, request }) => {
+  const found = await (await request.get(`${API_URL}/api/deals`, { params: { q: "Payments gateway" } })).json();
+  const deal = found.items[0];
+  expect(deal.stage).toBe("negotiation");
+  expect(deal.contact.name).toBe("Sam Okafor");
+  await page.goto(`/deals/${deal.id}`);
+  const path = page.getByRole("radiogroup", { name: "Deal stage" });
+  for (let i = 0; i < 60 && !(await path.evaluate((el) => el.contains(document.activeElement))); i++) {
+    await page.keyboard.press("Tab");
+  }
+  // The arrow keys only move focus, so passing Won on the way to Lost saves nothing.
+  const lost = path.getByRole("radio", { name: "Lost" });
+  for (let i = 0; i < 6 && !(await lost.evaluate((el) => el === document.activeElement)); i++) {
+    await page.keyboard.press("ArrowRight");
+  }
+  await expect(lost).toBeFocused();
+  await expect(path.getByRole("radio", { name: "Negotiation" })).toBeChecked();
+  await page.keyboard.press("Enter");
+  await expect(page.getByText("Payments gateway moved to Lost.")).toBeVisible();
+  await expect(lost).toBeChecked();
+
+  const timeline = await (await request.get(`${API_URL}/api/deals/${deal.id}/timeline`)).json();
+  const moves = timeline.items.filter((item: { type: string }) => item.type === "stage_change");
+  expect(moves.map((item: { description: string }) => item.description)).toEqual([
+    "Moved from Negotiation to Lost",
+    "Moved from Proposal to Negotiation",
+  ]);
+  const contact = await (await request.get(`${API_URL}/api/contacts/${deal.contact.id}`)).json();
+  expect(contact.status).toBe("qualified");
 });

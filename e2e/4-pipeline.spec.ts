@@ -96,7 +96,7 @@ test("columns create deals at the top, show recent closures and honor stage chan
 test("winning a deal updates the customer and close date, and reopening keeps both", async ({ page, request }) => {
   const created = await request.post(`${API_URL}/api/deals`, { data: { name: "Won from board", stage: "negotiation", organization_id: 4, contact_id: 16 } });
   expect(created.ok()).toBe(true);
-  const deal = await created.json();
+  const { deal } = await created.json();
   await page.goto("/pipeline");
   await column(page, "Negotiation").getByRole("button", { name: "More actions for Won from board" }).click();
   await page.getByRole("menuitem", { name: "Won", exact: true }).click();
@@ -118,4 +118,18 @@ test("winning a deal updates the customer and close date, and reopening keeps bo
   await expect(cards(column(page, "Negotiation")).first()).toContainText("Late");
   expect((await (await request.get(`${API_URL}/api/deals/${deal.id}`)).json()).close_date).toBe(earlier);
   expect((await (await request.get(`${API_URL}/api/contacts/16`)).json()).status).toBe("customer");
+});
+
+test("a deal added in Won says its main contact became a customer", async ({ page, request }) => {
+  await page.goto("/pipeline");
+  await column(page, "Won").getByRole("button", { name: "Add deal to Won" }).click();
+  const form = page.getByRole("dialog", { name: "Add deal" });
+  await form.getByRole("textbox", { name: "Name" }).fill("Signed on the spot");
+  await form.getByRole("combobox", { name: "Main contact" }).fill("Lucy Grant");
+  await page.getByRole("option", { name: /Lucy Grant/ }).click();
+  await form.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByText("Deal added. Lucy Grant is now a customer.")).toBeVisible();
+  await expect(cards(column(page, "Won")).first()).toContainText("Signed on the spot");
+  const contacts = await (await request.get(`${API_URL}/api/contacts`, { params: { q: "Lucy Grant" } })).json();
+  expect(contacts.items[0].status).toBe("customer");
 });

@@ -96,6 +96,26 @@ def test_creating_a_deal_at_a_stage_writes_no_activity(api):
     assert stage_changes(api, deal["id"]) == []
 
 
+def test_creating_a_won_deal_makes_its_main_contact_a_customer(api):
+    contact = api.contact("Jane Doe", status="lead")
+    created = api._post("/api/deals", {"name": "Website redesign", "stage": "won", "contact_id": contact["id"]})
+    deal = created["deal"]
+    assert deal["close_date"] == TODAY.isoformat()
+    assert created["contact"] == {"id": contact["id"], "name": "Jane Doe", "status": "customer"}
+    assert api.get(f"/api/contacts/{contact['id']}")["status"] == "customer"
+    assert stage_changes(api, deal["id"]) == []
+
+
+def test_creating_a_deal_reports_no_contact_when_nothing_changed(api):
+    customer = api.contact(status="customer")
+    lead = api.contact("Lead", status="lead")
+    won = api._post("/api/deals", {"name": "Won", "stage": "won", "contact_id": customer["id"]})
+    open_deal = api._post("/api/deals", {"name": "Open", "stage": "proposal", "contact_id": lead["id"]})
+    assert won["contact"] is None
+    assert open_deal["contact"] is None
+    assert api.get(f"/api/contacts/{lead['id']}")["status"] == "lead"
+
+
 def test_moving_a_card_within_its_column_writes_no_activity(api):
     first = api.deal("First", stage="proposal")
     second = api.deal("Second", stage="proposal")

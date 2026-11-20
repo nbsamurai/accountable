@@ -1,5 +1,5 @@
 import { API_URL, expect, test } from "./fixtures";
-import { money, number, percent } from "../frontend/src/lib/format";
+import { money, number, percent, plural } from "../frontend/src/lib/format";
 import { FUNNEL_STAGES, isOpen, OPEN_STAGES, type Stage } from "../frontend/src/lib/stages";
 
 type Deal = { value: number | null; probability: number; stage: Stage; close_date: string | null };
@@ -45,9 +45,14 @@ test("the scoreboard, stage bar, and chart tables match the deals API", async ({
   for (const [index, step] of FUNNEL_STAGES.entries()) {
     const included = FUNNEL_STAGES.slice(index).map((stage) => stage.key);
     const reached = eligible.filter((deal) => included.includes(deal.stage));
+    const reachedValue = money(value(reached));
+    const share = percent(value(reached) * 100 / value(eligible));
     await expect(funnel.getByRole("row", { name: new RegExp(step.name) }).locator("td")).toHaveText([
-      String(reached.length), money(value(reached)), percent(value(reached) * 100 / value(eligible)),
+      String(reached.length), reachedValue, share,
     ]);
+    await expect(funnel.getByText(`${step.name}, ${plural(reached.length, "deal")} worth ${reachedValue} (${share}).`, {
+      exact: false,
+    })).toBeVisible();
   }
 });
 

@@ -42,9 +42,13 @@ def engine(app):
     return app.state.engine
 
 
+def local_client(app) -> TestClient:
+    return TestClient(app, base_url="http://localhost")
+
+
 @pytest.fixture
 def client(app) -> TestClient:
-    return TestClient(app)
+    return local_client(app)
 
 
 class Api:
@@ -65,7 +69,7 @@ class Api:
         return self._post("/api/contacts", {"name": name, **fields})
 
     def deal(self, name: str = "Website redesign", **fields: Any) -> dict[str, Any]:
-        return self._post("/api/deals", {"name": name, **fields})
+        return self._post("/api/deals", {"name": name, **fields})["deal"]
 
     def activity(self, description: str = "Called about pricing", **fields: Any) -> dict[str, Any]:
         return self._post("/api/activities", {"type": "note", "description": description, **fields})

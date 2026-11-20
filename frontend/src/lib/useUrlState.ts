@@ -33,7 +33,7 @@ export function useUrlState(defaultSort = "name", filterNames: string[] = []) {
       q: params.get("q") ?? "",
       sort: params.get("sort") ?? defaultSort,
       dir: params.get("dir") === "desc" ? "desc" : "asc",
-      page: Number.isInteger(page) && page > 0 ? page : 1,
+      page: Number.isSafeInteger(page) && page > 0 ? page : 1,
       filters,
     };
     // filterNames is a fixed list for each table, so it is left out of the dependencies.

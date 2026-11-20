@@ -106,15 +106,13 @@ def test_loading_on_another_day_moves_the_dates_by_the_same_number_of_days(engin
 
 
 def test_the_seed_command_resets_a_database_another_connection_has_open(tmp_path):
-    from fastapi.testclient import TestClient
-
     from backend.app.main import create_app
 
-    from .conftest import Api
+    from .conftest import Api, local_client
 
     path = tmp_path / "running.db"
     app = create_app(path)  # a new database gets the sample data
-    api = Api(TestClient(app))
+    api = Api(local_client(app))
     api.org("Added before the reset")
     assert api.get("/api/organizations")["total"] == 16
 

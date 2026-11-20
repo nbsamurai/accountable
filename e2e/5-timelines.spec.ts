@@ -18,6 +18,9 @@ test("record activities appear newest first, follow the deal to its contact, and
   const proposal = page.getByRole("radio", { name: "Proposal" });
   await proposal.focus();
   await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("radio", { name: "Negotiation" })).toBeFocused();
+  await expect(proposal).toBeChecked();
+  await page.keyboard.press("Enter");
   await expect(page.getByText("Website redesign moved to Negotiation.")).toBeVisible();
   const move = timeline(page).getByRole("listitem").first();
   await expect(move).toContainText("Moved from Proposal to Negotiation");

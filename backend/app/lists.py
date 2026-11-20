@@ -57,5 +57,7 @@ def order(sortable: Sortable, direction: Direction, tiebreak: ColumnElement[Any]
 def page_of(conn: Connection, stmt: Select, ordering: list[Any], page: Paging) -> tuple[list, int]:
     """One page of rows, and the number of rows that match in all."""
     total = conn.execute(select(func.count()).select_from(stmt.order_by(None).subquery())).scalar_one()
+    if page.offset >= total:
+        return [], total
     rows = conn.execute(stmt.order_by(*ordering).offset(page.offset).limit(page.page_size)).all()
     return rows, total

@@ -1,17 +1,15 @@
 """Every change is kept: a new app on the same file, as after a restart, sees it all."""
 
-from fastapi.testclient import TestClient
-
 from backend.app.deps import get_today
 from backend.app.main import create_app
 
-from .conftest import TODAY, Api
+from .conftest import TODAY, Api, local_client
 
 
 def test_data_written_by_one_app_is_there_when_the_next_starts(tmp_path):
     path = tmp_path / "accountable.db"
     first = create_app(path, sample_data_on_start=False)
-    api = Api(TestClient(first))
+    api = Api(local_client(first))
     org = api.org(website="northpeak.example")
     jane = api.contact(organization_id=org["id"], status="qualified")
     deal = api.deal(organization_id=org["id"], contact_id=jane["id"], stage="proposal", value=48000)
@@ -21,7 +19,7 @@ def test_data_written_by_one_app_is_there_when_the_next_starts(tmp_path):
 
     second = create_app(path, sample_data_on_start=False)
     second.dependency_overrides[get_today] = lambda: TODAY
-    again = Api(TestClient(second))
+    again = Api(local_client(second))
     assert again.get(f"/api/organizations/{org['id']}")["website"] == "https://northpeak.example"
     assert again.get(f"/api/contacts/{jane['id']}")["status"] == "customer"
     after = again.get(f"/api/deals/{deal['id']}")

@@ -58,10 +58,8 @@ export function useDeal(id: number | undefined) {
 export function useSaveDeal() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, values }: { id?: number; values: Partial<DealValues> }): Promise<DealChange> =>
-      id
-        ? api.patch<DealChange>(`/deals/${id}`, values)
-        : { deal: await api.post<DealDetail>("/deals", values), contact: null },
+    mutationFn: ({ id, values }: { id?: number; values: Partial<DealValues> }) =>
+      id ? api.patch<DealChange>(`/deals/${id}`, values) : api.post<DealChange>("/deals", values),
     onSuccess: () => refreshAfterChange(client),
   });
 }

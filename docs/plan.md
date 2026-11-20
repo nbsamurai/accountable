@@ -12,12 +12,13 @@ Only the docs exist so far, so nearly every file is new. Files that already exis
 
 | File | What it holds |
 |---|---|
-| `package.json` | The scripts `dev`, `test` and `seed`, and the three parts `test` runs: `test:frontend`, `test:backend` and `test:e2e`, joined with `&&` so the first failure stops it. `frontend` as a workspace. Playwright Test and axe as dev dependencies |
+| `package.json` | The scripts `dev`, `test` and `seed`. The test command runs the frontend type check and unit tests, the backend unit tests, and the Chrome end-to-end tests. `frontend` is an npm workspace. Playwright Test and axe are dev dependencies |
 | `package-lock.json` | Made by npm |
 | `pyproject.toml` | Python 3.12, FastAPI, Uvicorn, Pydantic and SQLAlchemy, with pytest and httpx for the tests, and pytest's settings |
 | `uv.lock` | Made by uv |
 | `.python-version` | `3.12`, so uv fetches the right Python by itself |
 | `scripts/dev.mjs` | The one command (spec 9.6), using only Node's built-in modules |
+| `scripts/test.mjs` | Attempts every test suite even after a failure and returns a nonzero exit status if any check fails |
 | `.gitignore` (edit) | Adds `data/` |
 | `docs/STATUS.md` (edit) | Installing Node.js and uv, the three commands, and what's done |
 
@@ -304,6 +305,7 @@ They use a fresh database file for each test, with foreign keys on, and a fixed 
   - Moving to each stage sets its usual probability.
   - Moving to Won or Lost sets the close date to today.
   - Moving to Won makes the main contact a customer. With no main contact, nothing else changes.
+  - Creating a deal directly in Won also makes its main contact a customer, and the response names that contact.
   - Each change writes one `stage_change` activity, such as "Moved from Proposal to Negotiation".
   - A Won deal moved back to Proposal keeps its close date and its contact's status, and shows as late when that date has passed.
   - A probability set by hand is kept by an edit that doesn't change the stage, and replaced when the stage changes.
@@ -404,6 +406,7 @@ Every file uses the fixtures: the app's own servers and database, the database r
   - The board's and columns' totals change before the server answers, which the test checks by holding back the response.
   - When the save fails, the card goes back and a message says so.
   - A deal added with a column's "+" starts at that stage, at the top. One added from the header starts at New.
+  - A deal added in Won with a lead as its main contact says "Deal added. Lucy Grant is now a customer."
   - Late deals show "Late". Won and Lost show only deals closed in the last 30 days.
   - Changing the stage on a deal's page moves its card to the top of the new column.
 - **`5-timelines.spec.ts`**
@@ -426,6 +429,7 @@ Every file uses the fixtures: the app's own servers and database, the database r
   - Log an activity and mark its follow-up done.
   - Move a deal to another column and to another place in its column with the keyboard drag, checking what the live region says.
   - Move a deal with the "More" menu.
+  - On a deal's stage path, arrow from Negotiation past Won to Lost and choose Lost. Only that one stage change is saved, and the contact's status stays as it was.
   - Delete a deal.
 - **`performance.spec.ts`**
   - Loads the large data set into the test database, then resets it to the sample data at the end.

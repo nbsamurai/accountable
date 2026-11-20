@@ -1,6 +1,6 @@
 # Status
 
-All nine build phases in `docs/plan.md` are complete. The hands-on acceptance check in spec 10.4 is next.
+All nine build phases in `docs/plan.md` are complete. The findings of both MVP reviews are resolved. The hands-on Chrome acceptance check in spec 10.4 is still open.
 
 ## Install once
 
@@ -25,7 +25,7 @@ The end-to-end tests start their own servers on ports 8100 and 5174, with their 
 
 - **Phase 1, skeleton and the one command:**
   - `npm run dev` checks for Node.js and uv, installs packages when needed, starts both servers, waits for `/api/health`, and opens the browser. It says "Port 5173 is in use. Is Accountable already running?" when a port is taken.
-  - `npm test` runs Vitest, pytest and Playwright Test.
+  - `npm test` runs the frontend type check, Vitest, pytest and Playwright Test.
   - The end-to-end fixture fails a test on any console error, page error, or request to an address other than `127.0.0.1`.
   - Checked on a Mac, from a copy with `node_modules` and `.venv` removed.
 
@@ -52,7 +52,7 @@ The end-to-end tests start their own servers on ports 8100 and 5174, with their 
   - One table design for organizations, contacts and deals: search after 250 ms with the count read out, sortable headings with `aria-sort`, paging, Edit and Delete on each row, the empty states, and the state in the address.
   - The add and edit forms, the searchable pickers (20 matches from the server), the contacts' status filter, and the deal form's rules (spec 3.2 and 3.4), with "Jane Doe now works at Brightlane" when a contact has moved.
   - Delete dialogs with the real counts, Cancel focused.
-  - The add button sits in the page header, right of the `h1` (spec 4.1). Spec 4.3 also puts it in the toolbar, but two identical buttons would be read out twice. The empty state keeps its own.
+  - The add button sits in the page header, right of the `h1`. The empty state keeps its own button (spec 4.3).
   - Fixed on the way: a refresh after a change now cancels any fetch already on its way, so a list never keeps rows read before the change.
   - Frontend tests: `deleteMessages` and `dealFormRules`. End-to-end: `2-tables`, the table parts of `3-links`, `keyboard` (add a contact, delete a deal), and axe on every table, form dialog, delete dialog and an open picker.
 
@@ -79,6 +79,37 @@ The end-to-end tests start their own servers on ports 8100 and 5174, with their 
   - Both screens fit at 320 px, with horizontal scrolling contained inside the pipeline board. The chart table toggle and keyboard focus restoration after closing the card menu passed. The comparison PNGs are in the local `logs/agenda-review/` folder.
   - `npm test` passed all 196 tests after the visual changes. Chrome measured the dashboard at 714 ms and pipeline at 888 ms on the large data set.
 
+## MVP review
+
+Resolved the six findings in [the Nov 19 review](mvp-review.md) on Nov 20, 2026.
+
+1. The API accepts `Host` headers for `localhost` and `127.0.0.1` and returns 400 for unrecognized hosts. Backend tests use a local base URL.
+2. The dev script checks `node_modules/.package-lock.json` to decide when to install frontend dependencies. A clean copy installed them on the first start and skipped `npm install` on restart.
+3. Deleting the last row on a page or opening a stale page URL takes the table to its last valid page. The correction replaces the URL and preserves search, sorting and filters.
+4. Creating a deal directly in Won now makes its main contact a customer if one is set. Creation leaves the deal's timeline empty. The intent and spec record this rule.
+5. The dashboard funnel's text summary reports each stage's deal count, dollar value and percentage share. Chrome tests compare the summary and table with the deal data.
+6. The plan documents the type check and the test runner that attempts every suite. The spec places the main Add button in the page header and keeps the empty-state button.
+
+`npm test` passed the frontend type check and all 200 tests (45 frontend, 102 backend and 53 Chrome). The large-data Chrome checks measured all eight screens under a second.
+
+On a clean copy with a fresh sample database, a scripted Chrome walkthrough visited all five sections, created a linked lead and a deal directly in Won, confirmed the lead became a customer, and logged and completed a follow-up from the dashboard. The records and completion persisted after restart. The walkthrough recorded zero console or page errors. Screenshots of all sections, record pages and the missing-page screen were reviewed against the spec, with the dashboard and pipeline compared to the Agenda mockup. The desktop Chrome controls became unavailable during the hands-on walkthrough.
+
+## Second review (Nov 20, 2026)
+
+A second review of the branch against `docs/REVIEW.md` found three issues. All three are resolved.
+
+1. **Important. Arrow keys on the stage path save every stage they pass through** (`frontend/src/deals/StagePath.tsx`). The stage path is a radio group, so each arrow key selects the next stage, and each selection saves at once. In Chrome, on "Payments gateway" (Negotiation, main contact Sam Okafor, qualified), pressing → twice from Negotiation to reach Lost left the deal Lost, made Sam Okafor a customer, and wrote "Moved from Negotiation to Won" and "Moved from Won to Lost", which can't be deleted. Spec 4.6 asked for both "changes it at once" and "arrow keys move along it", which conflict.
+2. **Adding a deal in Won doesn't say its contact became a customer.** The server makes the contact a customer but doesn't return the contact, and the frontend sets `contact: null` for every new deal. Dragging a deal to Won says so; adding one with the Won column's "+" doesn't.
+3. **The planned `announcements.test.ts` is missing** (plan 4.2). The keyboard end-to-end test checks the same words.
+
+How each was fixed:
+
+1. The stage path is now a React Aria `ToggleButtonGroup` with single selection. It keeps the `radiogroup` and `radio` roles, but the arrow keys only move focus, and Space, Enter or a click chooses a stage. A new keyboard test arrows from Negotiation past Won to Lost and chooses Lost: only "Moved from Negotiation to Lost" is saved, and Sam Okafor stays qualified. The test fails on the old stage path. `5-timelines` now presses Enter after the arrow key. Spec 4.6 says how the keys work.
+2. `POST /deals` returns `{ deal, contact }`, as `PATCH` and the board's move do, so the deal form says "Deal added. Lucy Grant is now a customer." A backend test checks the contact in the response, and that nothing is reported when the contact is already a customer or the deal is open. A new `4-pipeline` test adds a deal from the Won column's "+". Spec 9.4 records the response.
+3. `frontend/src/pipeline/announcements.test.ts` checks the four messages with spec 6's own examples.
+
+`npm test` passed the frontend type check and all 207 tests (49 frontend, 103 backend and 55 Chrome). Chrome measured every screen under 800 ms on the large data set.
+
 ## Known limits
 
 - Search ignores case only for A to Z, as SQLite does, so "émile" won't find "Émile".
@@ -87,4 +118,4 @@ The end-to-end tests start their own servers on ports 8100 and 5174, with their 
 
 ## Next
 
-- Complete the hands-on salesperson workflow in Chrome from spec 10.4 and record the findings here.
+- Complete the hands-on salesperson workflow in desktop Chrome from spec 10.4 and record the findings here.

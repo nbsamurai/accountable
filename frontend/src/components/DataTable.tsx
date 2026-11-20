@@ -52,7 +52,7 @@ const features = tableFeatures({ rowSortingFeature });
  * manual mode, as the server searches, sorts and pages.
  */
 export function DataTable<T extends Row>(props: Props<T>) {
-  const { noun, columns, rows, total, isLoading, state, onChange } = props;
+  const { noun, columns, rows, total, isLoading, isFetching, state, onChange } = props;
 
   const tableColumns = useMemo(() => {
     const helper = createColumnHelper<typeof features, T>();
@@ -83,8 +83,14 @@ export function DataTable<T extends Row>(props: Props<T>) {
   }
 
   const byId = new Map(columns.map((column) => [column.id, column]));
+  const lastPage = Math.max(1, Math.ceil((total ?? 0) / PAGE_SIZE));
+  const pageOutOfRange = total !== undefined && state.page > lastPage;
   const first = total ? (state.page - 1) * PAGE_SIZE + 1 : 0;
   const last = total ? Math.min(state.page * PAGE_SIZE, total) : 0;
+
+  useEffect(() => {
+    if (pageOutOfRange && !isFetching) onChange({ page: lastPage }, { replace: true });
+  }, [pageOutOfRange, isFetching, lastPage, onChange]);
 
   return (
     <div className={styles.wrap}>
@@ -98,11 +104,11 @@ export function DataTable<T extends Row>(props: Props<T>) {
       </p>
 
       <div className={styles.panel}>
-        {total === 0 && !isLoading ? (
+        {total === 0 && !isLoading && !pageOutOfRange ? (
           <Empty {...props} />
         ) : (
           <div className={styles.scroller}>
-            <table className={styles.table} aria-busy={props.isFetching ? true : undefined}>
+            <table className={styles.table} aria-busy={isFetching || pageOutOfRange}>
               <thead>
                 {table.getHeaderGroups().map((group) => (
                   <tr key={group.id}>
@@ -136,7 +142,7 @@ export function DataTable<T extends Row>(props: Props<T>) {
                 ))}
               </thead>
               <tbody>
-                {isLoading && !rows
+                {(isLoading && !rows) || pageOutOfRange
                   ? Array.from({ length: 6 }, (_, i) => (
                       <tr key={i} aria-hidden="true">
                         {columns.map((column) => (
@@ -174,7 +180,7 @@ export function DataTable<T extends Row>(props: Props<T>) {
         )}
       </div>
 
-      {!!total && (
+      {!!total && !pageOutOfRange && (
         <nav className={styles.paging} aria-label="Pages">
           <p className="mono">
             {number(first)}–{number(last)} of {number(total)}

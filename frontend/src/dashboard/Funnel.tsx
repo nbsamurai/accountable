@@ -1,13 +1,15 @@
 import { money, moneyShort, percent, plural } from "../lib/format";
 import { stage } from "../lib/stages";
 import { ChartPanel } from "./ChartPanel";
+import { funnelSummary } from "./chartSummaries";
 import type { FunnelStep } from "./queries";
 import styles from "./Dashboard.module.css";
 
 export function Funnel({ steps }: { steps: FunnelStep[] }) {
   return (
     <ChartPanel
-      title="Sales funnel" summary="Value of the deals that reached each stage, Won included."
+      title="Sales funnel"
+      summary={funnelSummary(steps)}
       chart={
         <ol className={styles.funnel} aria-label="Sales funnel by stage">
           {steps.map((step) => {

@@ -174,6 +174,18 @@ def drop_position(conn: Connection, deal_id: int, stage: str, before_id: int | N
 # Changing a stage (spec 3.2)
 
 
+def _promote_contact(conn: Connection, contact_id: int | None, now: datetime) -> dict[str, Any] | None:
+    if contact_id is None:
+        return None
+    contact = conn.execute(
+        update(contacts)
+        .where(contacts.c.id == contact_id, contacts.c.status != "customer")
+        .values(status="customer", updated_at=now)
+        .returning(contacts.c.id, contacts.c.name, contacts.c.status)
+    ).mappings().one_or_none()
+    return dict(contact) if contact is not None else None
+
+
 def change_stage(
     conn: Connection,
     deal_id: int,
@@ -211,16 +223,7 @@ def change_stage(
         values["board_position"] = ordering.top(first_position(conn, new_stage))
     conn.execute(update(deals).where(deals.c.id == deal_id).values(**values))
 
-    changed = None
-    if new_stage == "won" and deal.contact_id is not None:
-        contact = conn.execute(
-            select(contacts.c.id, contacts.c.name, contacts.c.status).where(contacts.c.id == deal.contact_id)
-        ).one()
-        if contact.status != "customer":
-            conn.execute(
-                update(contacts).where(contacts.c.id == contact.id).values(status="customer", updated_at=now)
-            )
-            changed = {"id": contact.id, "name": contact.name, "status": "customer"}
+    changed = _promote_contact(conn, deal.contact_id, now) if new_stage == "won" else None
 
     conn.execute(
         insert(activities).values(
@@ -240,7 +243,11 @@ def change_stage(
 
 
 def create(conn: Connection, data: DealIn, *, today: date, now: datetime) -> dict[str, Any]:
-    """Adds a deal at the top of its column. Creating at a stage writes no activity."""
+    """Adds a deal at the top of its column. Creating at a stage writes no activity.
+
+    A deal created in Won makes its main contact a customer. Returns the deal, and the
+    contact when its status changed, as a stage change does.
+    """
     check_links(conn, data.organization_id, data.contact_id)
     sent = data.model_fields_set
     probability = data.probability if data.probability is not None else PROBABILITY[data.stage]
@@ -261,7 +268,8 @@ def create(conn: Connection, data: DealIn, *, today: date, now: datetime) -> dic
             updated_at=now,
         )
     ).inserted_primary_key[0]
-    return detail(conn, deal_id, today)
+    changed = _promote_contact(conn, data.contact_id, now) if data.stage == "won" else None
+    return {"deal": detail(conn, deal_id, today), "contact": changed}
 
 
 def patch(conn: Connection, deal_id: int, data: DealPatch, *, today: date, now: datetime) -> dict[str, Any]:

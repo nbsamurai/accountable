@@ -15,7 +15,9 @@ def test_the_name_is_required_trimmed_and_up_to_200_characters(client, path):
     assert errors(client.post(path, json={"name": "x" * 201})) == {("body", "name"): "Use 200 characters or fewer."}
     made = client.post(path, json={"name": "  " + "x" * 199 + "  "})
     assert made.status_code == 201
-    assert made.json()["name"] == "x" * 199
+    # A new deal comes back as { deal, contact }, like any change to a deal.
+    record = made.json()["deal"] if path == "/api/deals" else made.json()
+    assert record["name"] == "x" * 199
 
 
 def test_a_name_cant_be_emptied_by_an_edit(api, client):

@@ -238,6 +238,33 @@ test("paging comes back after a reload", async ({ page, request }) => {
   await expect(page.getByText("1–50 of 60")).toBeVisible();
 });
 
+test("stale pages and deleting the last row return to the last available page", async ({ page, request }) => {
+  seed();
+  const before = (await (await request.get(`${API_URL}/api/contacts`)).json()).total as number;
+  for (let n = before; n < 50; n++) {
+    const response = await request.post(`${API_URL}/api/contacts`, { data: { name: `Paging Person ${n}` } });
+    expect(response.ok()).toBe(true);
+  }
+  const response = await request.post(`${API_URL}/api/contacts`, { data: { name: "ZZZ Last Contact" } });
+  expect(response.ok()).toBe(true);
+
+  await page.goto("/organizations");
+  await page.goto("/contacts?sort=name&page=999");
+  await expect(page).toHaveURL(/\/contacts\?sort=name&page=2$/);
+  await expect(page.getByText("51–51 of 51")).toBeVisible();
+  await page.getByRole("button", { name: "Delete ZZZ Last Contact" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Delete contact" }).click();
+  await expect(page).toHaveURL(/\/contacts\?sort=name$/);
+  await expect(page.getByText("1–50 of 50")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Ana Lopez" })).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/organizations$/);
+
+  await page.goto("/contacts?q=no-matching-contact&page=5");
+  await expect(page).toHaveURL(/\/contacts\?q=no-matching-contact$/);
+  await expect(page.getByText('No contacts match "no-matching-contact".')).toBeVisible();
+});
+
 test("no results shows a message and Clear search clears it", async ({ page }) => {
   await page.goto("/contacts");
   await search(page, "Search contacts", "xyz");
