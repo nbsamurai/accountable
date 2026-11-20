@@ -6,6 +6,7 @@ import styles from "./FormDialog.module.css";
 type Props = {
   title: string;
   isOpen: boolean;
+  initialFocus: string;
   onClose: () => void;
   onSubmit: () => void;
   isPending?: boolean;
@@ -22,8 +23,28 @@ type Props = {
  * Adding and editing happen in a modal dialog (spec 4.8): labels above fields, errors under
  * them, focus on the first field with an error, Enter saves, and Escape or Cancel closes.
  */
-export function FormDialog({ title, isOpen, onClose, onSubmit, isPending, fieldErrors, formError, canSave = true, children }: Props) {
+export function FormDialog({
+  title,
+  isOpen,
+  initialFocus,
+  onClose,
+  onSubmit,
+  isPending,
+  fieldErrors,
+  formError,
+  canSave = true,
+  children,
+}: Props) {
   const form = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const frame = requestAnimationFrame(() => {
+      const control = form.current?.elements.namedItem(initialFocus);
+      if (control instanceof HTMLElement) control.focus();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [initialFocus, isOpen]);
 
   // After a failed save, focus moves to the first field with an error.
   useEffect(() => {

@@ -16,7 +16,12 @@ const COLUMNS: TableColumn<Contact>[] = [
   {
     id: "organization",
     header: "Organization",
-    cell: (c) => (c.organization ? <Link to={`/organizations/${c.organization.id}`}>{c.organization.name}</Link> : EMPTY),
+    cell: (c) =>
+      c.organization ? (
+        <Link to={`/organizations/${c.organization.id}`}>{c.organization.name}</Link>
+      ) : (
+        EMPTY
+      ),
   },
   { id: "job_title", header: "Job title", cell: (c) => c.job_title ?? EMPTY },
   { id: "email", header: "Email", cell: (c) => c.email ?? EMPTY },
@@ -35,7 +40,11 @@ export default function ContactListPage() {
       <PageHeader
         title="Contacts"
         actions={
-          <Button variant="primary" icon={<Plus size={18} aria-hidden="true" />} onPress={() => setEditing("new")}>
+          <Button
+            variant="primary"
+            icon={<Plus size={18} aria-hidden="true" />}
+            onPress={() => setEditing("new")}
+          >
             Add contact
           </Button>
         }
@@ -62,7 +71,12 @@ export default function ContactListPage() {
           />
         }
       />
-      <ContactForm contact={editing === "new" ? null : editing} isOpen={editing !== null} onClose={() => setEditing(null)} />
+      {editing && (
+        <ContactForm
+          contact={editing === "new" ? null : editing}
+          onClose={() => setEditing(null)}
+        />
+      )}
       <DeleteContactDialog contact={deleting} onClose={() => setDeleting(null)} />
     </>
   );

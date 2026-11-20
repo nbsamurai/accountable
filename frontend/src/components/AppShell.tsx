@@ -1,5 +1,5 @@
 import { Menu as MenuIcon, X } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState, type KeyboardEvent } from "react";
 import { Link, NavLink, Outlet, ScrollRestoration, useLocation } from "react-router";
 import { Toaster } from "sonner";
 import styles from "./AppShell.module.css";
@@ -32,12 +32,18 @@ function Wordmark() {
   );
 }
 
-function SectionLinks({ className }: { className: string }) {
+function SectionLinks({
+  className,
+  onKeyDown,
+}: {
+  className: string;
+  onKeyDown?: (event: KeyboardEvent) => void;
+}) {
   return (
     <ul className={className}>
       {SECTIONS.map((section) => (
         <li key={section.to}>
-          <NavLink to={section.to} end={section.end} className={styles.link}>
+          <NavLink to={section.to} end={section.end} className={styles.link} onKeyDown={onKeyDown}>
             {section.label}
           </NavLink>
         </li>
@@ -51,20 +57,15 @@ function NarrowMenu() {
   const [open, setOpen] = useState(false);
   const id = useId();
   const button = useRef<HTMLButtonElement>(null);
-  const { pathname } = useLocation();
-
-  useEffect(() => setOpen(false), [pathname]);
+  function closeOnEscape(event: KeyboardEvent) {
+    if (event.key === "Escape" && open) {
+      setOpen(false);
+      button.current?.focus();
+    }
+  }
 
   return (
-    <div
-      className={styles.narrow}
-      onKeyDown={(event) => {
-        if (event.key === "Escape" && open) {
-          setOpen(false);
-          button.current?.focus();
-        }
-      }}
-    >
+    <div className={styles.narrow}>
       <button
         ref={button}
         type="button"
@@ -72,12 +73,13 @@ function NarrowMenu() {
         aria-expanded={open}
         aria-controls={id}
         onClick={() => setOpen((value) => !value)}
+        onKeyDown={closeOnEscape}
       >
         {open ? <X size={18} aria-hidden="true" /> : <MenuIcon size={18} aria-hidden="true" />}
         Menu
       </button>
       <nav id={id} aria-label="Sections" hidden={!open} className={styles.narrowNav}>
-        <SectionLinks className={styles.narrowList} />
+        <SectionLinks className={styles.narrowList} onKeyDown={closeOnEscape} />
       </nav>
     </div>
   );
@@ -86,6 +88,7 @@ function NarrowMenu() {
 /** The top bar, the skip link, the main area and the messages. Every screen renders inside it. */
 export function AppShell() {
   const main = useRef<HTMLElement>(null);
+  const { pathname } = useLocation();
   return (
     <>
       <a
@@ -105,7 +108,7 @@ export function AppShell() {
           <nav aria-label="Sections" className={styles.wide}>
             <SectionLinks className={styles.list} />
           </nav>
-          <NarrowMenu />
+          <NarrowMenu key={pathname} />
         </div>
       </header>
       <main id="main" ref={main} tabIndex={-1} className={styles.main}>

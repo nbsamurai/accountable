@@ -8,7 +8,12 @@ export type Month = { month: string; count: number; value: number };
 export type FunnelStep = { stage: Stage; count: number; value: number; share: number };
 export type Dashboard = {
   today: string;
-  pipeline: { count: number; value: number; expected_revenue: number; stages: { stage: Stage; value: number }[] };
+  pipeline: {
+    count: number;
+    value: number;
+    expected_revenue: number;
+    stages: { stage: Stage; value: number }[];
+  };
   won_this_month: Month;
   win_rate: { closed: number; won: number; percent: number | null };
   months: Month[];
@@ -18,5 +23,8 @@ export type Dashboard = {
 };
 
 export function useDashboard() {
-  return useQuery({ queryKey: queryKeys.dashboard, queryFn: () => api.get<Dashboard>("/dashboard") });
+  return useQuery({
+    queryKey: queryKeys.dashboard,
+    queryFn: () => api.get<Dashboard>("/dashboard"),
+  });
 }

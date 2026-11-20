@@ -15,13 +15,21 @@ export function RecentActivity({ activities, today }: { activities: Activity[]; 
             <li key={activity.id}>
               <ActivityIcon type={activity.type} circle compact />
               <div>
-                <p className={styles.todoText}><span className="sr-only">{activityLabel(activity.type)}. </span>{activity.description}</p>
-                <p className={styles.meta}><ActivityLink activity={activity} />, <time dateTime={activity.occurred_at}>{when(activity.occurred_at, today)}</time></p>
+                <p className={styles.todoText}>
+                  <span className="sr-only">{activityLabel(activity.type)}. </span>
+                  {activity.description}
+                </p>
+                <p className={styles.meta}>
+                  <ActivityLink activity={activity} />,{" "}
+                  <time dateTime={activity.occurred_at}>{when(activity.occurred_at, today)}</time>
+                </p>
               </div>
             </li>
           ))}
         </ol>
-      ) : <p className={styles.summary}>Nothing logged yet.</p>}
+      ) : (
+        <p className={styles.summary}>Nothing logged yet.</p>
+      )}
     </Panel>
   );
 }

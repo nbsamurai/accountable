@@ -1,5 +1,12 @@
-.form { display: grid; gap: var(--space-4); }
-.types { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.form {
+  display: grid;
+  gap: var(--space-4);
+}
+.types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
 
 .radio {
   display: inline-flex;
@@ -13,5 +20,12 @@
   font-weight: 600;
 }
 
-.radio[data-selected] { background: var(--ink); color: var(--on-dark); border-color: var(--ink); }
-.radio[data-focus-visible] { outline: 2px solid var(--info-ink); outline-offset: 2px; }
+.radio[data-selected] {
+  background: var(--ink);
+  color: var(--on-dark);
+  border-color: var(--ink);
+}
+.radio[data-focus-visible] {
+  outline: 2px solid var(--info-ink);
+  outline-offset: 2px;
+}

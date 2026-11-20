@@ -14,7 +14,8 @@
   overflow-wrap: anywhere;
 }
 
-.meta a, .facts a {
+.meta a,
+.facts a {
   text-decoration: underline;
   text-underline-offset: 0.15em;
 }
@@ -72,13 +73,30 @@
   white-space: nowrap;
 }
 
-.relatedTable tbody tr:last-child td { border-bottom: 0; }
-.relatedTable td:first-child { overflow-wrap: anywhere; min-width: 105px; }
-.relatedTable a { font-weight: 600; text-decoration: underline; text-underline-offset: 0.15em; }
-.dateCell { white-space: nowrap; }
-.dateCell > span { margin-inline-start: 6px; }
-.muted { color: var(--ink-muted); }
+.relatedTable tbody tr:last-child td {
+  border-bottom: 0;
+}
+.relatedTable td:first-child {
+  overflow-wrap: anywhere;
+  min-width: 105px;
+}
+.relatedTable a {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+.dateCell {
+  white-space: nowrap;
+}
+.dateCell > span {
+  margin-inline-start: 6px;
+}
+.muted {
+  color: var(--ink-muted);
+}
 
 @media (max-width: 880px) {
-  .split { grid-template-columns: 1fr; }
+  .split {
+    grid-template-columns: 1fr;
+  }
 }

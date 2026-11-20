@@ -170,3 +170,17 @@ test("at 320 px wide, the Menu button opens the sections and nothing scrolls sid
     await expectNoViolations(page);
   }
 });
+
+test("arrow keys scroll the narrow board and linked tables from their controls", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto("/pipeline");
+  const board = page.getByRole("region", { name: "Pipeline board" });
+  await board.getByRole("button", { name: "Add deal to New" }).press("ArrowRight");
+  await expect.poll(() => board.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+
+  await page.goto("/organizations");
+  await page.getByRole("link", { name: "Northpeak Energy" }).click();
+  const contacts = page.getByRole("region", { name: "Linked contacts" });
+  await contacts.getByRole("link").first().press("ArrowRight");
+  await expect.poll(() => contacts.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+});

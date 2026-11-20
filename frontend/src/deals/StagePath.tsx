@@ -17,15 +17,18 @@ export function dealMoveMessage({ deal, contact }: DealChange) {
  */
 export function StagePath({ deal }: { deal: Deal }) {
   const save = useSaveDeal();
-  const value = save.isPending ? save.variables?.values.stage ?? deal.stage : deal.stage;
+  const value = save.isPending ? (save.variables?.values.stage ?? deal.stage) : deal.stage;
 
   function choose(keys: Set<Key>) {
     const [next] = keys;
     if (save.isPending || next === undefined || next === value) return;
-    save.mutate({ id: deal.id, values: { stage: next as Stage } }, {
-      onSuccess: (result) => toast.success(dealMoveMessage(result)),
-      onError: (error) => toast.error(error.message, { duration: Infinity }),
-    });
+    save.mutate(
+      { id: deal.id, values: { stage: next as Stage } },
+      {
+        onSuccess: (result) => toast.success(dealMoveMessage(result)),
+        onError: (error) => toast.error(error.message, { duration: Infinity }),
+      },
+    );
   }
 
   return (

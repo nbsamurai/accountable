@@ -23,7 +23,13 @@ def list_contacts(
     dir: Direction = "asc",
 ):
     return service.list_contacts(
-        conn, q=q, status=status, organization_id=organization_id, sort=sort, direction=dir, page=page
+        conn,
+        q=q,
+        status=status,
+        organization_id=organization_id,
+        sort=sort,
+        direction=dir,
+        page=page,
     )
 
 
@@ -38,7 +44,9 @@ def get_contact(contact_id: int, conn: Conn, today: Today):
 
 
 @router.patch("/{contact_id}", response_model=ContactDetail)
-def change_contact(contact_id: int, data: ContactPatch, conn: Conn, today: Today, now: Now):
+def change_contact(
+    contact_id: int, data: ContactPatch, conn: Conn, today: Today, now: Now
+):
     return service.patch(conn, contact_id, data, today=today, now=now)
 
 

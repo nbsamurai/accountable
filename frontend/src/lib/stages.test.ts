@@ -1,8 +1,24 @@
 import { expect, test } from "vitest";
-import { FUNNEL_STAGES, isClosed, isOpen, OPEN_STAGES, STAGE_COLORS, STAGES, stage, status } from "./stages";
+import {
+  FUNNEL_STAGES,
+  isClosed,
+  isOpen,
+  OPEN_STAGES,
+  STAGE_COLORS,
+  STAGES,
+  stage,
+  status,
+} from "./stages";
 
 test("the stages in pipeline order", () => {
-  expect(STAGES.map((s) => s.name)).toEqual(["New", "Qualified", "Proposal", "Negotiation", "Won", "Lost"]);
+  expect(STAGES.map((s) => s.name)).toEqual([
+    "New",
+    "Qualified",
+    "Proposal",
+    "Negotiation",
+    "Won",
+    "Lost",
+  ]);
 });
 
 test("each stage's usual probability", () => {
@@ -18,7 +34,13 @@ test("each stage's usual probability", () => {
 
 test("open and closed", () => {
   expect(OPEN_STAGES.map((s) => s.key)).toEqual(["new", "qualified", "proposal", "negotiation"]);
-  expect(FUNNEL_STAGES.map((s) => s.key)).toEqual(["new", "qualified", "proposal", "negotiation", "won"]);
+  expect(FUNNEL_STAGES.map((s) => s.key)).toEqual([
+    "new",
+    "qualified",
+    "proposal",
+    "negotiation",
+    "won",
+  ]);
   expect(isOpen("negotiation")).toBe(true);
   expect(isClosed("won")).toBe(true);
   expect(isClosed("lost")).toBe(true);

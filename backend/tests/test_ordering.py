@@ -9,7 +9,10 @@ from backend.app.tables import deals
 def column(api, stage):
     """The names in a column, top to bottom, from the deals' positions."""
     items = api.get("/api/deals?page_size=200")["items"]
-    cards = sorted((d for d in items if d["stage"] == stage), key=lambda d: (d["board_position"], d["id"]))
+    cards = sorted(
+        (d for d in items if d["stage"] == stage),
+        key=lambda d: (d["board_position"], d["id"]),
+    )
     return [d["name"] for d in cards]
 
 
@@ -74,9 +77,21 @@ def test_moving_within_a_column(api):
 def test_close_neighbors_renumber_the_column_in_the_same_order(api, engine):
     made = make_column(api, "proposal", ["A", "B", "C"])
     with engine.begin() as conn:
-        conn.execute(update(deals).where(deals.c.id == made["A"]["id"]).values(board_position=1.0))
-        conn.execute(update(deals).where(deals.c.id == made["B"]["id"]).values(board_position=1.0000001))
-        conn.execute(update(deals).where(deals.c.id == made["C"]["id"]).values(board_position=1.0000002))
+        conn.execute(
+            update(deals)
+            .where(deals.c.id == made["A"]["id"])
+            .values(board_position=1.0)
+        )
+        conn.execute(
+            update(deals)
+            .where(deals.c.id == made["B"]["id"])
+            .values(board_position=1.0000001)
+        )
+        conn.execute(
+            update(deals)
+            .where(deals.c.id == made["C"]["id"])
+            .values(board_position=1.0000002)
+        )
     other = api.deal("X", stage="new")
     moved = api.move(other["id"], "proposal", before_id=made["B"]["id"])["deal"]
     assert column(api, "proposal") == ["A", "X", "B", "C"]
@@ -101,6 +116,9 @@ def test_a_new_deal_goes_to_the_top_of_its_column(api):
 def test_a_before_id_from_another_column_is_refused(api, client):
     other_column = api.deal("Elsewhere", stage="new")
     deal = api.deal("X", stage="proposal")
-    response = client.post(f"/api/deals/{deal['id']}/move", json={"stage": "proposal", "before_id": other_column["id"]})
+    response = client.post(
+        f"/api/deals/{deal['id']}/move",
+        json={"stage": "proposal", "before_id": other_column["id"]},
+    )
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["body", "before_id"]

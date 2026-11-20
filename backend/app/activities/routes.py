@@ -33,12 +33,19 @@ def delete_activity(activity_id: int, conn: Conn):
 
 
 @router.get("/contacts/{contact_id}/timeline", response_model=Timeline)
-def contact_timeline(contact_id: int, conn: Conn, offset: Offset = 0, limit: Limit = timelines.TIMELINE_PAGE):
+def contact_timeline(
+    contact_id: int,
+    conn: Conn,
+    offset: Offset = 0,
+    limit: Limit = timelines.TIMELINE_PAGE,
+):
     contacts_service.get_row(conn, contact_id)
     return timelines.contact_timeline(conn, contact_id, offset, limit)
 
 
 @router.get("/deals/{deal_id}/timeline", response_model=Timeline)
-def deal_timeline(deal_id: int, conn: Conn, offset: Offset = 0, limit: Limit = timelines.TIMELINE_PAGE):
+def deal_timeline(
+    deal_id: int, conn: Conn, offset: Offset = 0, limit: Limit = timelines.TIMELINE_PAGE
+):
     deals_service.get_row(conn, deal_id)
     return timelines.deal_timeline(conn, deal_id, offset, limit)

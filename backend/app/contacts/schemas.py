@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import MISSING, BaseModel, Field
 
 from ..deals.schemas import DealOut, Ref
 from ..fields import Email, Name, Text
@@ -23,12 +23,12 @@ class ContactIn(BaseModel):
 class ContactPatch(BaseModel):
     """Changes only the fields sent."""
 
-    name: Name = None
+    name: Name | MISSING = MISSING
     email: Email = None
     phone: Text = None
     job_title: Text = None
     organization_id: int | None = None
-    status: Status = None
+    status: Status | MISSING = MISSING
 
 
 class ContactOut(BaseModel):

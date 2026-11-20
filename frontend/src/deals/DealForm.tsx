@@ -1,6 +1,14 @@
 import { ChevronDown } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Button as AriaButton, Label, ListBox, ListBoxItem, Popover, Select, SelectValue } from "react-aria-components";
+import { useState } from "react";
+import {
+  Button as AriaButton,
+  Label,
+  ListBox,
+  ListBoxItem,
+  Popover,
+  Select,
+  SelectValue,
+} from "react-aria-components";
 import { toast } from "sonner";
 import { DateField } from "../components/DateField";
 import { DeleteDialog } from "../components/DeleteDialog";
@@ -32,28 +40,22 @@ type FormProps = {
   deal: Deal | null;
   /** For a new deal: the organization, contact or stage to start with. */
   defaults?: DealDefaults;
-  isOpen: boolean;
   onClose: () => void;
   onSaved?: (change: DealChange) => void;
 };
 
 /** Name, Organization, Main contact, Stage, Value, Probability and Close date (spec 4.8). */
-export function DealForm({ deal, defaults, isOpen, onClose, onSaved }: FormProps) {
+export function DealForm({ deal, defaults, onClose, onSaved }: FormProps) {
   const today = todayIso();
-  const [form, setForm] = useState<DealFormState>(() => (deal ? fromDeal(deal) : newDeal(defaults, today)));
-  const errors = useFormErrors();
+  const [form, setForm] = useState<DealFormState>(() =>
+    deal ? fromDeal(deal) : newDeal(defaults, today),
+  );
+  const errors = useFormErrors((): Record<string, string> => {
+    // Show a moved main contact as soon as the form opens.
+    const moved = check(form).contact_id;
+    return moved ? { contact_id: moved } : {};
+  });
   const save = useSaveDeal();
-
-  useEffect(() => {
-    if (isOpen) {
-      const start = deal ? fromDeal(deal) : newDeal(defaults, today);
-      setForm(start);
-      // A main contact who has moved shows straight away (spec 3.4).
-      const moved = check(start).contact_id;
-      errors.setFieldErrors(moved ? { contact_id: moved } : {});
-    }
-    // Only when the dialog opens, so typing isn't reset by a refresh behind it.
-  }, [isOpen]);
 
   function update(next: DealFormState) {
     setForm(next);
@@ -81,20 +83,28 @@ export function DealForm({ deal, defaults, isOpen, onClose, onSaved }: FormProps
     );
   }
 
-  const set = (field: "name" | "value" | "probability") => (value: string) => setForm((f) => ({ ...f, [field]: value }));
+  const set = (field: "name" | "value" | "probability") => (value: string) =>
+    setForm((f) => ({ ...f, [field]: value }));
   const scope = contactScope(form);
 
   return (
     <FormDialog
       title={deal ? "Edit deal" : "Add deal"}
-      isOpen={isOpen}
+      isOpen
+      initialFocus="name"
       onClose={onClose}
       onSubmit={submit}
       isPending={save.isPending}
       fieldErrors={errors.fieldErrors}
       formError={errors.formError}
     >
-      <TextInput name="name" label="Name" value={form.name} onChange={set("name")} requiredMessage="Enter a name." autoFocus />
+      <TextInput
+        name="name"
+        label="Name"
+        value={form.name}
+        onChange={set("name")}
+        requiredMessage="Enter a name."
+      />
       <Picker
         label="Organization"
         name="organization_id"
@@ -112,7 +122,11 @@ export function DealForm({ deal, defaults, isOpen, onClose, onSaved }: FormProps
         search={(q) => searchContacts(q, scope)}
         searchKey={[scope ?? "everyone"]}
         noneLabel="No main contact"
-        description={form.organization ? `People at ${form.organization.name}` : "Everyone, with their organization"}
+        description={
+          form.organization
+            ? `People at ${form.organization.name}`
+            : "Everyone, with their organization"
+        }
       />
       <div className={fieldStyles.row}>
         <Select
@@ -129,7 +143,12 @@ export function DealForm({ deal, defaults, isOpen, onClose, onSaved }: FormProps
           <Popover className={pickerStyles.popover} offset={4}>
             <ListBox className={pickerStyles.list}>
               {STAGES.map((stage) => (
-                <ListBoxItem key={stage.key} id={stage.key} textValue={stage.name} className={`${pickerStyles.item} ${stage.className}`}>
+                <ListBoxItem
+                  key={stage.key}
+                  id={stage.key}
+                  textValue={stage.name}
+                  className={`${pickerStyles.item} ${stage.className}`}
+                >
                   <span className={styles.option}>
                     <span className={styles.swatch} aria-hidden="true" />
                     {stage.name}
@@ -139,11 +158,28 @@ export function DealForm({ deal, defaults, isOpen, onClose, onSaved }: FormProps
             </ListBox>
           </Popover>
         </Select>
-        <DateField name="close_date" label="Close date" value={form.close_date} onChange={(close_date) => setForm((f) => ({ ...f, close_date }))} />
+        <DateField
+          name="close_date"
+          label="Close date"
+          value={form.close_date}
+          onChange={(close_date) => setForm((f) => ({ ...f, close_date }))}
+        />
       </div>
       <div className={fieldStyles.row}>
-        <TextInput name="value" label="Value (US$)" value={form.value} onChange={set("value")} inputMode="numeric" />
-        <TextInput name="probability" label="Probability (%)" value={form.probability} onChange={set("probability")} inputMode="numeric" />
+        <TextInput
+          name="value"
+          label="Value (US$)"
+          value={form.value}
+          onChange={set("value")}
+          inputMode="numeric"
+        />
+        <TextInput
+          name="probability"
+          label="Probability (%)"
+          value={form.probability}
+          onChange={set("probability")}
+          inputMode="numeric"
+        />
       </div>
     </FormDialog>
   );
@@ -159,7 +195,8 @@ type DeleteProps = {
 export function DeleteDealDialog({ deal, onClose, onDeleted }: DeleteProps) {
   const { data } = useDeal(deal?.id);
   const remove = useDeleteDeal();
-  const message = data && deal ? dealMessage(data.name, data.activity_count, data.stage_change_count) : null;
+  const message =
+    data && deal ? dealMessage(data.name, data.activity_count, data.stage_change_count) : null;
 
   return (
     <DeleteDialog

@@ -4,7 +4,13 @@ import { Button } from "../components/Button";
 import { Panel } from "../components/Panel";
 import styles from "./Dashboard.module.css";
 
-export function ChartPanel({ title, summary, chart, table, wide = false }: {
+export function ChartPanel({
+  title,
+  summary,
+  chart,
+  table,
+  wide = false,
+}: {
   title: string;
   summary: string;
   chart: ReactNode;
@@ -16,7 +22,11 @@ export function ChartPanel({ title, summary, chart, table, wide = false }: {
     <Panel aria-label={title}>
       <div className={wide ? `${styles.chartHead} ${styles.chartHeadWide}` : styles.chartHead}>
         <h2>{title}</h2>
-        <Button variant="quiet" icon={<Table2 size={16} aria-hidden="true" />} onPress={() => setShowTable(!showTable)}>
+        <Button
+          variant="quiet"
+          icon={<Table2 size={16} aria-hidden="true" />}
+          onPress={() => setShowTable(!showTable)}
+        >
           {showTable ? "Show chart" : "Show as table"}
         </Button>
         <p className={styles.summary}>{summary}</p>

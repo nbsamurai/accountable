@@ -29,7 +29,14 @@ type Props = {
 };
 
 /** A date picker: type the date, or choose it from a calendar. Dates have no time, so they never shift. */
-export function DateField({ name, label, value, onChange, includeTime = false, required = false }: Props) {
+export function DateField({
+  name,
+  label,
+  value,
+  onChange,
+  includeTime = false,
+  required = false,
+}: Props) {
   const parse = includeTime ? parseDateTime : parseDate;
   return (
     <DatePicker
@@ -40,13 +47,21 @@ export function DateField({ name, label, value, onChange, includeTime = false, r
       isRequired={required}
       className={fieldStyles.field}
     >
-      <Label className={fieldStyles.label}>{label}{required && <span className={fieldStyles.required}> (required)</span>}</Label>
+      <Label className={fieldStyles.label}>
+        {label}
+        {required && <span className={fieldStyles.required}> (required)</span>}
+      </Label>
       <Group className={`${fieldStyles.control} ${styles.group}`}>
         <DateInput className={styles.input}>
           {(segment) => <DateSegment segment={segment} className={styles.segment} />}
         </DateInput>
         {value && !required && (
-          <Button slot={null} className={styles.button} aria-label={`Clear ${label.toLowerCase()}`} onPress={() => onChange(null)}>
+          <Button
+            slot={null}
+            className={styles.button}
+            aria-label={`Clear ${label.toLowerCase()}`}
+            onPress={() => onChange(null)}
+          >
             <X size={14} aria-hidden="true" />
           </Button>
         )}

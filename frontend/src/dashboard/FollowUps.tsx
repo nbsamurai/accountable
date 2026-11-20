@@ -15,7 +15,15 @@ export function ActivityLink({ activity }: { activity: Activity }) {
   return <Link to={`/${area}/${ref.id}`}>{ref.name}</Link>;
 }
 
-function FollowUp({ activity, overdue, today }: { activity: Activity; overdue?: boolean; today: string }) {
+function FollowUp({
+  activity,
+  overdue,
+  today,
+}: {
+  activity: Activity;
+  overdue?: boolean;
+  today: string;
+}) {
   return (
     <li className={styles.todo}>
       <FollowUpCheckbox activity={activity} showLabel={false} />
@@ -23,7 +31,11 @@ function FollowUp({ activity, overdue, today }: { activity: Activity; overdue?: 
         <p className={styles.todoText}>{activity.description}</p>
         <p className={styles.meta}>
           <ActivityLink activity={activity} />
-          {overdue && activity.follow_up_date && <>, <span className={styles.overdue}>{due(activity.follow_up_date, today)}</span></>}
+          {overdue && activity.follow_up_date && (
+            <>
+              , <span className={styles.overdue}>{due(activity.follow_up_date, today)}</span>
+            </>
+          )}
         </p>
       </div>
     </li>
@@ -36,33 +48,63 @@ export function FollowUps({ activities, today }: { activities: Activity[]; today
   const { overdue, upcoming } = followUpGroups(activities, today);
   const upcomingCount = upcoming.reduce((sum, group) => sum + group.activities.length, 0);
   let remaining = showUpcoming ? upcomingCount : FOLLOW_UP_LIMIT;
-  const visible = upcoming.flatMap((group) => {
+  const visible: typeof upcoming = [];
+  for (const group of upcoming) {
     const shown = group.activities.slice(0, remaining);
+    if (!shown.length) break;
+    visible.push({ ...group, activities: shown });
     remaining -= shown.length;
-    return shown.length ? [{ ...group, activities: shown }] : [];
-  });
+  }
   return (
     <Panel aria-label="Follow-ups">
       <h2>Follow-ups</h2>
       <p className={styles.summary} role="status">
-        {overdue.length || upcomingCount ? `${number(overdue.length)} overdue and ${number(upcomingCount)} due in the next 7 days.` : "Nothing overdue or due in the next 7 days."}
+        {overdue.length || upcomingCount
+          ? `${number(overdue.length)} overdue and ${number(upcomingCount)} due in the next 7 days.`
+          : "Nothing overdue or due in the next 7 days."}
       </p>
       {overdue.length > 0 && (
         <section className={styles.day} aria-labelledby="follow-ups-overdue">
-          <h3 className={styles.overdue} id="follow-ups-overdue">Overdue<small>{overdue.length} to do</small></h3>
+          <h3 className={styles.overdue} id="follow-ups-overdue">
+            Overdue<small>{overdue.length} to do</small>
+          </h3>
           <div>
-            <ul>{overdue.slice(0, showOverdue ? overdue.length : FOLLOW_UP_LIMIT).map((activity) => <FollowUp key={activity.id} activity={activity} today={today} overdue />)}</ul>
-            {overdue.length > FOLLOW_UP_LIMIT && <Button variant="quiet" onPress={() => setShowOverdue(!showOverdue)} aria-expanded={showOverdue}>{showOverdue ? "Show fewer" : `Show all ${overdue.length}`}</Button>}
+            <ul>
+              {overdue.slice(0, showOverdue ? overdue.length : FOLLOW_UP_LIMIT).map((activity) => (
+                <FollowUp key={activity.id} activity={activity} today={today} overdue />
+              ))}
+            </ul>
+            {overdue.length > FOLLOW_UP_LIMIT && (
+              <Button
+                variant="quiet"
+                onPress={() => setShowOverdue(!showOverdue)}
+                aria-expanded={showOverdue}
+              >
+                {showOverdue ? "Show fewer" : `Show all ${overdue.length}`}
+              </Button>
+            )}
           </div>
         </section>
       )}
       {visible.map((group) => (
         <section className={styles.day} key={group.day} aria-labelledby={`follow-up-${group.day}`}>
           <h3 id={`follow-up-${group.day}`}>{group.title}</h3>
-          <ul>{group.activities.map((activity) => <FollowUp key={activity.id} activity={activity} today={today} />)}</ul>
+          <ul>
+            {group.activities.map((activity) => (
+              <FollowUp key={activity.id} activity={activity} today={today} />
+            ))}
+          </ul>
         </section>
       ))}
-      {upcomingCount > FOLLOW_UP_LIMIT && <Button variant="quiet" onPress={() => setShowUpcoming(!showUpcoming)} aria-expanded={showUpcoming}>{showUpcoming ? "Show fewer" : `Show all ${upcomingCount}`}</Button>}
+      {upcomingCount > FOLLOW_UP_LIMIT && (
+        <Button
+          variant="quiet"
+          onPress={() => setShowUpcoming(!showUpcoming)}
+          aria-expanded={showUpcoming}
+        >
+          {showUpcoming ? "Show fewer" : `Show all ${upcomingCount}`}
+        </Button>
+      )}
     </Panel>
   );
 }

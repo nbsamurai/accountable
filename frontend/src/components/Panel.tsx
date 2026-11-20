@@ -13,7 +13,15 @@ type Props = {
 };
 
 /** A white panel with 16 px corners, 24 px padding and its title at top left. */
-export function Panel({ title, titleId, actions, children, className, as = "section", ...rest }: Props) {
+export function Panel({
+  title,
+  titleId,
+  actions,
+  children,
+  className,
+  as = "section",
+  ...rest
+}: Props) {
   const Tag = as;
   const labelled = title && titleId ? { "aria-labelledby": titleId } : {};
   return (

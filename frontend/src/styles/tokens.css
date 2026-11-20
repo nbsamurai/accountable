@@ -76,14 +76,47 @@
 }
 
 /* Stage colors (spec 5.3): set --st (the fill) and --st-on (the text on it). */
-.st-new { --st: var(--primary); --st-on: var(--ink); --st-ink: var(--primary-ink); }
-.st-qualified { --st: var(--secondary); --st-on: var(--ink); --st-ink: var(--secondary-ink); }
-.st-proposal { --st: var(--tertiary); --st-on: var(--ink); --st-ink: var(--tertiary-ink); }
-.st-negotiation { --st: var(--info-ink); --st-on: var(--on-dark); --st-ink: var(--info-ink); }
-.st-won { --st: var(--ink); --st-on: var(--on-dark); --st-ink: var(--ink); }
-.st-lost { --st: var(--subtle); --st-on: var(--ink); --st-ink: var(--control); }
+.st-new {
+  --st: var(--primary);
+  --st-on: var(--ink);
+  --st-ink: var(--primary-ink);
+}
+.st-qualified {
+  --st: var(--secondary);
+  --st-on: var(--ink);
+  --st-ink: var(--secondary-ink);
+}
+.st-proposal {
+  --st: var(--tertiary);
+  --st-on: var(--ink);
+  --st-ink: var(--tertiary-ink);
+}
+.st-negotiation {
+  --st: var(--info-ink);
+  --st-on: var(--on-dark);
+  --st-ink: var(--info-ink);
+}
+.st-won {
+  --st: var(--ink);
+  --st-on: var(--on-dark);
+  --st-ink: var(--ink);
+}
+.st-lost {
+  --st: var(--subtle);
+  --st-on: var(--ink);
+  --st-ink: var(--control);
+}
 
 /* Contact status colors */
-.status-lead { --st: var(--tertiary); --st-on: var(--ink); }
-.status-qualified { --st: var(--secondary); --st-on: var(--ink); }
-.status-customer { --st: var(--primary); --st-on: var(--ink); }
+.status-lead {
+  --st: var(--tertiary);
+  --st-on: var(--ink);
+}
+.status-qualified {
+  --st: var(--secondary);
+  --st-on: var(--ink);
+}
+.status-customer {
+  --st: var(--primary);
+  --st-on: var(--ink);
+}

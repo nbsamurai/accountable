@@ -3,7 +3,7 @@
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import AwareDatetime, BaseModel, Field
+from pydantic import MISSING, AwareDatetime, BaseModel, Field
 
 from ..deals.schemas import Ref
 from ..fields import RequiredText
@@ -28,13 +28,13 @@ class ActivityIn(BaseModel):
 class ActivityPatch(BaseModel):
     """Changes only the fields sent. The contact or deal can't change."""
 
-    type: LoggedType = None
+    type: LoggedType | MISSING = MISSING
     contact_id: int | None = None
     deal_id: int | None = None
-    description: RequiredText = None
-    occurred_at: AwareDatetime = None
+    description: RequiredText | MISSING = MISSING
+    occurred_at: AwareDatetime | MISSING = MISSING
     follow_up_date: date | None = None
-    done: bool = None
+    done: bool | MISSING = MISSING
 
 
 class ActivityOut(BaseModel):

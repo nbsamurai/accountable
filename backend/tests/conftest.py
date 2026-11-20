@@ -71,8 +71,12 @@ class Api:
     def deal(self, name: str = "Website redesign", **fields: Any) -> dict[str, Any]:
         return self._post("/api/deals", {"name": name, **fields})["deal"]
 
-    def activity(self, description: str = "Called about pricing", **fields: Any) -> dict[str, Any]:
-        return self._post("/api/activities", {"type": "note", "description": description, **fields})
+    def activity(
+        self, description: str = "Called about pricing", **fields: Any
+    ) -> dict[str, Any]:
+        return self._post(
+            "/api/activities", {"type": "note", "description": description, **fields}
+        )
 
     def get(self, path: str) -> dict[str, Any]:
         response = self.client.get(path)
@@ -84,8 +88,12 @@ class Api:
         assert response.status_code == 200, response.text
         return response.json()
 
-    def move(self, deal_id: int, stage: str, before_id: int | None = None) -> dict[str, Any]:
-        response = self.client.post(f"/api/deals/{deal_id}/move", json={"stage": stage, "before_id": before_id})
+    def move(
+        self, deal_id: int, stage: str, before_id: int | None = None
+    ) -> dict[str, Any]:
+        response = self.client.post(
+            f"/api/deals/{deal_id}/move", json={"stage": stage, "before_id": before_id}
+        )
         assert response.status_code == 200, response.text
         return response.json()
 

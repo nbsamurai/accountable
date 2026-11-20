@@ -1,5 +1,20 @@
-import { createColumnHelper, rowSortingFeature, tableFeatures, useTable } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import {
+  createColumnHelper,
+  rowSortingFeature,
+  tableFeatures,
+  useTable,
+} from "@tanstack/react-table";
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronLeft,
+  ChevronRight,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button as AriaButton, Input, SearchField } from "react-aria-components";
 import { number, plural } from "../lib/format";
@@ -85,8 +100,6 @@ export function DataTable<T extends Row>(props: Props<T>) {
   const byId = new Map(columns.map((column) => [column.id, column]));
   const lastPage = Math.max(1, Math.ceil((total ?? 0) / PAGE_SIZE));
   const pageOutOfRange = total !== undefined && state.page > lastPage;
-  const first = total ? (state.page - 1) * PAGE_SIZE + 1 : 0;
-  const last = total ? Math.min(state.page * PAGE_SIZE, total) : 0;
 
   useEffect(() => {
     if (pageOutOfRange && !isFetching) onChange({ page: lastPage }, { replace: true });
@@ -95,7 +108,11 @@ export function DataTable<T extends Row>(props: Props<T>) {
   return (
     <div className={styles.wrap}>
       <div className={styles.toolbar}>
-        <SearchBox noun={noun.many} value={state.q} onSearch={(q) => onChange({ q }, { replace: true })} />
+        <SearchBox
+          noun={noun.many}
+          value={state.q}
+          onSearch={(q) => onChange({ q }, { replace: true })}
+        />
         {props.filters}
       </div>
 
@@ -120,7 +137,9 @@ export function DataTable<T extends Row>(props: Props<T>) {
                         <th
                           key={header.id}
                           scope="col"
-                          aria-sort={sorted ? (sorted === "asc" ? "ascending" : "descending") : undefined}
+                          aria-sort={
+                            sorted ? (sorted === "asc" ? "ascending" : "descending") : undefined
+                          }
                           className={column.align === "end" ? styles.end : undefined}
                         >
                           {sortable ? (
@@ -156,7 +175,12 @@ export function DataTable<T extends Row>(props: Props<T>) {
                   : table.getRowModel().rows.map((row) => (
                       <tr key={row.id}>
                         {row.getAllCells().map((cell) => (
-                          <td key={cell.id} className={byId.get(cell.column.id)?.align === "end" ? styles.end : undefined}>
+                          <td
+                            key={cell.id}
+                            className={
+                              byId.get(cell.column.id)?.align === "end" ? styles.end : undefined
+                            }
+                          >
                             <table.FlexRender cell={cell} />
                           </td>
                         ))}
@@ -180,37 +204,59 @@ export function DataTable<T extends Row>(props: Props<T>) {
         )}
       </div>
 
-      {!!total && !pageOutOfRange && (
-        <nav className={styles.paging} aria-label="Pages">
-          <p className="mono">
-            {number(first)}–{number(last)} of {number(total)}
-          </p>
-          <div className={styles.pageButtons}>
-            <Button
-              variant="quiet"
-              icon={<ChevronLeft size={16} aria-hidden="true" />}
-              isDisabled={state.page <= 1}
-              onPress={() => onChange({ page: state.page - 1 })}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="quiet"
-              isDisabled={last >= total}
-              onPress={() => onChange({ page: state.page + 1 })}
-            >
-              Next
-              <ChevronRight size={16} aria-hidden="true" />
-            </Button>
-          </div>
-        </nav>
-      )}
+      {total && !pageOutOfRange ? (
+        <Paging page={state.page} total={total} onPage={(page) => onChange({ page })} />
+      ) : null}
     </div>
   );
 }
 
 /** Searches 250 ms after typing stops. */
-function SearchBox({ noun, value, onSearch }: { noun: string; value: string; onSearch: (q: string) => void }) {
+
+function Paging({
+  page,
+  total,
+  onPage,
+}: {
+  page: number;
+  total: number;
+  onPage: (page: number) => void;
+}) {
+  const first = (page - 1) * PAGE_SIZE + 1;
+  const last = Math.min(page * PAGE_SIZE, total);
+
+  return (
+    <nav className={styles.paging} aria-label="Pages">
+      <p className="mono">
+        {number(first)}–{number(last)} of {number(total)}
+      </p>
+      <div className={styles.pageButtons}>
+        <Button
+          variant="quiet"
+          icon={<ChevronLeft size={16} aria-hidden="true" />}
+          isDisabled={page <= 1}
+          onPress={() => onPage(page - 1)}
+        >
+          Previous
+        </Button>
+        <Button variant="quiet" isDisabled={last >= total} onPress={() => onPage(page + 1)}>
+          Next
+          <ChevronRight size={16} aria-hidden="true" />
+        </Button>
+      </div>
+    </nav>
+  );
+}
+
+function SearchBox({
+  noun,
+  value,
+  onSearch,
+}: {
+  noun: string;
+  value: string;
+  onSearch: (q: string) => void;
+}) {
   const [text, setText] = useState(value);
   const sent = useRef(value);
 
@@ -232,7 +278,12 @@ function SearchBox({ noun, value, onSearch }: { noun: string; value: string; onS
   }, [text, onSearch]);
 
   return (
-    <SearchField value={text} onChange={setText} aria-label={`Search ${noun}`} className={styles.search}>
+    <SearchField
+      value={text}
+      onChange={setText}
+      aria-label={`Search ${noun}`}
+      className={styles.search}
+    >
       <Search size={16} aria-hidden="true" className={styles.searchIcon} />
       <Input placeholder={`Search ${noun}`} className={styles.searchInput} />
       {text && (

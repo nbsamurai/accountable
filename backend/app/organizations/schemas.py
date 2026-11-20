@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import MISSING, BaseModel, Field
 
 from ..contacts.schemas import ContactSummary
 from ..deals.schemas import DealOut
@@ -19,7 +19,7 @@ class OrganizationIn(BaseModel):
 class OrganizationPatch(BaseModel):
     """Changes only the fields sent."""
 
-    name: Name = None
+    name: Name | MISSING = MISSING
     website: Website = None
     industry: Text = None
     notes: Text = None

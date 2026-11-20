@@ -27,7 +27,10 @@ test("a 404 or 409 gives its message", async () => {
 });
 
 test("no answer, or the proxy's 502, means the server can't be reached", async () => {
-  vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(new TypeError("Failed to fetch"))));
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => Promise.reject(new TypeError("Failed to fetch"))),
+  );
   await expect(api.get("/health")).rejects.toBeInstanceOf(UnreachableError);
   respond(502);
   await expect(api.get("/health")).rejects.toBeInstanceOf(UnreachableError);

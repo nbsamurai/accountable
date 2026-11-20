@@ -14,7 +14,13 @@ export function Skeleton({ width = "100%", height = 16, className }: Props) {
 }
 
 /** Several lines of grey blocks, with "Loading" for screen readers. */
-export function SkeletonLines({ lines = 3, label = "Loading" }: { lines?: number; label?: string }) {
+export function SkeletonLines({
+  lines = 3,
+  label = "Loading",
+}: {
+  lines?: number;
+  label?: string;
+}) {
   return (
     <div className={styles.lines} role="status">
       <span className="sr-only">{label}</span>

@@ -273,7 +273,7 @@ Organizations, Contacts and Deals share one table design:
   - "Move up" and "Move down".
   - "Open" and "Edit".
 
-  The menu gives a way to make every move without dragging, for keyboard users, screen-reader users and people who can't drag. A card moved to another stage from the menu goes to the top of that column.
+  The menu gives a way to make every move without dragging, for keyboard users, screen-reader users and people who can't drag. A card moved to another stage from the menu goes to the top of that column. After a move, focus returns to the moved card's More button.
 - **Keyboard dragging:** see section 6.
 - **Adding:** a deal added from a column starts at that stage, at the top of the column. A deal added from the header starts at New.
 
@@ -455,6 +455,7 @@ The accessibility standard is WCAG 2.2 AA across all screens. Section 10 describ
   - Everything works without a mouse, in a sensible tab order.
   - Dialogs keep focus inside them, close on Escape, and return focus to what opened them.
   - Menus, pickers and radio groups use the arrow keys.
+  - On a narrow screen, focus a control in the pipeline board or a linked table and use Left and Right to scroll the panel.
 - **The board with a keyboard:**
   - Tab to a card's grip handle, and press Space or Enter to pick the card up.
   - Up and Down move it within its column, and Left and Right move it to the next column.
@@ -588,7 +589,10 @@ Each record's `GET` also returns the counts its delete message needs (section 4.
   4. It waits for `/api/health`, then opens the browser at the dashboard.
   5. Ctrl+C stops both servers.
   6. If a port is in use, it says "Port 5173 is in use. Is Accountable already running?".
-- **`npm test`** runs the frontend type check, both unit test suites and the end-to-end tests. It attempts every check and exits nonzero if any fail. The end-to-end tests start their own servers on other ports, with their own database.
+- **`npm test`** runs the frontend type check, both unit test suites and the end-to-end tests. It requires 80% line coverage in the frontend and 80% statement coverage in the backend. It attempts every check and exits nonzero if any fail. The end-to-end tests start their own servers on other ports, with their own database.
+- **`npm run check`** checks formatting, linting, types and secrets, and runs `npm test`. ESLint and Ruff limit each function's cyclomatic complexity to 15. Gitleaks scans Git history, the index and the working tree. The working-tree scan honors Git ignore rules, including the local `.env`.
+- **`npm run check:quick`** runs the same checks and skips the end-to-end suite.
+- **`npm run format`** applies Prettier formatting to the frontend and Ruff formatting to the backend.
 - **`npm run seed`** resets the database to the sample data. It works while the app is running, and a refresh then shows the sample data. `npm run seed -- --large` loads the performance data set instead.
 
 The first run needs an internet connection to download packages and Python. After that, Accountable needs none.

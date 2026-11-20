@@ -50,8 +50,16 @@ def test_sorting_both_ways_with_empty_values_last(api):
     api.org("Alpha", industry="Retail")
     api.org("bravo", industry=None)
     api.org("Charlie", industry="Energy")
-    assert names(api, "/api/organizations?sort=industry&dir=asc") == ["Charlie", "Alpha", "bravo"]
-    assert names(api, "/api/organizations?sort=industry&dir=desc") == ["Alpha", "Charlie", "bravo"]
+    assert names(api, "/api/organizations?sort=industry&dir=asc") == [
+        "Charlie",
+        "Alpha",
+        "bravo",
+    ]
+    assert names(api, "/api/organizations?sort=industry&dir=desc") == [
+        "Alpha",
+        "Charlie",
+        "bravo",
+    ]
     # Names sort A to Z, ignoring case.
     assert names(api, "/api/organizations") == ["Alpha", "bravo", "Charlie"]
     assert names(api, "/api/organizations?dir=desc") == ["Charlie", "bravo", "Alpha"]
@@ -60,19 +68,46 @@ def test_sorting_both_ways_with_empty_values_last(api):
 @pytest.mark.parametrize(
     ("path", "columns"),
     [
-        ("/api/organizations", ["name", "industry", "website", "contacts", "open_deals", "open_pipeline"]),
-        ("/api/contacts", ["name", "organization", "job_title", "email", "phone", "status"]),
+        (
+            "/api/organizations",
+            ["name", "industry", "website", "contacts", "open_deals", "open_pipeline"],
+        ),
+        (
+            "/api/contacts",
+            ["name", "organization", "job_title", "email", "phone", "status"],
+        ),
         (
             "/api/deals",
-            ["name", "organization", "contact", "stage", "value", "probability", "expected_revenue", "close_date"],
+            [
+                "name",
+                "organization",
+                "contact",
+                "stage",
+                "value",
+                "probability",
+                "expected_revenue",
+                "close_date",
+            ],
         ),
     ],
 )
 def test_every_sortable_column_sorts_both_ways(api, path, columns):
     org = api.org("Org", industry="Retail", website="org.example")
-    jane = api.contact("Jane", organization_id=org["id"], email="jane@org.example", phone="1", job_title="CTO")
+    jane = api.contact(
+        "Jane",
+        organization_id=org["id"],
+        email="jane@org.example",
+        phone="1",
+        job_title="CTO",
+    )
     api.contact("Empty")
-    api.deal("Deal", organization_id=org["id"], contact_id=jane["id"], value=100, close_date="2026-12-01")
+    api.deal(
+        "Deal",
+        organization_id=org["id"],
+        contact_id=jane["id"],
+        value=100,
+        close_date="2026-12-01",
+    )
     api.deal("Empty deal")
     for column in columns:
         for direction in ("asc", "desc"):
@@ -86,14 +121,32 @@ def test_empty_values_go_last_for_numbers_and_dates(api):
     api.deal("Big", value=1000, close_date="2027-01-01")
     assert names(api, "/api/deals?sort=value&dir=asc") == ["Small", "Big", "No value"]
     assert names(api, "/api/deals?sort=value&dir=desc") == ["Big", "Small", "No value"]
-    assert names(api, "/api/deals?sort=close_date&dir=desc") == ["Big", "Small", "No value"]
+    assert names(api, "/api/deals?sort=close_date&dir=desc") == [
+        "Big",
+        "Small",
+        "No value",
+    ]
 
 
 def test_stage_sorts_in_pipeline_order(api):
-    for name, stage in [("A", "won"), ("B", "new"), ("C", "lost"), ("D", "negotiation"), ("E", "qualified"), ("F", "proposal")]:
+    for name, stage in [
+        ("A", "won"),
+        ("B", "new"),
+        ("C", "lost"),
+        ("D", "negotiation"),
+        ("E", "qualified"),
+        ("F", "proposal"),
+    ]:
         api.deal(name, stage=stage)
     assert names(api, "/api/deals?sort=stage") == ["B", "E", "F", "D", "A", "C"]
-    assert names(api, "/api/deals?sort=stage&dir=desc") == ["C", "A", "D", "F", "E", "B"]
+    assert names(api, "/api/deals?sort=stage&dir=desc") == [
+        "C",
+        "A",
+        "D",
+        "F",
+        "E",
+        "B",
+    ]
 
 
 def test_organization_counts_sort(api):
@@ -102,9 +155,16 @@ def test_organization_counts_sort(api):
     api.contact("One", organization_id=big["id"])
     api.deal("Open", organization_id=big["id"], value=500)
     assert names(api, "/api/organizations?sort=contacts&dir=desc") == ["Big", "Small"]
-    assert names(api, "/api/organizations?sort=open_pipeline&dir=asc") == ["Small", "Big"]
+    assert names(api, "/api/organizations?sort=open_pipeline&dir=asc") == [
+        "Small",
+        "Big",
+    ]
     listed = api.get("/api/organizations")["items"][0]
-    assert (listed["contact_count"], listed["open_deal_count"], listed["open_pipeline"]) == (1, 1, 500)
+    assert (
+        listed["contact_count"],
+        listed["open_deal_count"],
+        listed["open_pipeline"],
+    ) == (1, 1, 500)
 
 
 def test_pages_hold_50_rows_and_total_counts_every_match(api):
@@ -114,7 +174,9 @@ def test_pages_hold_50_rows_and_total_counts_every_match(api):
     assert len(first["items"]) == 50
     assert first["total"] == 60
     second = api.get("/api/contacts?page=2")
-    assert [c["name"] for c in second["items"]] == [f"Contact {n}" for n in range(50, 60)]
+    assert [c["name"] for c in second["items"]] == [
+        f"Contact {n}" for n in range(50, 60)
+    ]
     assert second["total"] == 60
     assert api.get("/api/contacts?q=Contact 1")["total"] == 10
 
@@ -124,7 +186,12 @@ def test_the_contacts_status_counts_follow_the_search(api):
     api.contact("Ana Smith", status="customer")
     api.contact("Sam Okafor", status="qualified")
     everyone = api.get("/api/contacts")
-    assert everyone["status_counts"] == {"all": 3, "lead": 1, "qualified": 1, "customer": 1}
+    assert everyone["status_counts"] == {
+        "all": 3,
+        "lead": 1,
+        "qualified": 1,
+        "customer": 1,
+    }
     anas = api.get("/api/contacts?q=ana&status=lead")
     assert [c["name"] for c in anas["items"]] == ["Ana Lopez"]
     assert anas["total"] == 1

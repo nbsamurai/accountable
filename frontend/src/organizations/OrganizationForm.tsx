@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { DeleteDialog } from "../components/DeleteDialog";
 import { TextInput } from "../components/Field";
@@ -29,26 +29,18 @@ function valuesOf(organization: Organization | null): OrganizationValues {
 type FormProps = {
   /** The organization to edit, or null to add one. */
   organization: Organization | null;
-  isOpen: boolean;
   onClose: () => void;
   onSaved?: (saved: OrganizationDetail) => void;
 };
 
 /** Name, Website, Industry and Notes (spec 4.8). */
-export function OrganizationForm({ organization, isOpen, onClose, onSaved }: FormProps) {
-  const [values, setValues] = useState(EMPTY);
+export function OrganizationForm({ organization, onClose, onSaved }: FormProps) {
+  const [values, setValues] = useState(() => valuesOf(organization));
   const errors = useFormErrors();
   const save = useSaveOrganization();
 
-  useEffect(() => {
-    if (isOpen) {
-      setValues(valuesOf(organization));
-      errors.clear();
-    }
-    // Only when the dialog opens, so typing isn't reset by a refresh behind it.
-  }, [isOpen]);
-
-  const set = (field: keyof OrganizationValues) => (value: string) => setValues((v) => ({ ...v, [field]: value }));
+  const set = (field: keyof OrganizationValues) => (value: string) =>
+    setValues((v) => ({ ...v, [field]: value }));
 
   function submit() {
     save.mutate(
@@ -67,17 +59,41 @@ export function OrganizationForm({ organization, isOpen, onClose, onSaved }: For
   return (
     <FormDialog
       title={organization ? "Edit organization" : "Add organization"}
-      isOpen={isOpen}
+      isOpen
+      initialFocus="name"
       onClose={onClose}
       onSubmit={submit}
       isPending={save.isPending}
       fieldErrors={errors.fieldErrors}
       formError={errors.formError}
     >
-      <TextInput name="name" label="Name" value={values.name} onChange={set("name")} requiredMessage="Enter a name." autoFocus />
-      <TextInput name="website" label="Website" value={values.website} onChange={set("website")} inputMode="url" />
-      <TextInput name="industry" label="Industry" value={values.industry} onChange={set("industry")} />
-      <TextInput name="notes" label="Notes" value={values.notes} onChange={set("notes")} multiline />
+      <TextInput
+        name="name"
+        label="Name"
+        value={values.name}
+        onChange={set("name")}
+        requiredMessage="Enter a name."
+      />
+      <TextInput
+        name="website"
+        label="Website"
+        value={values.website}
+        onChange={set("website")}
+        inputMode="url"
+      />
+      <TextInput
+        name="industry"
+        label="Industry"
+        value={values.industry}
+        onChange={set("industry")}
+      />
+      <TextInput
+        name="notes"
+        label="Notes"
+        value={values.notes}
+        onChange={set("notes")}
+        multiline
+      />
     </FormDialog>
   );
 }
@@ -92,7 +108,10 @@ type DeleteProps = {
 export function DeleteOrganizationDialog({ organization, onClose, onDeleted }: DeleteProps) {
   const { data } = useOrganization(organization?.id);
   const remove = useDeleteOrganization();
-  const message = data && organization ? organizationMessage(data.name, data.contact_count, data.deal_count) : null;
+  const message =
+    data && organization
+      ? organizationMessage(data.name, data.contact_count, data.deal_count)
+      : null;
 
   return (
     <DeleteDialog

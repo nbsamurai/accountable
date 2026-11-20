@@ -40,7 +40,9 @@ SORTS: dict[str, Sortable] = {
     "open_deals": Sortable(OPEN_DEAL_COUNT),
     "open_pipeline": Sortable(OPEN_PIPELINE),
 }
-OrganizationSort = Literal["name", "industry", "website", "contacts", "open_deals", "open_pipeline"]
+OrganizationSort = Literal[
+    "name", "industry", "website", "contacts", "open_deals", "open_pipeline"
+]
 
 
 def _select():
@@ -50,9 +52,9 @@ def _select():
         OPEN_DEAL_COUNT.label("open_deal_count"),
         OPEN_PIPELINE.label("open_pipeline"),
     ).select_from(
-        organizations.outerjoin(contact_counts, contact_counts.c.organization_id == organizations.c.id).outerjoin(
-            open_deals, open_deals.c.organization_id == organizations.c.id
-        )
+        organizations.outerjoin(
+            contact_counts, contact_counts.c.organization_id == organizations.c.id
+        ).outerjoin(open_deals, open_deals.c.organization_id == organizations.c.id)
     )
 
 
@@ -72,7 +74,9 @@ def to_out(row: Row) -> dict[str, Any]:
 
 
 def get_row(conn: Connection, organization_id: int) -> Row:
-    row = conn.execute(select(organizations).where(organizations.c.id == organization_id)).first()
+    row = conn.execute(
+        select(organizations).where(organizations.c.id == organization_id)
+    ).first()
     if row is None:
         raise not_found("organization")
     return row
@@ -84,9 +88,15 @@ def figures(conn: Connection, organization_id: int) -> dict[str, int]:
     is_open = deals.c.stage.in_(OPEN_STAGES)
     row = conn.execute(
         select(
-            func.coalesce(func.sum(case((is_open, value), else_=0)), 0).label("open_pipeline"),
-            func.coalesce(func.sum(case((is_open, value * deals.c.probability), else_=0)), 0).label("expected"),
-            func.coalesce(func.sum(case((deals.c.stage == "won", value), else_=0)), 0).label("won"),
+            func.coalesce(func.sum(case((is_open, value), else_=0)), 0).label(
+                "open_pipeline"
+            ),
+            func.coalesce(
+                func.sum(case((is_open, value * deals.c.probability), else_=0)), 0
+            ).label("expected"),
+            func.coalesce(
+                func.sum(case((deals.c.stage == "won", value), else_=0)), 0
+            ).label("won"),
         ).where(deals.c.organization_id == organization_id)
     ).one()
     return {
@@ -108,36 +118,58 @@ def detail(conn: Connection, organization_id: int, today: date) -> dict[str, Any
         "deal_count": deal_count,
         "figures": figures(conn, organization_id),
         "contacts": contacts_service.contacts_at(conn, organization_id),
-        "deals": deals_service.deals_where(conn, deals.c.organization_id == organization_id, today),
+        "deals": deals_service.deals_where(
+            conn, deals.c.organization_id == organization_id, today
+        ),
     }
 
 
 def list_organizations(
-    conn: Connection, *, q: str | None, sort: OrganizationSort, direction: Direction, page: Paging
+    conn: Connection,
+    *,
+    q: str | None,
+    sort: OrganizationSort,
+    direction: Direction,
+    page: Paging,
 ) -> dict[str, Any]:
     stmt = _select()
-    matches = search(q, [organizations.c.name, organizations.c.industry, organizations.c.website])
+    matches = search(
+        q, [organizations.c.name, organizations.c.industry, organizations.c.website]
+    )
     if matches is not None:
         stmt = stmt.where(matches)
-    rows, total = page_of(conn, stmt, order(SORTS[sort], direction, organizations.c.id), page)
+    rows, total = page_of(
+        conn, stmt, order(SORTS[sort], direction, organizations.c.id), page
+    )
     return {"items": [to_out(row) for row in rows], "total": total}
 
 
-def create(conn: Connection, data: OrganizationIn, *, today: date, now: datetime) -> dict[str, Any]:
+def create(
+    conn: Connection, data: OrganizationIn, *, today: date, now: datetime
+) -> dict[str, Any]:
     organization_id = conn.execute(
-        insert(organizations).values(**data.model_dump(), created_at=now, updated_at=now)
-    ).inserted_primary_key[0]
+        insert(organizations)
+        .values(**data.model_dump(), created_at=now, updated_at=now)
+        .returning(organizations.c.id)
+    ).scalar_one()
     return detail(conn, organization_id, today)
 
 
 def patch(
-    conn: Connection, organization_id: int, data: OrganizationPatch, *, today: date, now: datetime
+    conn: Connection,
+    organization_id: int,
+    data: OrganizationPatch,
+    *,
+    today: date,
+    now: datetime,
 ) -> dict[str, Any]:
     get_row(conn, organization_id)
     values = data.model_dump(exclude_unset=True)
     if values:
         conn.execute(
-            update(organizations).where(organizations.c.id == organization_id).values(**values, updated_at=now)
+            update(organizations)
+            .where(organizations.c.id == organization_id)
+            .values(**values, updated_at=now)
         )
     return detail(conn, organization_id, today)
 

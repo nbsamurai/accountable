@@ -21,7 +21,9 @@ def list_deals(
     sort: service.DealSort = "name",
     dir: Direction = "asc",
 ):
-    return service.list_deals(conn, q=q, sort=sort, direction=dir, page=page, today=today)
+    return service.list_deals(
+        conn, q=q, sort=sort, direction=dir, page=page, today=today
+    )
 
 
 @router.post("", status_code=201, response_model=DealChange)

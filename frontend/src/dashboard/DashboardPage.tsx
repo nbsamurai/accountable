@@ -18,10 +18,25 @@ export default function DashboardPage() {
   const today = data?.today ?? todayIso();
   return (
     <>
-      <PageHeader title="Dashboard" aside={<p className={styles.tagline}>Here's how sales are going.</p>}
-        actions={<time className={styles.today} dateTime={today}>{dateFull(today)}</time>} />
-      {dashboard.isPending && <Panel as="div"><SkeletonLines label="Loading dashboard" /></Panel>}
-      {dashboard.isError && <Panel title="Couldn't load the dashboard"><Button onPress={() => void dashboard.refetch()}>Try again</Button></Panel>}
+      <PageHeader
+        title="Dashboard"
+        aside={<p className={styles.tagline}>Here's how sales are going.</p>}
+        actions={
+          <time className={styles.today} dateTime={today}>
+            {dateFull(today)}
+          </time>
+        }
+      />
+      {dashboard.isPending && (
+        <Panel as="div">
+          <SkeletonLines label="Loading dashboard" />
+        </Panel>
+      )}
+      {dashboard.isError && (
+        <Panel title="Couldn't load the dashboard">
+          <Button onPress={() => void dashboard.refetch()}>Try again</Button>
+        </Panel>
+      )}
       {data && (
         <div className={styles.layout}>
           <div className={styles.stack}>

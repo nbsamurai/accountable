@@ -22,7 +22,10 @@ def test_deleting_a_contact_keeps_their_deals_and_deletes_their_activities(api, 
     assert after["contact"] is None
     timeline = api.get(f"/api/deals/{deal['id']}/timeline")["items"]
     assert [a["id"] for a in timeline] == [on_deal["id"]]
-    assert client.patch(f"/api/activities/{own['id']}", json={"done": True}).status_code == 404
+    assert (
+        client.patch(f"/api/activities/{own['id']}", json={"done": True}).status_code
+        == 404
+    )
 
 
 def test_deleting_a_deal_deletes_its_activities_stage_changes_included(api, client):
@@ -42,5 +45,7 @@ def test_deleting_an_activity_changes_nothing_else(api, client):
     first = api.activity("First", deal_id=deal["id"])
     second = api.activity("Second", deal_id=deal["id"])
     assert client.delete(f"/api/activities/{first['id']}").status_code == 204
-    assert [a["id"] for a in api.get(f"/api/deals/{deal['id']}/timeline")["items"]] == [second["id"]]
+    assert [a["id"] for a in api.get(f"/api/deals/{deal['id']}/timeline")["items"]] == [
+        second["id"]
+    ]
     assert api.get(f"/api/deals/{deal['id']}")["contact"]["id"] == jane["id"]

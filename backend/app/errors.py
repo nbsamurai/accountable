@@ -9,7 +9,9 @@ from fastapi.exceptions import RequestValidationError
 
 
 def invalid(field: str, message: str, where: str = "body") -> RequestValidationError:
-    return RequestValidationError([{"loc": (where, field), "msg": message, "type": "value_error"}])
+    return RequestValidationError(
+        [{"loc": (where, field), "msg": message, "type": "value_error"}]
+    )
 
 
 def not_found(kind: str) -> HTTPException:

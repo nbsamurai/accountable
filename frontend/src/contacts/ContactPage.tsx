@@ -18,7 +18,15 @@ export default function ContactPage() {
   const id = useRecordId();
   const record = useContact(id);
   if (!record.data || record.isError) {
-    return <RecordFallback kind="contact" section="Contacts" error={record.error} missing={!id} onRetry={() => void record.refetch()} />;
+    return (
+      <RecordFallback
+        kind="contact"
+        section="Contacts"
+        error={record.error}
+        missing={!id}
+        onRetry={() => void record.refetch()}
+      />
+    );
   }
   return <ContactRecord key={record.data.id} contact={record.data} />;
 }
@@ -32,12 +40,21 @@ function ContactRecord({ contact }: { contact: ContactDetail }) {
 
   return (
     <>
-      <PageHeader title={contact.name} aside={<StatusPill value={contact.status} />} actions={<RecordActions onEdit={() => setDialog("edit")} onDelete={() => setDialog("delete")} />}>
+      <PageHeader
+        title={contact.name}
+        aside={<StatusPill value={contact.status} />}
+        actions={
+          <RecordActions onEdit={() => setDialog("edit")} onDelete={() => setDialog("delete")} />
+        }
+      >
         <div className={styles.meta}>
           {(contact.job_title || organization) && (
             <span>
-              {contact.job_title}{contact.job_title && organization && " at "}
-              {organization && <Link to={`/organizations/${organization.id}`}>{organization.name}</Link>}
+              {contact.job_title}
+              {contact.job_title && organization && " at "}
+              {organization && (
+                <Link to={`/organizations/${organization.id}`}>{organization.name}</Link>
+              )}
             </span>
           )}
           {contact.email && <a href={`mailto:${contact.email}`}>{contact.email}</a>}
@@ -49,13 +66,40 @@ function ContactRecord({ contact }: { contact: ContactDetail }) {
           <ActivityForm target={target} />
           <Timeline target={target} />
         </div>
-        <Panel title="Deals" titleId="contact-deals" actions={<Button onPress={() => setDialog("deal")} icon={<Plus size={16} aria-hidden="true" />}>Add deal</Button>}>
+        <Panel
+          title="Deals"
+          titleId="contact-deals"
+          actions={
+            <Button onPress={() => setDialog("deal")} icon={<Plus size={16} aria-hidden="true" />}>
+              Add deal
+            </Button>
+          }
+        >
           <LinkedDeals deals={contact.deals} />
         </Panel>
       </div>
-      {dialog === "edit" && <ContactForm contact={contact} isOpen onClose={close} />}
-      {dialog === "delete" && <DeleteContactDialog contact={contact} onClose={close} onDeleted={() => navigate("/contacts")} />}
-      {dialog === "deal" && <DealForm deal={null} defaults={{ contact: { id: contact.id, name: contact.name, organization_id: organization?.id ?? null, organization_name: organization?.name ?? null } }} isOpen onClose={close} />}
+      {dialog === "edit" && <ContactForm contact={contact} onClose={close} />}
+      {dialog === "delete" && (
+        <DeleteContactDialog
+          contact={contact}
+          onClose={close}
+          onDeleted={() => navigate("/contacts")}
+        />
+      )}
+      {dialog === "deal" && (
+        <DealForm
+          deal={null}
+          defaults={{
+            contact: {
+              id: contact.id,
+              name: contact.name,
+              organization_id: organization?.id ?? null,
+              organization_name: organization?.name ?? null,
+            },
+          }}
+          onClose={close}
+        />
+      )}
     </>
   );
 }

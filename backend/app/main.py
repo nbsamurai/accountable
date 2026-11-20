@@ -25,11 +25,20 @@ def health() -> dict:
     return {"status": "ok"}
 
 
-for router in (organizations_router, contacts_router, deals_router, activities_router, pipeline_router, dashboard_router):
+for router in (
+    organizations_router,
+    contacts_router,
+    deals_router,
+    activities_router,
+    pipeline_router,
+    dashboard_router,
+):
     api.include_router(router)
 
 
-def create_app(path: Path | None = None, *, sample_data_on_start: bool = True) -> FastAPI:
+def create_app(
+    path: Path | None = None, *, sample_data_on_start: bool = True
+) -> FastAPI:
     """The app, on the database at `path`, or the one `database_path()` names.
 
     A new database gets the tables, and the sample data unless `sample_data_on_start` is False.
@@ -38,7 +47,11 @@ def create_app(path: Path | None = None, *, sample_data_on_start: bool = True) -
     engine = make_engine(path or database_path())
     init_db(engine, sample_data.load if sample_data_on_start else None)
     app = FastAPI(title="Accountable")
-    app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost"], www_redirect=False)
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=["127.0.0.1", "localhost"],
+        www_redirect=False,
+    )
     app.state.engine = engine
     app.include_router(api)
     return app

@@ -4,7 +4,10 @@ import { queryKeys, refreshAfterChange, refreshAfterDelete } from "../lib/queryK
 import type { Stage } from "../lib/stages";
 import type { TableState } from "../lib/useUrlState";
 
-export type DealContact = Ref & { organization_id: number | null; organization_name: string | null };
+export type DealContact = Ref & {
+  organization_id: number | null;
+  organization_name: string | null;
+};
 
 export type Deal = {
   id: number;
@@ -26,7 +29,10 @@ export type Deal = {
 export type DealDetail = Deal & { stage_change_count: number };
 
 /** A deal after a change, and the contact it made a customer, if any. */
-export type DealChange = { deal: DealDetail; contact: { id: number; name: string; status: string } | null };
+export type DealChange = {
+  deal: DealDetail;
+  contact: { id: number; name: string; status: string } | null;
+};
 
 export type DealValues = {
   name: string;

@@ -9,12 +9,35 @@ export function Scoreboard({ data }: { data: Dashboard }) {
   return (
     <Panel aria-label="Key figures">
       <dl className={styles.score}>
-        <div><dt>Open pipeline</dt><dd className="mono">{money(pipeline.value)}</dd><dd>{plural(pipeline.count, "open deal")}</dd></div>
-        <div><dt>Expected revenue</dt><dd className="mono">{money(pipeline.expected_revenue)}</dd><dd>Value × probability of close</dd></div>
-        <div><dt>Won this month</dt><dd className="mono">{money(won.value)}</dd><dd>{plural(won.count, "deal")}</dd></div>
-        <div><dt>Win rate</dt><dd className="mono">{percent(rate.percent)}</dd><dd>{number(rate.won)} won of {number(rate.closed)} closed in 12 months</dd></div>
+        <div>
+          <dt>Open pipeline</dt>
+          <dd className="mono">{money(pipeline.value)}</dd>
+          <dd>{plural(pipeline.count, "open deal")}</dd>
+        </div>
+        <div>
+          <dt>Expected revenue</dt>
+          <dd className="mono">{money(pipeline.expected_revenue)}</dd>
+          <dd>Value × probability of close</dd>
+        </div>
+        <div>
+          <dt>Won this month</dt>
+          <dd className="mono">{money(won.value)}</dd>
+          <dd>{plural(won.count, "deal")}</dd>
+        </div>
+        <div>
+          <dt>Win rate</dt>
+          <dd className="mono">{percent(rate.percent)}</dd>
+          <dd>
+            {number(rate.won)} won of {number(rate.closed)} closed in 12 months
+          </dd>
+        </div>
       </dl>
-      <StageBar label="Open pipeline by stage" total={pipeline.value} count={pipeline.count} stages={pipeline.stages} />
+      <StageBar
+        label="Open pipeline by stage"
+        total={pipeline.value}
+        count={pipeline.count}
+        stages={pipeline.stages}
+      />
     </Panel>
   );
 }

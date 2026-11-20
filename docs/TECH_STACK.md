@@ -12,7 +12,9 @@ For now it runs locally. Later, Supabase will provide sign-in and the database, 
 Commands are npm scripts in a `package.json` at the repo root, with `frontend/` as an npm workspace, so they work the same on Mac, Linux and Windows:
 
 - `npm run dev` starts the backend and the frontend together
-- `npm test` runs all the tests and fails if any test fails
+- `npm test` runs all the tests and enforces 80% unit coverage for the frontend and backend
+- `npm run check` runs Prettier, ESLint, Ruff, TypeScript, ty, Gitleaks and the test suites. `npm run check:quick` skips the end-to-end suite
+- `npm run format` applies Prettier and Ruff formatting
 - `npm run seed` resets the database to the sample data
 
 `docs/STATUS.md` says how to run the app. `README.md` is the course's own guide, so leave it as it is.

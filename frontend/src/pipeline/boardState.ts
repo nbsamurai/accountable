@@ -6,7 +6,9 @@ export const INITIAL_CARDS = 50;
 const total = (cards: CardDeal[]): BoardTotals => ({
   count: cards.length,
   value: cards.reduce((sum, card) => sum + (card.value ?? 0), 0),
-  expected_revenue: roundRevenue(cards.reduce((sum, card) => sum + (card.value ?? 0) * card.probability, 0)),
+  expected_revenue: roundRevenue(
+    cards.reduce((sum, card) => sum + (card.value ?? 0) * card.probability, 0),
+  ),
 });
 
 export function applyMove(board: BoardData, card: CardDeal, drop: Drop): BoardData {
@@ -28,21 +30,36 @@ export function applyMove(board: BoardData, card: CardDeal, drop: Drop): BoardDa
     }
     return { ...column, cards, ...total(cards) };
   });
-  return { ...board, columns, totals: total(columns.flatMap((column) => isOpen(column.stage) ? column.cards : [])) };
+  return {
+    ...board,
+    columns,
+    totals: total(columns.flatMap((column) => (isOpen(column.stage) ? column.cards : []))),
+  };
 }
 
 export function firstDrop(board: BoardData, card: CardDeal): Drop {
   const cards = board.columns.find((column) => column.stage === card.stage)!.cards;
-  return { stage: card.stage, before_id: cards[cards.findIndex((item) => item.id === card.id) + 1]?.id ?? null };
+  return {
+    stage: card.stage,
+    before_id: cards[cards.findIndex((item) => item.id === card.id) + 1]?.id ?? null,
+  };
 }
 
 export function dropPosition(board: BoardData, card: CardDeal, drop: Drop) {
-  const cards = board.columns.find((column) => column.stage === drop.stage)!.cards.filter((item) => item.id !== card.id);
+  const cards = board.columns
+    .find((column) => column.stage === drop.stage)!
+    .cards.filter((item) => item.id !== card.id);
   const index = cards.findIndex((item) => item.id === drop.before_id);
   return { index: index < 0 ? cards.length : index, count: cards.length + 1 };
 }
 
-export function keyboardDrop(board: BoardData, card: CardDeal, drop: Drop, key: string, limits: Partial<Record<Stage, number>>): Drop {
+export function keyboardDrop(
+  board: BoardData,
+  card: CardDeal,
+  drop: Drop,
+  key: string,
+  limits: Partial<Record<Stage, number>>,
+): Drop {
   const horizontal = key === "ArrowLeft" ? -1 : key === "ArrowRight" ? 1 : 0;
   const stageIndex = STAGES.findIndex((step) => step.key === drop.stage);
   const next = STAGES[stageIndex + horizontal];
@@ -57,4 +74,3 @@ export function keyboardDrop(board: BoardData, card: CardDeal, drop: Drop, key: 
   const place = Math.min(lastSlot, Math.max(0, index + vertical));
   return { stage: next.key, before_id: cards[place]?.id ?? null };
 }
-

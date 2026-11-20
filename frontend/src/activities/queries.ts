@@ -17,12 +17,18 @@ export type Activity = {
 
 export type EditableActivity = Activity & { type: LoggedType };
 export type ActivityTarget = { area: "contacts" | "deals"; id: number };
-export type ActivityValues = { type: LoggedType; description: string; occurred_at?: string; follow_up_date: string | null };
+export type ActivityValues = {
+  type: LoggedType;
+  description: string;
+  occurred_at?: string;
+  follow_up_date: string | null;
+};
 
 export function useTimeline({ area, id }: ActivityTarget) {
   return useInfiniteQuery({
     queryKey: queryKeys[area].timeline(id),
-    queryFn: ({ pageParam }) => api.get<Page<Activity>>(`/${area}/${id}/timeline`, { offset: pageParam, limit: 50 }),
+    queryFn: ({ pageParam }) =>
+      api.get<Page<Activity>>(`/${area}/${id}/timeline`, { offset: pageParam, limit: 50 }),
     initialPageParam: 0,
     getNextPageParam: (page, _, offset) => {
       const next = offset + page.items.length;
@@ -35,7 +41,8 @@ export function useSaveActivity() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: ({ values, target }: { values: ActivityValues; target: ActivityTarget }) => {
-      const parent = target.area === "contacts" ? { contact_id: target.id } : { deal_id: target.id };
+      const parent =
+        target.area === "contacts" ? { contact_id: target.id } : { deal_id: target.id };
       return api.post<Activity>("/activities", { ...values, ...parent });
     },
     onSuccess: () => refreshAfterChange(client),
@@ -45,8 +52,13 @@ export function useSaveActivity() {
 export function usePatchActivity() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, values }: { id: number; values: Partial<ActivityValues & { done: boolean }> }) =>
-      api.patch<Activity>(`/activities/${id}`, values),
+    mutationFn: ({
+      id,
+      values,
+    }: {
+      id: number;
+      values: Partial<ActivityValues & { done: boolean }>;
+    }) => api.patch<Activity>(`/activities/${id}`, values),
     onSuccess: () => refreshAfterChange(client),
   });
 }

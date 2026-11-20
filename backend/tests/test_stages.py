@@ -10,7 +10,11 @@ from .conftest import TODAY
 
 
 def stage_changes(api, deal_id):
-    return [a for a in api.get(f"/api/deals/{deal_id}/timeline")["items"] if a["type"] == "stage_change"]
+    return [
+        a
+        for a in api.get(f"/api/deals/{deal_id}/timeline")["items"]
+        if a["type"] == "stage_change"
+    ]
 
 
 @pytest.mark.parametrize("stage", [s for s in STAGES if s != "new"])
@@ -73,7 +77,9 @@ def test_a_reopened_won_deal_keeps_its_close_date_and_shows_as_late(api, client,
 
 def test_a_hand_set_probability_is_kept_until_the_stage_changes(api):
     deal = api.deal(stage="proposal")
-    edited = api.patch(f"/api/deals/{deal['id']}", {"probability": 65, "name": "Website redesign v2"})["deal"]
+    edited = api.patch(
+        f"/api/deals/{deal['id']}", {"probability": 65, "name": "Website redesign v2"}
+    )["deal"]
     assert edited["probability"] == 65
     edited = api.patch(f"/api/deals/{deal['id']}", {"value": 1000})["deal"]
     assert edited["probability"] == 65
@@ -84,7 +90,8 @@ def test_a_hand_set_probability_is_kept_until_the_stage_changes(api):
 def test_fields_sent_with_a_stage_change_win_over_the_defaults(api):
     deal = api.deal(stage="negotiation")
     changed = api.patch(
-        f"/api/deals/{deal['id']}", {"stage": "won", "probability": 90, "close_date": "2026-11-15"}
+        f"/api/deals/{deal['id']}",
+        {"stage": "won", "probability": 90, "close_date": "2026-11-15"},
     )["deal"]
     assert changed["probability"] == 90
     assert changed["close_date"] == "2026-11-15"
@@ -98,10 +105,17 @@ def test_creating_a_deal_at_a_stage_writes_no_activity(api):
 
 def test_creating_a_won_deal_makes_its_main_contact_a_customer(api):
     contact = api.contact("Jane Doe", status="lead")
-    created = api._post("/api/deals", {"name": "Website redesign", "stage": "won", "contact_id": contact["id"]})
+    created = api._post(
+        "/api/deals",
+        {"name": "Website redesign", "stage": "won", "contact_id": contact["id"]},
+    )
     deal = created["deal"]
     assert deal["close_date"] == TODAY.isoformat()
-    assert created["contact"] == {"id": contact["id"], "name": "Jane Doe", "status": "customer"}
+    assert created["contact"] == {
+        "id": contact["id"],
+        "name": "Jane Doe",
+        "status": "customer",
+    }
     assert api.get(f"/api/contacts/{contact['id']}")["status"] == "customer"
     assert stage_changes(api, deal["id"]) == []
 
@@ -109,8 +123,12 @@ def test_creating_a_won_deal_makes_its_main_contact_a_customer(api):
 def test_creating_a_deal_reports_no_contact_when_nothing_changed(api):
     customer = api.contact(status="customer")
     lead = api.contact("Lead", status="lead")
-    won = api._post("/api/deals", {"name": "Won", "stage": "won", "contact_id": customer["id"]})
-    open_deal = api._post("/api/deals", {"name": "Open", "stage": "proposal", "contact_id": lead["id"]})
+    won = api._post(
+        "/api/deals", {"name": "Won", "stage": "won", "contact_id": customer["id"]}
+    )
+    open_deal = api._post(
+        "/api/deals", {"name": "Open", "stage": "proposal", "contact_id": lead["id"]}
+    )
     assert won["contact"] is None
     assert open_deal["contact"] is None
     assert api.get(f"/api/contacts/{lead['id']}")["status"] == "lead"
@@ -160,9 +178,15 @@ def test_expected_revenue_rounds_halves_up():
 def test_moving_to_won_makes_the_main_contact_a_customer(api):
     org = api.org()
     jane = api.contact(organization_id=org["id"], status="qualified")
-    deal = api.deal(organization_id=org["id"], contact_id=jane["id"], stage="negotiation")
+    deal = api.deal(
+        organization_id=org["id"], contact_id=jane["id"], stage="negotiation"
+    )
     result = api.move(deal["id"], "won")
-    assert result["contact"] == {"id": jane["id"], "name": "Jane Doe", "status": "customer"}
+    assert result["contact"] == {
+        "id": jane["id"],
+        "name": "Jane Doe",
+        "status": "customer",
+    }
     assert api.get(f"/api/contacts/{jane['id']}")["status"] == "customer"
 
 
@@ -183,5 +207,7 @@ def test_a_reopened_deal_keeps_its_contacts_status(api):
 def test_won_through_the_deal_form_uses_the_contact_sent_with_it(api):
     jane = api.contact(status="lead")
     deal = api.deal(stage="negotiation")
-    result = api.patch(f"/api/deals/{deal['id']}", {"contact_id": jane["id"], "stage": "won"})
+    result = api.patch(
+        f"/api/deals/{deal['id']}", {"contact_id": jane["id"], "stage": "won"}
+    )
     assert result["contact"]["status"] == "customer"

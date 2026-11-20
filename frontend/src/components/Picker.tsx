@@ -59,9 +59,13 @@ export function Picker<T extends PickerItem>({
 }: Props<T>) {
   const shown = selected?.name ?? noneLabel ?? "";
   const [input, setInput] = useState(shown);
+  const [lastShown, setLastShown] = useState(shown);
 
   // When the choice changes from outside, such as a rule in the deal form, show it.
-  useEffect(() => setInput(shown), [shown]);
+  if (shown !== lastShown) {
+    setLastShown(shown);
+    setInput(shown);
+  }
 
   const searching = input.trim() !== "" && input !== shown;
   const term = useDebounced(searching ? input.trim() : "", 200);
@@ -121,12 +125,16 @@ export function Picker<T extends PickerItem>({
       <Popover className={styles.popover} offset={4}>
         <ListBox<Option>
           className={styles.list}
-          renderEmptyState={() => <p className={styles.empty}>{isFetching ? "Searching" : "No matches"}</p>}
+          renderEmptyState={() => (
+            <p className={styles.empty}>{isFetching ? "Searching" : "No matches"}</p>
+          )}
         >
           {(item) => (
             <ListBoxItem id={item.id} textValue={item.name} className={styles.item}>
               <span className={item.id === NONE ? styles.none : undefined}>{item.name}</span>
-              {item.description && <span className={styles.itemDescription}>{item.description}</span>}
+              {item.description && (
+                <span className={styles.itemDescription}>{item.description}</span>
+              )}
             </ListBoxItem>
           )}
         </ListBox>
@@ -142,14 +150,20 @@ type Listed = { id: number; name: string };
 export type OrganizationOption = PickerItem;
 
 export async function searchOrganizations(q: string): Promise<OrganizationOption[]> {
-  const page = await api.get<{ items: (Listed & { industry: string | null })[] }>("/organizations", {
-    q,
-    page_size: PICKER_SIZE,
-  });
+  const page = await api.get<{ items: (Listed & { industry: string | null })[] }>(
+    "/organizations",
+    {
+      q,
+      page_size: PICKER_SIZE,
+    },
+  );
   return page.items.map((o) => ({ id: o.id, name: o.name, description: o.industry }));
 }
 
-export type ContactOption = PickerItem & { organization_id: number | null; organization_name: string | null };
+export type ContactOption = PickerItem & {
+  organization_id: number | null;
+  organization_name: string | null;
+};
 
 /** People at `organizationId`, or everyone with their organization when it's undefined. */
 export async function searchContacts(q: string, organizationId?: number): Promise<ContactOption[]> {

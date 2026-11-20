@@ -1,5 +1,10 @@
 import { expect, test } from "vitest";
-import { activityMessage, contactMessage, dealMessage, organizationMessage } from "./deleteMessages";
+import {
+  activityMessage,
+  contactMessage,
+  dealMessage,
+  organizationMessage,
+} from "./deleteMessages";
 
 test("an organization", () => {
   expect(organizationMessage("Northpeak", 4, 3)).toEqual({
@@ -25,7 +30,9 @@ test("a contact", () => {
   expect(contactMessage("Jane Doe", 1, 0).body).toBe(
     "Their 1 deal will be kept, without a main contact. This can't be undone.",
   );
-  expect(contactMessage("Jane Doe", 0, 1).body).toBe("Their 1 activity will be deleted. This can't be undone.");
+  expect(contactMessage("Jane Doe", 0, 1).body).toBe(
+    "Their 1 activity will be deleted. This can't be undone.",
+  );
   expect(contactMessage("Jane Doe", 0, 0).body).toBe("This can't be undone.");
 });
 
@@ -35,8 +42,12 @@ test("a deal", () => {
     body: "Its 5 activities will be deleted, including its stage changes. This can't be undone.",
     button: "Delete deal",
   });
-  expect(dealMessage("Website redesign", 2, 0).body).toBe("Its 2 activities will be deleted. This can't be undone.");
-  expect(dealMessage("Website redesign", 1, 0).body).toBe("Its 1 activity will be deleted. This can't be undone.");
+  expect(dealMessage("Website redesign", 2, 0).body).toBe(
+    "Its 2 activities will be deleted. This can't be undone.",
+  );
+  expect(dealMessage("Website redesign", 1, 0).body).toBe(
+    "Its 1 activity will be deleted. This can't be undone.",
+  );
   expect(dealMessage("Website redesign", 0, 0).body).toBe("This can't be undone.");
 });
 
@@ -47,5 +58,7 @@ test("an activity", () => {
     body: "This can't be undone.",
     button: "Delete activity",
   });
-  expect(activityMessage("note", nov12, "2027-01-03").title).toBe("Delete this note from Nov 12, 2026?");
+  expect(activityMessage("note", nov12, "2027-01-03").title).toBe(
+    "Delete this note from Nov 12, 2026?",
+  );
 });

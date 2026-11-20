@@ -70,7 +70,9 @@ export function useSaveContact() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: ({ id, values }: { id?: number; values: ContactValues }) =>
-      id ? api.patch<ContactDetail>(`/contacts/${id}`, values) : api.post<ContactDetail>("/contacts", values),
+      id
+        ? api.patch<ContactDetail>(`/contacts/${id}`, values)
+        : api.post<ContactDetail>("/contacts", values),
     onSuccess: () => refreshAfterChange(client),
   });
 }

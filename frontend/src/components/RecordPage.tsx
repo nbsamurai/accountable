@@ -13,7 +13,13 @@ export function useRecordId() {
   return /^\d+$/.test(id) && Number.isSafeInteger(value) && value > 0 ? value : undefined;
 }
 
-export function RecordFallback({ kind, section, error, missing, onRetry }: {
+export function RecordFallback({
+  kind,
+  section,
+  error,
+  missing,
+  onRetry,
+}: {
   kind: string;
   section: string;
   error: Error | null;
@@ -24,7 +30,9 @@ export function RecordFallback({ kind, section, error, missing, onRetry }: {
     return (
       <div className={styles.stack}>
         <Skeleton height={32} width={220} />
-        <Panel as="div"><SkeletonLines label={`Loading ${kind}`} /></Panel>
+        <Panel as="div">
+          <SkeletonLines label={`Loading ${kind}`} />
+        </Panel>
       </div>
     );
   }
@@ -33,9 +41,11 @@ export function RecordFallback({ kind, section, error, missing, onRetry }: {
     <>
       <PageHeader title={gone ? `This ${kind} no longer exists.` : `Couldn't load this ${kind}.`} />
       <Panel as="div">
-        {gone
-          ? <Link to={`/${section.toLowerCase()}`}>Back to {section}</Link>
-          : <Button onPress={onRetry}>Try again</Button>}
+        {gone ? (
+          <Link to={`/${section.toLowerCase()}`}>Back to {section}</Link>
+        ) : (
+          <Button onPress={onRetry}>Try again</Button>
+        )}
       </Panel>
     </>
   );
@@ -44,8 +54,12 @@ export function RecordFallback({ kind, section, error, missing, onRetry }: {
 export function RecordActions({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
   return (
     <>
-      <Button onPress={onEdit} icon={<Pencil size={16} aria-hidden="true" />}>Edit</Button>
-      <Button onPress={onDelete} icon={<Trash2 size={16} aria-hidden="true" />}>Delete</Button>
+      <Button onPress={onEdit} icon={<Pencil size={16} aria-hidden="true" />}>
+        Edit
+      </Button>
+      <Button onPress={onDelete} icon={<Trash2 size={16} aria-hidden="true" />}>
+        Delete
+      </Button>
     </>
   );
 }

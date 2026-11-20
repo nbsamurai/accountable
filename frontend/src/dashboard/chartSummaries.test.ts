@@ -6,7 +6,9 @@ test("chart text shows totals and the best month for each series", () => {
     { month: "2026-01-01", value: 1000, count: 1 },
     { month: "2026-02-01", value: 900, count: 2 },
   ];
-  expect(revenueSummary(months)).toBe("Revenue won in the last 12 months: $1,900. Best month: January, $1,000.");
+  expect(revenueSummary(months)).toBe(
+    "Revenue won in the last 12 months: $1,900. Best month: January, $1,000.",
+  );
   expect(dealsWonSummary(months)).toBe("3 deals won in the last 12 months. Most in February: 2.");
 });
 

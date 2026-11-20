@@ -2,8 +2,8 @@ import { useState } from "react";
 import { ApiError } from "./api";
 
 /** The errors a form shows after a failed save: under each field, or at the top. */
-export function useFormErrors() {
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+export function useFormErrors(initialErrors: () => Record<string, string> = () => ({})) {
+  const [fieldErrors, setFieldErrors] = useState(initialErrors);
   const [formError, setFormError] = useState<string | null>(null);
 
   function show(error: unknown) {

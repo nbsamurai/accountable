@@ -61,7 +61,9 @@ def init_db(
             load_sample(conn, today or date.today())
 
 
-def reset(engine: Engine, load: Callable[[Connection, date], None], today: date | None = None) -> None:
+def reset(
+    engine: Engine, load: Callable[[Connection, date], None], today: date | None = None
+) -> None:
     """Drops and makes the tables, and loads the data, in one transaction.
 
     It resets the tables inside the file rather than deleting it, so it works while the

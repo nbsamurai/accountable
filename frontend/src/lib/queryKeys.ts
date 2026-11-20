@@ -34,7 +34,9 @@ const RECORD_AREAS = ["organizations", "contacts", "deals", "pipeline", "dashboa
  * a query that has no data yet, and the screen would keep the old rows.
  */
 async function refresh(client: QueryClient, matches: (key: readonly unknown[]) => boolean) {
-  const filters = { predicate: (query: { queryKey: readonly unknown[] }) => matches(query.queryKey) };
+  const filters = {
+    predicate: (query: { queryKey: readonly unknown[] }) => matches(query.queryKey),
+  };
   await client.cancelQueries(filters);
   await client.invalidateQueries(filters);
 }
@@ -53,7 +55,11 @@ export function refreshAfterChange(client: QueryClient): Promise<void> {
  * After a delete, refreshes everything except the deleted record's own queries, such as its
  * page and timeline. Fetching those again would only get a 404 while their screen closes.
  */
-export function refreshAfterDelete(client: QueryClient, area: "organizations" | "contacts" | "deals", id: number) {
+export function refreshAfterDelete(
+  client: QueryClient,
+  area: "organizations" | "contacts" | "deals",
+  id: number,
+) {
   return refresh(client, ([first, kind, key]) => {
     const own = first === area && (kind === "detail" || kind === "timeline") && key === id;
     return !own && RECORD_AREAS.includes(String(first));

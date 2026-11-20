@@ -11,7 +11,7 @@ The [product spec](spec.md) now describes Accountable as it runs today. The MVP'
 1. **Node.js 24 or later.** Install the current LTS from [nodejs.org](https://nodejs.org).
 2. **uv,** which runs the Python backend. Install it from [docs.astral.sh/uv](https://docs.astral.sh/uv/getting-started/installation/).
 
-That's all. The first run downloads everything else, Python 3.12 included, so it needs an internet connection. After that, Accountable needs none.
+The first app run downloads everything else, Python 3.12 included, so it needs an internet connection. After that, Accountable needs none. For development checks, install [Gitleaks](https://github.com/gitleaks/gitleaks#installing) and Google Chrome. Run `npm ci` and `uv sync --locked` after pulling a dependency change.
 
 ## Commands
 
@@ -21,9 +21,14 @@ Run them from this folder.
 |---|---|
 | `npm run dev` | Installs what's missing, starts the backend on `127.0.0.1:8000` and the app on `127.0.0.1:5173`, and opens the browser. Ctrl+C stops both |
 | `npm run seed` | Resets the database to the sample data. It works while the app runs: refresh the page to see it. `npm run seed -- --large` loads the large data set instead, for the performance test |
-| `npm test` | Runs the frontend type check, both unit suites, and the end-to-end suite in Chrome. Attempts every check and exits nonzero if any fail |
+| `npm test` | Runs the frontend type check, both unit suites with an 80% coverage floor each, and the end-to-end suite in Chrome |
+| `npm run check` | Checks formatting, linting, function complexity, types and secrets, then runs `npm test`. Attempts every check and exits nonzero if any fail |
+| `npm run check:quick` | Runs the same checks and skips the end-to-end suite |
+| `npm run format` | Applies Prettier and Ruff formatting |
 
 The end-to-end tests start their own servers on ports 8100 and 5174, with their own database, `data/test.db`. They need Google Chrome installed.
+
+The frontend check uses TypeScript 6.0, the newest series supported by the installed typescript-eslint, and ESLint 9, the newest major supported by the installed jsx-a11y plugin. Gitleaks scans Git history, staged changes, and the working tree, excluding files ignored by Git from the working-tree scan.
 
 ## Done
 
@@ -113,6 +118,12 @@ How each was fixed:
 3. `frontend/src/pipeline/announcements.test.ts` checks the four messages with spec 6's own examples.
 
 `npm test` passed the frontend type check and all 207 tests (49 frontend, 103 backend and 55 Chrome). Chrome measured every screen under 800 ms on the large data set.
+
+## Development checks
+
+`npm run check` passed formatting, linting, both type checks, secret scanning, and all 219 tests (60 frontend, 103 backend and 56 Chrome). Frontend line coverage was 82.32% and backend statement coverage was 96.53%. The new Chrome test verified keyboard scrolling in the pipeline board and linked contacts table at 320 px.
+
+`npm run check:quick` passed without starting Chrome. A temporary Git repository verified that Gitleaks skips an ignored `.env`. It flagged a force-staged `.env` and credentials in untracked files, staged changes, and earlier commits. The findings were redacted.
 
 ## Known limits
 

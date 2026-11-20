@@ -17,10 +17,6 @@ EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 SCHEME = re.compile(r"^([a-z][a-z0-9+.-]*):", re.IGNORECASE)
 
 
-def _error(kind: str, message: str) -> PydanticCustomError:
-    return PydanticCustomError(kind, message)
-
-
 def _trimmed(value: Any) -> Any:
     return value.strip() if isinstance(value, str) else value
 
@@ -28,11 +24,13 @@ def _trimmed(value: Any) -> Any:
 def clean_name(value: Any) -> str:
     value = _trimmed(value)
     if value is None or value == "":
-        raise _error("name_required", "Enter a name.")
+        raise PydanticCustomError("name_required", "Enter a name.")
     if not isinstance(value, str):
-        raise _error("name_type", "Enter the name as text.")
+        raise PydanticCustomError("name_type", "Enter the name as text.")
     if len(value) > NAME_LENGTH:
-        raise _error("name_too_long", f"Use {NAME_LENGTH} characters or fewer.")
+        raise PydanticCustomError(
+            "name_too_long", "Use {limit} characters or fewer.", {"limit": NAME_LENGTH}
+        )
     return value
 
 
@@ -44,7 +42,7 @@ def blank_to_none(value: Any) -> Any:
 def clean_required_text(value: Any) -> Any:
     value = _trimmed(value)
     if value is None or value == "":
-        raise _error("text_required", "Enter a description.")
+        raise PydanticCustomError("text_required", "Enter a description.")
     return value
 
 
@@ -56,32 +54,43 @@ def clean_website(value: Any) -> Any:
     match = SCHEME.match(value)
     if "://" in value or (match and not value[match.end() :].split("/")[0].isdigit()):
         scheme = value.split(":", 1)[0].lower()
-        if scheme not in ("http", "https") or not value.lower().startswith(f"{scheme}://"):
-            raise _error("website_scheme", "Enter a web address that starts with http:// or https://.")
+        if scheme not in ("http", "https") or not value.lower().startswith(
+            f"{scheme}://"
+        ):
+            raise PydanticCustomError(
+                "website_scheme",
+                "Enter a web address that starts with http:// or https://.",
+            )
     else:
         value = f"https://{value}"
     parts = urlsplit(value)
     if not parts.hostname or " " in value:
-        raise _error("website_invalid", "Enter a web address, such as northpeak.example.")
+        raise PydanticCustomError(
+            "website_invalid", "Enter a web address, such as northpeak.example."
+        )
     return value
 
 
 def clean_email(value: Any) -> Any:
     value = blank_to_none(value)
     if isinstance(value, str) and not EMAIL.match(value):
-        raise _error("email_invalid", "Enter an email address, such as jane@northpeak.example.")
+        raise PydanticCustomError(
+            "email_invalid", "Enter an email address, such as jane@northpeak.example."
+        )
     return value
 
 
 def check_value(value: int | None) -> int | None:
     if value is not None and value < 0:
-        raise _error("value_negative", "Enter a value of 0 or more.")
+        raise PydanticCustomError("value_negative", "Enter a value of 0 or more.")
     return value
 
 
 def check_probability(value: int | None) -> int | None:
     if value is not None and not 0 <= value <= 100:
-        raise _error("probability_range", "Enter a probability from 0 to 100.")
+        raise PydanticCustomError(
+            "probability_range", "Enter a probability from 0 to 100."
+        )
     return value
 
 

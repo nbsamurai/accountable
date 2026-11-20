@@ -12,9 +12,23 @@ import { useOrganizations, type Organization } from "./queries";
 const COLUMNS: TableColumn<Organization>[] = [
   { id: "name", header: "Name", cell: (o) => <Link to={`/organizations/${o.id}`}>{o.name}</Link> },
   { id: "industry", header: "Industry", cell: (o) => o.industry ?? EMPTY },
-  { id: "website", header: "Website", cell: (o) => (o.website ? o.website.replace(/^https?:\/\//, "") : EMPTY) },
-  { id: "contacts", header: "Contacts", align: "end", cell: (o) => <span className="mono">{number(o.contact_count)}</span> },
-  { id: "open_deals", header: "Open deals", align: "end", cell: (o) => <span className="mono">{number(o.open_deal_count)}</span> },
+  {
+    id: "website",
+    header: "Website",
+    cell: (o) => (o.website ? o.website.replace(/^https?:\/\//, "") : EMPTY),
+  },
+  {
+    id: "contacts",
+    header: "Contacts",
+    align: "end",
+    cell: (o) => <span className="mono">{number(o.contact_count)}</span>,
+  },
+  {
+    id: "open_deals",
+    header: "Open deals",
+    align: "end",
+    cell: (o) => <span className="mono">{number(o.open_deal_count)}</span>,
+  },
   {
     id: "open_pipeline",
     header: "Open pipeline (US$)",
@@ -34,7 +48,11 @@ export default function OrganizationListPage() {
       <PageHeader
         title="Organizations"
         actions={
-          <Button variant="primary" icon={<Plus size={18} aria-hidden="true" />} onPress={() => setEditing("new")}>
+          <Button
+            variant="primary"
+            icon={<Plus size={18} aria-hidden="true" />}
+            onPress={() => setEditing("new")}
+          >
             Add organization
           </Button>
         }
@@ -53,11 +71,12 @@ export default function OrganizationListPage() {
         onEdit={setEditing}
         onDelete={setDeleting}
       />
-      <OrganizationForm
-        organization={editing === "new" ? null : editing}
-        isOpen={editing !== null}
-        onClose={() => setEditing(null)}
-      />
+      {editing && (
+        <OrganizationForm
+          organization={editing === "new" ? null : editing}
+          onClose={() => setEditing(null)}
+        />
+      )}
       <DeleteOrganizationDialog organization={deleting} onClose={() => setDeleting(null)} />
     </>
   );

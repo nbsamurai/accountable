@@ -25,4 +25,9 @@
   font-size: var(--text-min);
 }
 
-.pill:has(.count) { min-height: 30px; gap: 8px; padding-inline: 12px 6px; font-size: var(--text-table); }
+.pill:has(.count) {
+  min-height: 30px;
+  gap: 8px;
+  padding-inline: 12px 6px;
+  font-size: var(--text-table);
+}

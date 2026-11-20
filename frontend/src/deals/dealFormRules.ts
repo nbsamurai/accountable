@@ -4,7 +4,10 @@ import type { Ref } from "../lib/api";
 import { stage as stageInfo, type Stage } from "../lib/stages";
 import type { Deal, DealValues } from "./queries";
 
-export type ContactChoice = Ref & { organization_id: number | null; organization_name: string | null };
+export type ContactChoice = Ref & {
+  organization_id: number | null;
+  organization_name: string | null;
+};
 
 export type DealFormState = {
   name: string;
@@ -16,7 +19,11 @@ export type DealFormState = {
   close_date: string | null;
 };
 
-export type DealDefaults = { organization?: Ref | null; contact?: ContactChoice | null; stage?: Stage };
+export type DealDefaults = {
+  organization?: Ref | null;
+  contact?: ContactChoice | null;
+  stage?: Stage;
+};
 
 /** A new deal: New, or the stage it's added at, with that stage's probability (spec 3.2). */
 export function newDeal(defaults: DealDefaults = {}, today: string): DealFormState {
@@ -52,7 +59,10 @@ export function contactScope(form: DealFormState): number | undefined {
 
 /** Picking an organization clears a main contact who works elsewhere. */
 export function pickOrganization(form: DealFormState, organization: Ref | null): DealFormState {
-  const contact = form.contact && form.contact.organization_id === (organization?.id ?? null) ? form.contact : null;
+  const contact =
+    form.contact && form.contact.organization_id === (organization?.id ?? null)
+      ? form.contact
+      : null;
   return { ...form, organization, contact };
 }
 
@@ -101,7 +111,8 @@ function wholeNumber(text: string): number | null | "invalid" {
 export function check(form: DealFormState): Record<string, string> {
   const errors: Record<string, string> = {};
   if (!form.name.trim()) errors.name = "Enter a name.";
-  if (wholeNumber(form.value) === "invalid") errors.value = "Enter a value of 0 or more, in whole dollars.";
+  if (wholeNumber(form.value) === "invalid")
+    errors.value = "Enter a value of 0 or more, in whole dollars.";
   const probability = wholeNumber(form.probability);
   if (probability === null || probability === "invalid" || probability > 100) {
     errors.probability = "Enter a probability from 0 to 100.";

@@ -28,35 +28,68 @@ export function Timeline({ target }: { target: ActivityTarget }) {
         {timeline.isError && (
           <div className={styles.error} role="status">
             <p>Couldn't load {entries.length ? "more timeline entries" : "the timeline"}.</p>
-            <Button onPress={() => void (timeline.isFetchNextPageError ? timeline.fetchNextPage() : timeline.refetch())}>Try again</Button>
+            <Button
+              onPress={() =>
+                void (timeline.isFetchNextPageError ? timeline.fetchNextPage() : timeline.refetch())
+              }
+            >
+              Try again
+            </Button>
           </div>
         )}
-        {timeline.isSuccess && !entries.length && <p className={styles.muted}>Nothing logged yet.</p>}
+        {timeline.isSuccess && !entries.length && (
+          <p className={styles.muted}>Nothing logged yet.</p>
+        )}
         <ol className={styles.entries} aria-label="Activities">
           {entries.map((activity) => {
-            const editable: EditableActivity | null = activity.type === "stage_change" ? null : { ...activity, type: activity.type };
+            const editable: EditableActivity | null =
+              activity.type === "stage_change" ? null : { ...activity, type: activity.type };
             return (
               <li key={activity.id} className={styles.entry}>
                 <ActivityIcon type={activity.type} circle />
                 <div className={styles.body}>
-                  {editable ? <h3>{activityLabel(activity.type)}</h3> : <span className="sr-only">Stage change</span>}
+                  {editable ? (
+                    <h3>{activityLabel(activity.type)}</h3>
+                  ) : (
+                    <span className="sr-only">Stage change</span>
+                  )}
                   <p className={styles.description}>{activity.description}</p>
                   <p className={styles.muted}>
                     <time dateTime={activity.occurred_at}>{dateTime(activity.occurred_at)}</time>
-                    {target.area === "contacts" && activity.deal && <> on <Link to={`/deals/${activity.deal.id}`}>{activity.deal.name}</Link></>}
+                    {target.area === "contacts" && activity.deal && (
+                      <>
+                        {" "}
+                        on <Link to={`/deals/${activity.deal.id}`}>{activity.deal.name}</Link>
+                      </>
+                    )}
                   </p>
                   {activity.follow_up_date && (
                     <div className={styles.followUp}>
-                      <span>Follow up <time dateTime={activity.follow_up_date}>{dateNear(activity.follow_up_date, today)}</time></span>
-                      {!activity.done && activity.follow_up_date < today && <strong className={styles.overdue}>Overdue</strong>}
+                      <span>
+                        Follow up{" "}
+                        <time dateTime={activity.follow_up_date}>
+                          {dateNear(activity.follow_up_date, today)}
+                        </time>
+                      </span>
+                      {!activity.done && activity.follow_up_date < today && (
+                        <strong className={styles.overdue}>Overdue</strong>
+                      )}
                       <FollowUpCheckbox activity={activity} />
                     </div>
                   )}
                 </div>
                 {editable && (
                   <div className={styles.actions}>
-                    <IconButton label={`Edit ${activityLabel(activity.type).toLowerCase()}`} icon={<Pencil size={16} aria-hidden="true" />} onPress={() => setDialog({ kind: "edit", activity: editable })} />
-                    <IconButton label={`Delete ${activityLabel(activity.type).toLowerCase()}`} icon={<Trash2 size={16} aria-hidden="true" />} onPress={() => setDialog({ kind: "delete", activity: editable })} />
+                    <IconButton
+                      label={`Edit ${activityLabel(activity.type).toLowerCase()}`}
+                      icon={<Pencil size={16} aria-hidden="true" />}
+                      onPress={() => setDialog({ kind: "edit", activity: editable })}
+                    />
+                    <IconButton
+                      label={`Delete ${activityLabel(activity.type).toLowerCase()}`}
+                      icon={<Trash2 size={16} aria-hidden="true" />}
+                      onPress={() => setDialog({ kind: "delete", activity: editable })}
+                    />
                   </div>
                 )}
               </li>
@@ -64,17 +97,28 @@ export function Timeline({ target }: { target: ActivityTarget }) {
           })}
         </ol>
         {timeline.hasNextPage && !timeline.isFetchNextPageError && (
-          <Button className={styles.older} isPending={timeline.isFetchingNextPage} isDisabled={timeline.isRefetching} onPress={() => void timeline.fetchNextPage()}>
+          <Button
+            className={styles.older}
+            isPending={timeline.isFetchingNextPage}
+            isDisabled={timeline.isRefetching}
+            onPress={() => void timeline.fetchNextPage()}
+          >
             Show older
           </Button>
         )}
       </div>
-      {dialog?.kind === "edit" && <EditActivityDialog activity={dialog.activity} onClose={() => setDialog(null)} />}
+      {dialog?.kind === "edit" && (
+        <EditActivityDialog activity={dialog.activity} onClose={() => setDialog(null)} />
+      )}
       {dialog?.kind === "delete" && (
-        <DeleteActivityDialog activity={dialog.activity} onClose={() => setDialog(null)} onDeleted={() => {
-          setDialog(null);
-          requestAnimationFrame(() => anchor.current?.focus());
-        }} />
+        <DeleteActivityDialog
+          activity={dialog.activity}
+          onClose={() => setDialog(null)}
+          onDeleted={() => {
+            setDialog(null);
+            requestAnimationFrame(() => anchor.current?.focus());
+          }}
+        />
       )}
     </Panel>
   );

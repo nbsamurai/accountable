@@ -6,10 +6,23 @@ from typing import Literal
 Stage = Literal["new", "qualified", "proposal", "negotiation", "won", "lost"]
 
 # In pipeline order, with each stage's usual probability of close.
-STAGES: tuple[Stage, ...] = ("new", "qualified", "proposal", "negotiation", "won", "lost")
+STAGES: tuple[Stage, ...] = (
+    "new",
+    "qualified",
+    "proposal",
+    "negotiation",
+    "won",
+    "lost",
+)
 OPEN_STAGES: tuple[Stage, ...] = ("new", "qualified", "proposal", "negotiation")
 CLOSED_STAGES: tuple[Stage, ...] = ("won", "lost")
-FUNNEL_STAGES: tuple[Stage, ...] = ("new", "qualified", "proposal", "negotiation", "won")
+FUNNEL_STAGES: tuple[Stage, ...] = (
+    "new",
+    "qualified",
+    "proposal",
+    "negotiation",
+    "won",
+)
 
 PROBABILITY: dict[Stage, int] = {
     "new": 10,

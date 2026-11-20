@@ -14,7 +14,10 @@ type Props = Omit<AriaButtonProps, "className" | "children"> & {
 /** Primary is Sea Green with Midnight text, secondary is grey, and destructive is Raspberry ink. */
 export function Button({ variant = "secondary", icon, children, className, ...props }: Props) {
   return (
-    <AriaButton {...props} className={[styles.button, styles[variant], className].filter(Boolean).join(" ")}>
+    <AriaButton
+      {...props}
+      className={[styles.button, styles[variant], className].filter(Boolean).join(" ")}
+    >
       {icon}
       {children}
     </AriaButton>

@@ -13,7 +13,11 @@ type Props = Omit<ButtonProps, "children" | "aria-label" | "className"> & {
 export function IconButton({ label, icon, className, ...props }: Props) {
   return (
     <TooltipTrigger delay={500} closeDelay={150}>
-      <Button {...props} aria-label={label} className={[styles.button, className].filter(Boolean).join(" ")}>
+      <Button
+        {...props}
+        aria-label={label}
+        className={[styles.button, className].filter(Boolean).join(" ")}
+      >
         {icon}
       </Button>
       <Tooltip className={styles.tooltip} offset={6}>

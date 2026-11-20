@@ -7,7 +7,12 @@ from fastapi import APIRouter, Depends, Response
 from ..deps import Conn, Now, Today
 from ..lists import Direction, Paging, paging
 from . import service
-from .schemas import OrganizationDetail, OrganizationIn, OrganizationPage, OrganizationPatch
+from .schemas import (
+    OrganizationDetail,
+    OrganizationIn,
+    OrganizationPage,
+    OrganizationPatch,
+)
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
 
@@ -34,7 +39,9 @@ def get_organization(organization_id: int, conn: Conn, today: Today):
 
 
 @router.patch("/{organization_id}", response_model=OrganizationDetail)
-def change_organization(organization_id: int, data: OrganizationPatch, conn: Conn, today: Today, now: Now):
+def change_organization(
+    organization_id: int, data: OrganizationPatch, conn: Conn, today: Today, now: Now
+):
     return service.patch(conn, organization_id, data, today=today, now=now)
 
 

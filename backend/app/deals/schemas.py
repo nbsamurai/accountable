@@ -2,7 +2,7 @@
 
 from datetime import date, datetime
 
-from pydantic import BaseModel, Field
+from pydantic import MISSING, BaseModel, Field
 
 from ..fields import Money, Name, Percent
 from .stages import Stage
@@ -22,12 +22,12 @@ class DealIn(BaseModel):
 class DealPatch(BaseModel):
     """Changes only the fields sent. A new stage follows spec 3.2."""
 
-    name: Name = None
+    name: Name | MISSING = MISSING
     organization_id: int | None = None
     contact_id: int | None = None
-    stage: Stage = None
+    stage: Stage | MISSING = MISSING
     value: Money = None
-    probability: Percent = None
+    probability: Percent | MISSING = MISSING
     close_date: date | None = None
 
 

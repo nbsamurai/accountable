@@ -3,12 +3,29 @@
 export const EMPTY = "–";
 
 const LOCALE = "en-US";
-const usd = new Intl.NumberFormat(LOCALE, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+const usd = new Intl.NumberFormat(LOCALE, {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
 const count = new Intl.NumberFormat(LOCALE);
-const longDate = new Intl.DateTimeFormat(LOCALE, { month: "short", day: "numeric", year: "numeric" });
+const longDate = new Intl.DateTimeFormat(LOCALE, {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
 const shortDate = new Intl.DateTimeFormat(LOCALE, { month: "short", day: "numeric" });
-const weekdayDate = new Intl.DateTimeFormat(LOCALE, { weekday: "short", month: "short", day: "numeric" });
-const fullDate = new Intl.DateTimeFormat(LOCALE, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+const weekdayDate = new Intl.DateTimeFormat(LOCALE, {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+});
+const fullDate = new Intl.DateTimeFormat(LOCALE, {
+  weekday: "long",
+  month: "long",
+  day: "numeric",
+  year: "numeric",
+});
 const clock = new Intl.DateTimeFormat(LOCALE, { hour: "numeric", minute: "2-digit" });
 const monthLong = new Intl.DateTimeFormat(LOCALE, { month: "long" });
 const monthShort = new Intl.DateTimeFormat(LOCALE, { month: "short" });
@@ -79,7 +96,9 @@ export function date(iso: Maybe<string>): string {
 /** `Dec 10` in the current year, or `Jan 15, 2027` in another, as on the board's cards. */
 export function dateNear(iso: string, today: string): string {
   const day = parseDay(iso);
-  return day.getFullYear() === parseDay(today).getFullYear() ? shortDate.format(day) : longDate.format(day);
+  return day.getFullYear() === parseDay(today).getFullYear()
+    ? shortDate.format(day)
+    : longDate.format(day);
 }
 
 /** `Mon, Nov 23`. */

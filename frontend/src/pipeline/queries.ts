@@ -28,7 +28,8 @@ export function usePipeline() {
 export function useMoveCard() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, drop }: { id: number; drop: Drop }) => api.post<DealChange>(`/deals/${id}/move`, drop),
+    mutationFn: ({ id, drop }: { id: number; drop: Drop }) =>
+      api.post<DealChange>(`/deals/${id}/move`, drop),
     onSuccess: () => refreshAfterChange(client),
   });
 }

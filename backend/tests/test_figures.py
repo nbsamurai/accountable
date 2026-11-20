@@ -9,8 +9,13 @@ def test_board_uses_visible_cards_and_rounds_open_expected_revenue_once(client, 
     api.contact("Another contact", organization_id=organization["id"])
 
     def deal(name, stage, value, days=None):
-        data = {"name": name, "stage": stage, "value": value,
-                "organization_id": organization["id"], "contact_id": contact["id"]}
+        data = {
+            "name": name,
+            "stage": stage,
+            "value": value,
+            "organization_id": organization["id"],
+            "contact_id": contact["id"],
+        }
         if days is not None:
             data["close_date"] = (TODAY - timedelta(days=days)).isoformat()
         response = client.post("/api/deals", json=data)
@@ -28,7 +33,11 @@ def test_board_uses_visible_cards_and_rounds_open_expected_revenue_once(client, 
     board = response.json()
     assert board["totals"] == {"count": 3, "value": 3, "expected_revenue": 2}
     columns = {column["stage"]: column for column in board["columns"]}
-    assert [card["name"] for card in columns["proposal"]["cards"]] == ["Proposal 2", "Proposal 1", "Proposal 0"]
+    assert [card["name"] for card in columns["proposal"]["cards"]] == [
+        "Proposal 2",
+        "Proposal 1",
+        "Proposal 0",
+    ]
     assert columns["proposal"]["expected_revenue"] == 2
     assert columns["proposal"]["cards"][0]["contact"]["id"] == contact["id"]
     assert columns["won"]["value"] == 100
@@ -45,9 +54,17 @@ def test_dashboard_figures_and_reporting_window(api):
     api.deal(stage="lost", value=800, close_date="2026-01-01")
 
     dashboard = api.get("/api/dashboard")
-    assert (dashboard["pipeline"]["count"], dashboard["pipeline"]["value"], dashboard["pipeline"]["expected_revenue"]) == (3, 3, 2)
+    assert (
+        dashboard["pipeline"]["count"],
+        dashboard["pipeline"]["value"],
+        dashboard["pipeline"]["expected_revenue"],
+    ) == (3, 3, 2)
     assert dashboard["win_rate"] == {"won": 2, "closed": 3, "percent": 2 * 100 / 3}
-    assert dashboard["won_this_month"] == {"month": "2026-11-01", "value": 100, "count": 1}
+    assert dashboard["won_this_month"] == {
+        "month": "2026-11-01",
+        "value": 100,
+        "count": 1,
+    }
     assert len(dashboard["months"]) == 12
     assert dashboard["months"][0] == {"month": "2025-12-01", "value": 200, "count": 1}
     assert dashboard["months"][1] == {"month": "2026-01-01", "value": 0, "count": 0}
@@ -60,14 +77,31 @@ def test_dashboard_figures_and_reporting_window(api):
 def test_dashboard_activity_windows(api):
     contact = api.contact()
     for days in (-1, 0, 6, 7):
-        api.activity(str(days), contact_id=contact["id"], follow_up_date=(TODAY + timedelta(days=days)).isoformat())
-    api.activity("Already done", contact_id=contact["id"], follow_up_date=TODAY.isoformat(), done=True)
-    api.activity("Future", contact_id=contact["id"], occurred_at=datetime(2027, 1, 1, tzinfo=UTC).isoformat())
+        api.activity(
+            str(days),
+            contact_id=contact["id"],
+            follow_up_date=(TODAY + timedelta(days=days)).isoformat(),
+        )
+    api.activity(
+        "Already done",
+        contact_id=contact["id"],
+        follow_up_date=TODAY.isoformat(),
+        done=True,
+    )
+    api.activity(
+        "Future",
+        contact_id=contact["id"],
+        occurred_at=datetime(2027, 1, 1, tzinfo=UTC).isoformat(),
+    )
     for index in range(12):
         api.activity(f"Recent {index}", contact_id=contact["id"])
 
     dashboard = api.get("/api/dashboard")
-    assert [activity["description"] for activity in dashboard["follow_ups"]] == ["-1", "0", "6"]
+    assert [activity["description"] for activity in dashboard["follow_ups"]] == [
+        "-1",
+        "0",
+        "6",
+    ]
     assert [activity["description"] for activity in dashboard["recent_activity"]] == [
         f"Recent {index}" for index in range(11, 1, -1)
     ]

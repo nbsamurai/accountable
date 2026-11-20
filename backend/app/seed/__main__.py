@@ -9,7 +9,11 @@ from . import large_data, sample_data
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="npm run seed", description=__doc__)
-    parser.add_argument("--large", action="store_true", help="load the large data set, for the performance test")
+    parser.add_argument(
+        "--large",
+        action="store_true",
+        help="load the large data set, for the performance test",
+    )
     args = parser.parse_args(argv)
 
     path = database_path()

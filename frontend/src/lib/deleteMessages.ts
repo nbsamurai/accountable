@@ -8,7 +8,9 @@ export type DeleteMessage = { title: string; body: string; button: string };
 const UNDONE = "This can't be undone.";
 
 export function organizationMessage(name: string, contacts: number, deals: number): DeleteMessage {
-  const kept = [contacts && plural(contacts, "contact"), deals && plural(deals, "deal")].filter(Boolean).join(" and ");
+  const kept = [contacts && plural(contacts, "contact"), deals && plural(deals, "deal")]
+    .filter(Boolean)
+    .join(" and ");
   const body = kept ? `Its ${kept} will be kept, without an organization. ${UNDONE}` : UNDONE;
   return { title: `Delete ${name}?`, body, button: "Delete organization" };
 }
@@ -16,7 +18,8 @@ export function organizationMessage(name: string, contacts: number, deals: numbe
 export function contactMessage(name: string, deals: number, activities: number): DeleteMessage {
   const parts = [];
   if (deals) parts.push(`Their ${plural(deals, "deal")} will be kept, without a main contact.`);
-  if (activities) parts.push(`Their ${plural(activities, "activity", "activities")} will be deleted.`);
+  if (activities)
+    parts.push(`Their ${plural(activities, "activity", "activities")} will be deleted.`);
   parts.push(UNDONE);
   return { title: `Delete ${name}?`, body: parts.join(" "), button: "Delete contact" };
 }

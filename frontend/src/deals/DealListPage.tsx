@@ -17,16 +17,32 @@ const COLUMNS: TableColumn<Deal>[] = [
   {
     id: "organization",
     header: "Organization",
-    cell: (d) => (d.organization ? <Link to={`/organizations/${d.organization.id}`}>{d.organization.name}</Link> : EMPTY),
+    cell: (d) =>
+      d.organization ? (
+        <Link to={`/organizations/${d.organization.id}`}>{d.organization.name}</Link>
+      ) : (
+        EMPTY
+      ),
   },
   {
     id: "contact",
     header: "Main contact",
-    cell: (d) => (d.contact ? <Link to={`/contacts/${d.contact.id}`}>{d.contact.name}</Link> : EMPTY),
+    cell: (d) =>
+      d.contact ? <Link to={`/contacts/${d.contact.id}`}>{d.contact.name}</Link> : EMPTY,
   },
   { id: "stage", header: "Stage", cell: (d) => <StagePill value={d.stage} /> },
-  { id: "value", header: "Value", align: "end", cell: (d) => <span className="mono">{money(d.value)}</span> },
-  { id: "probability", header: "Probability", align: "end", cell: (d) => <span className="mono">{percent(d.probability)}</span> },
+  {
+    id: "value",
+    header: "Value",
+    align: "end",
+    cell: (d) => <span className="mono">{money(d.value)}</span>,
+  },
+  {
+    id: "probability",
+    header: "Probability",
+    align: "end",
+    cell: (d) => <span className="mono">{percent(d.probability)}</span>,
+  },
   {
     id: "expected_revenue",
     header: "Expected revenue",
@@ -56,7 +72,11 @@ export default function DealListPage() {
       <PageHeader
         title="Deals"
         actions={
-          <Button variant="primary" icon={<Plus size={18} aria-hidden="true" />} onPress={() => setEditing("new")}>
+          <Button
+            variant="primary"
+            icon={<Plus size={18} aria-hidden="true" />}
+            onPress={() => setEditing("new")}
+          >
             Add deal
           </Button>
         }
@@ -75,7 +95,9 @@ export default function DealListPage() {
         onEdit={setEditing}
         onDelete={setDeleting}
       />
-      <DealForm deal={editing === "new" ? null : editing} isOpen={editing !== null} onClose={() => setEditing(null)} />
+      {editing && (
+        <DealForm deal={editing === "new" ? null : editing} onClose={() => setEditing(null)} />
+      )}
       <DeleteDealDialog deal={deleting} onClose={() => setDeleting(null)} />
     </>
   );

@@ -16,7 +16,13 @@ export const STAGES: StageInfo[] = [
   { key: "new", name: "New", probability: 10, open: true, className: "st-new" },
   { key: "qualified", name: "Qualified", probability: 25, open: true, className: "st-qualified" },
   { key: "proposal", name: "Proposal", probability: 50, open: true, className: "st-proposal" },
-  { key: "negotiation", name: "Negotiation", probability: 75, open: true, className: "st-negotiation" },
+  {
+    key: "negotiation",
+    name: "Negotiation",
+    probability: 75,
+    open: true,
+    className: "st-negotiation",
+  },
   { key: "won", name: "Won", probability: 100, open: false, className: "st-won" },
   { key: "lost", name: "Lost", probability: 0, open: false, className: "st-lost" },
 ];

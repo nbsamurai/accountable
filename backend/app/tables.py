@@ -78,10 +78,14 @@ contacts = Table(
     Column("email", String),
     Column("phone", String),
     Column("job_title", String),
-    Column("organization_id", Integer, ForeignKey("organizations.id", ondelete="SET NULL")),
+    Column(
+        "organization_id", Integer, ForeignKey("organizations.id", ondelete="SET NULL")
+    ),
     Column("status", String, nullable=False, server_default="lead"),
     *_stamps(),
-    CheckConstraint("status IN ('lead', 'qualified', 'customer')", name="ck_contacts_status"),
+    CheckConstraint(
+        "status IN ('lead', 'qualified', 'customer')", name="ck_contacts_status"
+    ),
     Index("ix_contacts_organization_id", "organization_id"),
     Index("ix_contacts_name", "name"),
     Index("ix_contacts_email", "email"),
@@ -95,7 +99,9 @@ deals = Table(
     metadata,
     Column("id", Integer, primary_key=True),
     Column("name", String(NAME_LENGTH), nullable=False),
-    Column("organization_id", Integer, ForeignKey("organizations.id", ondelete="SET NULL")),
+    Column(
+        "organization_id", Integer, ForeignKey("organizations.id", ondelete="SET NULL")
+    ),
     Column("contact_id", Integer, ForeignKey("contacts.id", ondelete="SET NULL")),
     Column("stage", String, nullable=False, server_default="new"),
     Column("value", Integer),
@@ -130,8 +136,12 @@ activities = Table(
     Column("follow_up_date", Date),
     Column("done", Boolean, nullable=False, server_default="0"),
     *_stamps(),
-    CheckConstraint("type IN ('note', 'call', 'email', 'stage_change')", name="ck_activities_type"),
-    CheckConstraint("(contact_id IS NULL) <> (deal_id IS NULL)", name="ck_activities_one_record"),
+    CheckConstraint(
+        "type IN ('note', 'call', 'email', 'stage_change')", name="ck_activities_type"
+    ),
+    CheckConstraint(
+        "(contact_id IS NULL) <> (deal_id IS NULL)", name="ck_activities_one_record"
+    ),
     Index("ix_activities_contact_id", "contact_id", "occurred_at"),
     Index("ix_activities_deal_id", "deal_id", "occurred_at"),
     Index("ix_activities_occurred_at", "occurred_at"),

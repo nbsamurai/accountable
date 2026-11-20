@@ -15,10 +15,16 @@ from .schemas import ContactIn, ContactPatch
 STATUS_ORDER = {"lead": 0, "qualified": 1, "customer": 2}
 
 DEAL_COUNT = (
-    select(func.count()).where(deals_table.c.contact_id == contacts.c.id).correlate(contacts).scalar_subquery()
+    select(func.count())
+    .where(deals_table.c.contact_id == contacts.c.id)
+    .correlate(contacts)
+    .scalar_subquery()
 )
 ACTIVITY_COUNT = (
-    select(func.count()).where(activities.c.contact_id == contacts.c.id).correlate(contacts).scalar_subquery()
+    select(func.count())
+    .where(activities.c.contact_id == contacts.c.id)
+    .correlate(contacts)
+    .scalar_subquery()
 )
 
 SORTS: dict[str, Sortable] = {
@@ -33,7 +39,9 @@ ContactSort = Literal["name", "organization", "job_title", "email", "phone", "st
 
 
 def _from():
-    return contacts.outerjoin(organizations, organizations.c.id == contacts.c.organization_id)
+    return contacts.outerjoin(
+        organizations, organizations.c.id == contacts.c.organization_id
+    )
 
 
 def _select():
@@ -53,7 +61,9 @@ def to_out(row: Row) -> dict[str, Any]:
         "phone": row.phone,
         "job_title": row.job_title,
         "organization": (
-            {"id": row.organization_id, "name": row.organization_name} if row.organization_id else None
+            {"id": row.organization_id, "name": row.organization_name}
+            if row.organization_id
+            else None
         ),
         "status": row.status,
         "deal_count": row.deal_count,
@@ -74,7 +84,10 @@ def detail(conn: Connection, contact_id: int, today: date) -> dict[str, Any]:
     row = conn.execute(_select().where(contacts.c.id == contact_id)).first()
     if row is None:
         raise not_found("contact")
-    return {**to_out(row), "deals": deals.deals_where(conn, deals_table.c.contact_id == contact_id, today)}
+    return {
+        **to_out(row),
+        "deals": deals.deals_where(conn, deals_table.c.contact_id == contact_id, today),
+    }
 
 
 def list_contacts(
@@ -89,7 +102,14 @@ def list_contacts(
 ) -> dict[str, Any]:
     filters = []
     matches = search(
-        q, [contacts.c.name, contacts.c.email, contacts.c.phone, contacts.c.job_title, organizations.c.name]
+        q,
+        [
+            contacts.c.name,
+            contacts.c.email,
+            contacts.c.phone,
+            contacts.c.job_title,
+            organizations.c.name,
+        ],
     )
     if matches is not None:
         filters.append(matches)
@@ -98,7 +118,10 @@ def list_contacts(
 
     counts = dict(
         conn.execute(
-            select(contacts.c.status, func.count()).select_from(_from()).where(*filters).group_by(contacts.c.status)
+            select(contacts.c.status, func.count())
+            .select_from(_from())
+            .where(*filters)
+            .group_by(contacts.c.status)
         ).all()
     )
     status_counts = {name: counts.get(name, 0) for name in STATUS_ORDER}
@@ -106,7 +129,9 @@ def list_contacts(
     stmt = _select().where(*filters)
     if status is not None:
         stmt = stmt.where(contacts.c.status == status)
-    rows, total = page_of(conn, stmt, order(SORTS[sort], direction, contacts.c.id), page)
+    rows, total = page_of(
+        conn, stmt, order(SORTS[sort], direction, contacts.c.id), page
+    )
     return {
         "items": [to_out(row) for row in rows],
         "total": total,
@@ -117,7 +142,13 @@ def list_contacts(
 def contacts_at(conn: Connection, organization_id: int) -> list[dict[str, Any]]:
     """An organization's people, A to Z."""
     rows = conn.execute(
-        select(contacts.c.id, contacts.c.name, contacts.c.job_title, contacts.c.status, contacts.c.email)
+        select(
+            contacts.c.id,
+            contacts.c.name,
+            contacts.c.job_title,
+            contacts.c.status,
+            contacts.c.email,
+        )
         .where(contacts.c.organization_id == organization_id)
         .order_by(contacts.c.name.collate("NOCASE"), contacts.c.id)
     ).all()
@@ -127,27 +158,39 @@ def contacts_at(conn: Connection, organization_id: int) -> list[dict[str, Any]]:
 def _check_organization(conn: Connection, organization_id: int | None) -> None:
     if organization_id is None:
         return
-    found = conn.execute(select(organizations.c.id).where(organizations.c.id == organization_id)).first()
+    found = conn.execute(
+        select(organizations.c.id).where(organizations.c.id == organization_id)
+    ).first()
     if found is None:
         raise invalid("organization_id", "This organization no longer exists.")
 
 
-def create(conn: Connection, data: ContactIn, *, today: date, now: datetime) -> dict[str, Any]:
+def create(
+    conn: Connection, data: ContactIn, *, today: date, now: datetime
+) -> dict[str, Any]:
     _check_organization(conn, data.organization_id)
     contact_id = conn.execute(
-        insert(contacts).values(**data.model_dump(), created_at=now, updated_at=now)
-    ).inserted_primary_key[0]
+        insert(contacts)
+        .values(**data.model_dump(), created_at=now, updated_at=now)
+        .returning(contacts.c.id)
+    ).scalar_one()
     return detail(conn, contact_id, today)
 
 
-def patch(conn: Connection, contact_id: int, data: ContactPatch, *, today: date, now: datetime) -> dict[str, Any]:
+def patch(
+    conn: Connection, contact_id: int, data: ContactPatch, *, today: date, now: datetime
+) -> dict[str, Any]:
     """Changes the fields sent. A contact who moves to another organization stays on their deals."""
     get_row(conn, contact_id)
     values = data.model_dump(exclude_unset=True)
     if "organization_id" in values:
         _check_organization(conn, values["organization_id"])
     if values:
-        conn.execute(update(contacts).where(contacts.c.id == contact_id).values(**values, updated_at=now))
+        conn.execute(
+            update(contacts)
+            .where(contacts.c.id == contact_id)
+            .values(**values, updated_at=now)
+        )
     return detail(conn, contact_id, today)
 
 
