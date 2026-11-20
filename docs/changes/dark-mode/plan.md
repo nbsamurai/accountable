@@ -72,7 +72,7 @@ A fill with no text on it, such as the probability meter, keeps `--ink`, because
 
 | File | What changes |
 |---|---|
-| `docs/spec.md` (edit) | Section 1: light and dark modes. 4.1: the toggle in the top bar, light by default, remembered per browser profile. 5.2: the new tokens, and a dark value and contrast for every token. 5.3: the dark stage and status fills. 5.5: the dark shadows and backdrop. 10.2 and 10.3: the new tests |
+| `docs/spec.md` (edit) | Section 1: light and dark modes. 4.1: the toggle in the top bar, light by default, remembered per browser profile. 5.2: the new tokens, and a dark value and contrast for every token. 5.3: the dark stage and status fills. 5.5: the dark shadows and backdrop. 5.7: chart tooltips use `--panel`, not white, and the bar counts use `--ink`, not Midnight. 6: contrast applies in both modes. 10.2 and 10.3: the new tests |
 | `.claude/skills/brand/SKILL.md` (edit) | The dark ink shades. Spec 5.2 says the brand skill lists the same shades as the spec |
 | `docs/STATUS.md` (edit) | Dark mode done |
 | `docs/changes/dark-mode/*.png` (new) | `dashboard-light.png`, `dashboard-dark.png`, `pipeline-light.png` and `pipeline-dark.png` |
