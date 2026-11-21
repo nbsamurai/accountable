@@ -39,6 +39,7 @@ The frontend check uses TypeScript 6.0, the newest series supported by the insta
 - The PreToolUse hook blocks patch edits and shell or filesystem tool calls that explicitly name `.env`. The `accountable-workspace` permission profile also makes the root `.env` read-only for sandboxed tools, including indirect writes. Use that profile for the filesystem restriction. Codex's full-access mode and tools outside its local sandbox do not get filesystem enforcement from the profile. [Codex hooks](https://learn.chatgpt.com/docs/hooks) · [Codex permissions](https://learn.chatgpt.com/docs/permissions)
 - Claude Code reads its two project hooks from `.claude/settings.json`, and a running session picks up changes to them. The Stop hook runs `npm run check:quick` when Claude finishes a turn and sends any failure back for one follow-up pass. On the next stop, `stop_hook_active` is true, so the hook lets Claude stop. [Claude Code hooks](https://code.claude.com/docs/en/hooks)
 - The Claude Code PreToolUse hook denies Edit and Write calls on any file named `.env`, and shell commands that name `.env`, reads included. It can't see a write that a script makes without naming the file in the command.
+- The reviewer subagent has its own PreToolUse hook, `.claude/hooks/reviewer-read-only.mjs`, set in its agent file. It runs only while the reviewer works, and only once Claude Code trusts the folder. See [Subagents](#subagents-nov-21-2026).
 
 ## Continuous integration
 
@@ -205,6 +206,15 @@ Differences from the plan:
 - **Departures from the plan were written only in STATUS.md.** The MVP review flagged this, and dark mode did it again. Departures now go into `plan.md`.
 
 IMPROVE.md now has a watch list of mistakes seen once, so the next round can tell when one happens twice.
+
+## Subagents (Nov 21, 2026)
+
+Two project subagents in `.claude/agents/`, from [the subagents plan](changes/subagents/plan.md). Both run on Sonnet. Claude Code loads new subagents when a session starts, so restart it before the first use.
+
+- **reviewer** reviews the current branch against `main`, or a commit or branch it's given, with [docs/REVIEW.md](REVIEW.md). It reports Important findings, other findings and at most five nits, then a verdict. Its tools are Read, Glob, Grep and Bash. Its hook denies any Bash command that isn't on a read-only list: `git diff`, `log`, `show`, `grep`, `status`, `blame` and a few more, plus `grep`, `rg`, `find`, `cat`, `head`, `tail`, `ls` and `wc`. It also denies redirects to files, command substitution, `find -exec` and `-delete`, `git -c`, `git diff --output` and `git grep -O`. The hook never approves a command, so allowed ones still go through the normal permission prompts. 45 commands, 17 to allow and 28 to deny, gave the expected result.
+- **ui-check** opens `http://127.0.0.1:5173/`, which must already be running, and checks every page in light and dark mode at 1440 × 1000 against the brand skill and spec sections 4 and 5. It saves full-page screenshots as `.playwright-mcp/ui-check-<page>-<mode>.png`, which git ignores, reads colors and fonts from the page, and checks the console and network. It has no Bash, Edit or Write. Of the Playwright tools, it has none that type, fill forms, upload files or run Playwright code. It has `browser_evaluate`, which runs in the page, to read computed styles. It opens forms and delete dialogs only to look, and switches back to light mode at the end.
+
+Not yet tried: both subagents need a new session before they load.
 
 ## Known limits
 
