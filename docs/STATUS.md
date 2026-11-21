@@ -46,10 +46,11 @@ The frontend check uses TypeScript 6.0, the newest series supported by the insta
 `.github/workflows/ci.yml` runs one job, `check`, on every push to any branch, on GitHub's `ubuntu-latest` runner. It uses no secrets.
 
 1. It installs Gitleaks and checks the download against a pinned SHA-256. Gitleaks then scans the history of every branch, so a leaked secret fails the run before anything else is installed. To update Gitleaks, change `VERSION` and `SHA256` together, from the release's checksums file.
-2. It installs the current Node.js LTS and the latest uv, runs `npm ci` and `uv sync --locked`, then runs `npm run check`. The end-to-end tests use the Google Chrome on the runner.
-3. If the run fails, it uploads the Playwright HTML report, with traces of failed tests, as the `playwright-report` artifact for 14 days.
+2. It installs the current Node.js LTS and the latest uv, runs `npm ci` and `uv sync --locked`, then runs `npm run check:quick`: formatting, linting, complexity, both type checks, secrets, and both unit suites with their coverage floors.
 
-`npm test` also writes the HTML report to `playwright-report/` locally. Open it with `npx playwright show-report`.
+Since Nov 21, 2026, CI leaves out the end-to-end tests, which took most of each run's time. They run only on a developer's computer, in `npm run check`, so run it before each merge.
+
+`npm test` writes the Playwright HTML report, with traces of failed tests, to `playwright-report/`. Open it with `npx playwright show-report`.
 
 The first run, on Nov 20, 2026, failed on three things. All three are fixed:
 

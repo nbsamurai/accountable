@@ -16,7 +16,7 @@ export default defineConfig({
   workers: 1,
   fullyParallel: false,
   forbidOnly: true,
-  // CI uploads the HTML report, traces included, when a run fails.
+  // The HTML report keeps the traces of failed tests. Open it with npx playwright show-report.
   reporter: [
     ["list"],
     ["html", { outputFolder: join(root, "playwright-report"), open: "never" }],

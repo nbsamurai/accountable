@@ -20,6 +20,6 @@ Run `npm run check` from the repository root before finishing a code change. It 
 
 Before you report a change as done, do the hands-on check in spec 10.4 yourself, in desktop Chrome, through a browser tool such as Claude in Chrome. Run it from a copy of the working tree without `node_modules/`, `.venv/` or `data/`, so the user's database isn't touched. Read values from the page, not from a scaled-down screenshot. Before you report a bug, reproduce it with the element in view. If you can't control a browser, say that the check is still open.
 
-Use `npm run check:quick` during development to skip the end-to-end suite. Use `npm run format` to apply Prettier and Ruff formatting.
+Use `npm run check:quick` during development to skip the end-to-end suite. CI runs only `npm run check:quick`, so your `npm run check` is the only run of the end-to-end suite. Use `npm run format` to apply Prettier and Ruff formatting.
 
 Leave `.env` for the user to manage. The Codex and Claude Code Stop hooks run `npm run check:quick` and give the agent one follow-up attempt if it fails. See the [hook setup](docs/STATUS.md#development-hooks).

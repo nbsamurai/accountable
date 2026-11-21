@@ -27,4 +27,4 @@ Testing will cover:
 
 The tests use a database of their own, so running them never changes your data.
 
-GitHub Actions runs `npm run check` on every push to any branch, after a Gitleaks scan of the whole history.
+GitHub Actions runs `npm run check:quick` on every push to any branch, after a Gitleaks scan of the whole history. It leaves out the end-to-end tests, which run only in `npm run check` on a developer's computer.

@@ -5,3 +5,4 @@
 3. Add `.claude/agents/ui-check.md`: Sonnet, the Read, Glob and Grep tools and the Playwright tools that look and click, with the brand skill preloaded. It has no Bash, Edit or Write, and no Playwright tool that types or uploads. It checks every page in light and dark mode at 1440 × 1000 and saves its screenshots as `.playwright-mcp/ui-check-<page>-<mode>.png`.
 4. Test the hook against commands it must allow and deny, and check that both agent files parse.
 5. Restart Claude Code, then try ui-check on the dashboard and the pipeline, and the reviewer on the commit "Deploy: harness improved".
+6. In `.github/workflows/ci.yml`, run `npm run check:quick` and take out the Playwright report upload, which only the end-to-end tests need. `check:quick` still runs the frontend type check, through the frontend's `test` script. Update the CI description in `docs/STATUS.md`, `docs/TECH_STACK.md`, `AGENTS.md` and the comment in `e2e/playwright.config.ts`.

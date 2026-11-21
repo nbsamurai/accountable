@@ -44,14 +44,6 @@ jobs:
           npm ci
           uv sync --locked
 
-      # The end-to-end tests use the Google Chrome installed on the runner.
-      - name: Run all checks
-        run: npm run check
-
-      - name: Upload the Playwright report
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 14
+      # The end-to-end tests run only on a developer's computer, in npm run check.
+      - name: Run the quick checks
+        run: npm run check:quick
