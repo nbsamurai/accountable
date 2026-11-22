@@ -232,3 +232,4 @@ Not yet tried: both subagents need a new session before they load.
 ## Next
 
 - Review dark mode, then merge it.
+- Agree [the plan for sign-in, search and a user menu](changes/multi-user/plan.md), then build it phase by phase.
