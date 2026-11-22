@@ -75,7 +75,7 @@ If a contact later moves to another organization, their deals keep them as main 
 - **Table columns:** Name, Organization, Main contact, Stage, Value, Probability, Expected revenue and Close date. A late deal has a "Late" badge next to its close date.
 - **Search** covers name, organization name and main contact name. Sorting by Stage follows pipeline order.
 - **A deal's page:**
-  - **Header:** name, stage pill, late badge, and Edit and Delete buttons.
+  - **Header:** name, stage pill, late badge, who added and last changed it (section 3.11), and Edit and Delete buttons.
   - **Facts:** value, probability, expected revenue, close date, organization (a link) and main contact (a link).
   - **Stage path:** the six stages as a row of buttons, New to Negotiation joined left to right, then Won and Lost. The current stage is filled in its color, with a check icon. Choosing another stage with a click, Space or Enter changes it at once, following section 3.2, and a message says what changed. The arrow keys only move focus along the row, so passing a stage, such as Won on the way to Lost, never changes the deal.
   - **Below:** the log-activity form, then the timeline.

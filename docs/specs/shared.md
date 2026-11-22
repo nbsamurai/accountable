@@ -4,7 +4,7 @@ Part of the [Accountable product spec](../spec.md). Sections keep their numbers 
 
 ## 2. Records
 
-Every record has an `id`, a `created_at` and an `updated_at` (UTC timestamps), as well as the fields listed under Records in its area file. Only the name is required on organizations, contacts and deals. Text fields are trimmed, and an empty field is stored as empty (null).
+Every organization, contact, deal and activity has an `id`, a `created_at` and an `updated_at` (UTC timestamps), and a `created_by` and an `updated_by`, the people who added it and last changed it (section 3.11), as well as the fields listed under Records in its area file. Only the name is required on organizations, contacts and deals. Text fields are trimmed, and an empty field is stored as empty (null).
 
 ## 3. Rules
 
@@ -31,21 +31,21 @@ The database enforces these rules with foreign keys: `SET NULL` for links to org
 
 ### 4.1 The app shell
 
-- **Top bar,** 64 px tall, on the page background with no line under it. It has the Accountable wordmark on the left, which links to the dashboard, and the five sections: Dashboard, Organizations, Contacts, Deals and Pipeline. The current section is a `--fill-strong` pill (Midnight with white text, or Sea Mist with Midnight text in dark mode), and has `aria-current="page"`. The "Dark mode" toggle is at the right end. The bar stays at the top as the page scrolls.
-- **Light and dark mode:** light mode is the default. The "Dark mode" toggle switches the whole app to dark mode, charts, dialogs and messages included, and back. The browser remembers the choice per browser profile, across reloads and restarts, in `localStorage` under `accountable-theme`. A dark choice applies before the page first shows, so it never flashes white or light. If the browser blocks storage, the toggle still works until the page reloads. The app doesn't follow the device's own dark mode setting.
+- **Top bar,** 64 px tall, on the page background with no line under it. It has the Accountable wordmark on the left, which links to the dashboard, then the five sections: Dashboard, Organizations, Contacts, Deals and Pipeline. The current section is a `--fill-strong` pill (Midnight with white text, or Sea Mist with Midnight text in dark mode), and has `aria-current="page"`. The search box (section 4.12) comes next, and the signed-in person's initials, which open the user menu (section 4.14), are at the right end. The bar stays at the top as the page scrolls.
+- **Theme:** Light, Dark or System, chosen in the user menu (section 4.14). Light is the default. Dark switches the whole app to dark mode, the sign-in screen, charts, dialogs and messages included. System follows the device's light or dark setting, and changes with it while the app is open. The browser remembers the choice per browser profile, across reloads, restarts and signing out, in `localStorage` under `accountable-theme`, as `light`, `dark` or `system`. A dark choice, or System on a device set to dark, applies before the page first shows, so it never flashes white or light. If the browser blocks storage, the choice still works until the page reloads.
 - **Main area:** at most 1,440 px wide and centered, with 32 px side margins. Each screen has one `h1`, its title, with the screen's main action on the right of it, such as "Add contact".
 - **Skip link:** "Skip to main content" is the first thing on the page, and shows when it has focus.
-- **Narrow windows** reflow down to 320 px, the equivalent of a 1,280 px screen at 400% zoom. At 860 px and below, a “Menu” button holds the sections. The “Dark mode” toggle stays in the top bar, outside the menu, at every width. Grids stack as space narrows, and tables and the board scroll sideways within their panels.
-- **Addresses:** `/`, `/organizations`, `/organizations/:id`, `/contacts`, `/contacts/:id`, `/deals`, `/deals/:id` and `/pipeline`. Any other address shows "Page not found", with a link to the dashboard.
-- **Page titles:** "Contacts · Accountable", or "Jane Doe · Accountable" on a record's page.
+- **Narrow windows** reflow down to 320 px, the equivalent of a 1,280 px screen at 400% zoom. At 1,100 px and below, a “Menu” button holds the sections. At 640 px and below, it holds the search box too, above the sections. The initials button stays in the top bar, outside the menu, at every width. Grids stack as space narrows, and tables and the board scroll sideways within their panels.
+- **Addresses:** `/`, `/organizations`, `/organizations/:id`, `/contacts`, `/contacts/:id`, `/deals`, `/deals/:id` and `/pipeline`. Any other address shows "Page not found", with a link to the dashboard. Signed out, every address shows the sign-in screen instead (section 4.13).
+- **Page titles:** "Contacts · Accountable", or "Jane Doe · Accountable" on a record's page, and "Sign in · Accountable" on the sign-in screen.
 
 ### 4.3 Tables
 
 Organizations, Contacts and Deals share one table design:
 
 - **Toolbar:** a search box ("Search contacts") and any filters. The page header holds the add button ("Add contact").
-- **Search** waits 250 ms after typing stops and matches any part of the fields listed for each table. Case folding covers A to Z. A live region announces the number of matches, such as “12 contacts.”
-- **Sorting:** every column heading is a button. The first click sorts A to Z or smallest first, and the second reverses it. The heading shows an arrow and sets `aria-sort`. Empty values always go last. Each table sorts by name, A to Z, to begin with.
+- **Search** waits 250 ms after typing stops and matches any part of the fields listed for each table. Case folding covers A to Z, the same on SQLite and on Postgres. A live region announces the number of matches, such as “12 contacts.”
+- **Sorting:** every column heading is a button. The first click sorts A to Z or smallest first, and the second reverses it. Text sorts ignore case, the same on SQLite and on Postgres. The heading shows an arrow and sets `aria-sort`. Empty values always go last. Each table sorts by name, A to Z, to begin with.
 - **Paging:** 50 rows a page, with "1–50 of 5,000" and Previous and Next buttons under the table. If a deletion or an old address leaves the page past the end, the table opens the last available page and replaces the address. With zero results it returns to page one.
 - **Rows:** the name links to the record's page. Each row has Edit and Delete icon buttons, always visible, with labels such as "Edit Northpeak".
 - **State in the address:** search, sort, page and filters live in the address, such as `/contacts?q=ann&status=lead&sort=name&dir=asc&page=2`. A refresh or the Back button brings them back. Typing in the search box replaces the address instead of adding to the browser's history.
@@ -85,6 +85,16 @@ Parts with a count of 0 are left out. After deleting from a record's page, the a
 ### 4.11 Messages and errors
 
 - **Messages** appear at the bottom right, are read out by screen readers, and close after 5 seconds. Errors stay until closed.
-- **Server not running:** a banner at the top of the main area says "Can't reach Accountable. Check that it's still running, then try again." with a "Try again" button.
+- **No answer from the server:** a banner at the top of the main area says "Can't reach Accountable. Check your internet connection, then try again." with a "Try again" button.
 - **A record that no longer exists:** "This contact no longer exists." with a link to Contacts.
 - **Loading:** grey placeholder blocks in the shape of the content, never a spinner on its own.
+- **A session that has ended:** see section 3.10.
+
+### 4.12 Search
+
+- **The search box** sits in the top bar, between the sections and the initials button (section 5.6). Its placeholder is "Search", and its accessible name is "Search organizations, contacts and deals". It's 280 px wide, and narrows to 200 px when the bar is short of space. At 640 px and below, it moves into the Menu (section 4.1).
+- **What it finds:** organizations, contacts and deals by any part of their name. Case folding covers A to Z, the same on SQLite and on Postgres. It waits 250 ms after typing stops, as the tables do, and searches from the first character.
+- **Results** drop down under the box, in up to three groups: "Organizations", "Contacts" and "Deals". Each group shows up to 5 matches. Names that start with the search come first, then the rest, each A to Z. A group with no matches is left out.
+- **Each match** shows its name and, under it, one detail: an organization's industry, a contact's organization, or a deal's organization and stage. A detail with nothing in it shows “–”.
+- **No matches:** "No matches for "zz"."
+- **Choosing a match** opens its page and clears the box. The arrow keys move through the matches across the groups, Enter opens one, and Escape closes the list, then clears the box. A live region announces the number of matches, such as "7 matches."

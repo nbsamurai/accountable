@@ -14,7 +14,7 @@ Part of the [Accountable product spec](../spec.md). Sections keep their numbers 
 - **Revenue won by month** and **deals won by month:** Won deals, grouped by the month of their close date.
 - **Funnel:** for each of New, Qualified, Proposal, Negotiation and Won, the total value and number of deals now at that stage or a later one. Won counts at every stage, and Lost isn't counted. Each stage also shows its value as a share of New's.
 - **Board totals** include the value and expected revenue of every open deal. Each column shows the count, value and expected revenue of all eligible deals in its stage, including cards behind “Show more.” For Won and Lost, eligibility depends on the close date window in section 4.7.
-- **Today** is the date on the computer that runs Accountable.
+- **Today** is the date in the server's time zone. That's the computer's own time zone when Accountable runs on a developer's computer, and the team's time zone on Render, set as `TZ` in `render.yaml`, because Render's clock runs on UTC.
 
 ## 4. Screens
 

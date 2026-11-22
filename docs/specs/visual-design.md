@@ -23,10 +23,10 @@ Contrast is given on white and the light page, then on the dark page and black.
 | `--page` | `#F0F4F5` | `#04232E` | Page background | |
 | `--panel` | `#FFFFFF` | `#000000` | Panels, cards, dialogs, menus, inputs, messages | |
 | `--ink` | `#073B4C` Midnight | `#CDD8DB` Sea Mist | Text, icons, the probability meter | 12.1:1 on white, 10.9:1 on page; 11.2:1 on page, 14.4:1 on black |
-| `--ink-muted` | `#456C79` | `#8AA3AB` | Secondary text, captions, axis labels | 5.7:1 on white, 5.2:1 on page; 6.2:1, 7.9:1 |
+| `--ink-muted` | `#456C79` | `#8AA3AB` | Secondary text, captions, axis labels, the search box's placeholder and icon, search details | 5.7:1 on white, 5.2:1 on page; 6.2:1, 7.9:1 |
 | `--line` | `#DAE2E4` | `#1E3E49` | Table dividers, chart grid lines | Decorative |
 | `--control` | `#77939D` | `#5C7A84` | Input, checkbox and radio borders | 3.3:1 on white; 3.6:1 on page, 4.6:1 on black |
-| `--subtle` | `#E6EBED` | `#153844` | Row hover, the Lost fill, column drop area, secondary buttons | `--ink` text 10.0:1; 8.6:1 |
+| `--subtle` | `#E6EBED` | `#153844` | Row hover, the Lost fill, column drop area, secondary buttons, the initials button | `--ink` text 10.0:1; 8.6:1 |
 | `--primary` | `#06D6A0` Sea Green | same | Primary buttons, New, Customer | Midnight text 6.4:1 |
 | `--primary-hover` | `#05C291` | same | Primary button hover | Midnight text 5.2:1 |
 | `--primary-ink` | `#008050` | `#06D6A0` | Sea Green text, the revenue line | 5.0:1 on white; 8.7:1 on page |
@@ -43,7 +43,7 @@ Some fills have text on them. Each has its own token, so dark mode can change on
 
 | Token | Light | Dark | Used for | Contrast (light; dark) |
 |---|---|---|---|---|
-| `--fill-strong` | `#073B4C` Midnight | `#CDD8DB` Sea Mist | The current section, the chosen status filter, Won, the chosen date, checked boxes, the chosen activity type, tooltips, the skip link | |
+| `--fill-strong` | `#073B4C` Midnight | `#CDD8DB` Sea Mist | The current section, the chosen status filter, Won, the chosen date, checked boxes, the chosen activity type, tooltips, the skip link, the initials button on hover and while its menu is open | |
 | `--on-fill-strong` | `#FFFFFF` | `#073B4C` | Text and icons on `--fill-strong` | 12.1:1; 8.3:1 |
 | `--on-bright` | `#073B4C` | same | Text on Sea Green, Marigold and Coral, and on pill counts | See those colors |
 | `--alert-fill` | `#D22758` | same | The Late badge, delete buttons | White text 5.0:1 |
@@ -75,7 +75,7 @@ Stages and statuses always show their name in text, so color is never the only s
 
 ### 5.4 Type
 
-All fonts are bundled from npm (Fontsource), so the app needs no internet connection.
+All fonts are bundled from npm (Fontsource), so no font loads from the internet.
 
 - **Instrument Sans** (variable) for headings and body:
   - Page titles: 28 px, weight 600.
@@ -104,8 +104,10 @@ All fonts are bundled from npm (Fontsource), so the app needs no internet connec
 - **Secondary button:** `--subtle` with Midnight text.
 - **Destructive button:** `--alert-fill` with white text, and `--alert-fill-hover` on hover.
 - **Icon buttons:** `--ink` icons, with a `--subtle` background on hover, a visible label in a tooltip, and the same text as their accessible name.
-- **The "Dark mode" toggle:** an icon button with a Lucide moon and `aria-pressed`. The moon fills in when dark mode is on.
+- **The initials button:** a 36 px `--subtle` circle with the person's initials in `--ink`, 13 px, weight 700. On hover and while its menu is open, it's `--fill-strong` with `--on-fill-strong` initials. Like an icon button, it has its label in a tooltip (section 4.14).
 - **Inputs:** `--panel`, with a 1 px `--control` border and 10 px corners. Fields in an error state get an `--alert-ink` border and the error text under them.
+- **The search box:** an input, 36 px tall, with a 16 px Lucide search icon inside its left edge. The icon and the placeholder are `--ink-muted`. Its results use the menu style below. Group titles are 13 px, weight 600, in `--ink-muted`. Each match has its name in 14 px `--ink` and its detail under it in 13 px `--ink-muted`.
+- **The sign-in panel:** a panel (below) with 32 px padding, the `h1` at 28 px, and the wordmark 24 px above it (section 4.13).
 - **Pills:** 13 px, weight 600, fully round, with the fills from section 5.3.
 - **Icons:** Lucide, at 16 or 20 px.
 - **Panels:** `--panel`, with 16 px corners and 24 px padding, and the title at top left.
@@ -113,7 +115,7 @@ All fonts are bundled from npm (Fontsource), so the app needs no internet connec
 - **Stage pill with count:** the stage's fill and text color (section 5.3), 30 px tall, with the count in JetBrains Mono on a small white badge at 55% opacity.
 - **Contact initials:** a 26 px `--subtle` circle with up to two initials, 11 px, weight 700.
 - **Probability meter:** a 4 px `--subtle` track with an `--ink` fill as wide as the probability, and the percent in JetBrains Mono beside it. The meter is decoration. The percent is the text.
-- **Menus:** a `--panel` panel with 12 px corners, 6 px padding and a dialog-like shadow. Items are 34 px tall, with a `--subtle` background on hover and focus. Groups are separated by a 1 px `--line` rule.
+- **Menus:** a `--panel` panel with 12 px corners, 6 px padding and a dialog-like shadow. Items are 34 px tall, with a `--subtle` background on hover and focus. Groups are separated by a 1 px `--line` rule. In a group with one choice, such as the user menu's theme, a Lucide check marks the chosen item.
 
 ### 5.7 Charts
 

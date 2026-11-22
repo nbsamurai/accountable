@@ -17,6 +17,8 @@ Part of the [Accountable product spec](../spec.md). Sections keep their numbers 
 
 The activity form supplies the current time by default. The API also defaults to the current time when the request omits it.
 
+The person who logged an activity is its `created_by` (section 3.11). For a stage change, that's the person who moved the deal.
+
 ## 3. Rules
 
 ### 3.5 Activities and follow-ups
@@ -48,10 +50,10 @@ The activity form supplies the current time by default. The API also defaults to
 - **A timeline entry** shows:
   - its type's icon and name
   - its description
-  - when it happened
+  - when it happened and who logged it: "Nov 19, 2026, 2:30 PM by Alex Rivera"
   - for a deal's entry on a contact's timeline, "on Website redesign" with a link
   - any follow-up, as "Follow up Nov 24" with a "Done" checkbox, and "Overdue" in Raspberry ink when it's overdue
   - Edit and Delete buttons on notes, calls and emails. Edit opens the same fields in a dialog.
-- **Stage changes** show an arrow icon and "Moved from Proposal to Negotiation", with no edit or delete.
+- **Stage changes** show an arrow icon and "Moved from Proposal to Negotiation", when it happened and who moved the deal, with no edit or delete.
 - A timeline shows its 50 newest entries, then a "Show older" button.
 - With no entries: "Nothing logged yet."

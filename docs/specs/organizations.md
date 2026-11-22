@@ -20,7 +20,7 @@ Part of the [Accountable product spec](../spec.md). Sections keep their numbers 
 - **Table columns:** Name, Industry, Website, Contacts (a count), Open deals (a count) and Open pipeline (US$).
 - **Search** covers name, industry and website.
 - **An organization's page:**
-  - **Header:** name, industry, the website as a link that opens in a new tab and says so, and Edit and Delete buttons.
+  - **Header:** name, industry, the website as a link that opens in a new tab and says so, who added and last changed it (section 3.11), and Edit and Delete buttons.
   - **Figures:** open pipeline, expected revenue, and won to date.
   - **Notes,** when there are any.
   - **Contacts panel:** name, job title, status, email, and an "Add contact" button with this organization filled in.
