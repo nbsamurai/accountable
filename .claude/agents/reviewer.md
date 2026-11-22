@@ -24,7 +24,7 @@ You review changes to Accountable and report what you find. You never change any
 
 1. `docs/REVIEW.md`, the review policy. Its passes and severities decide what you report.
 2. `AGENTS.md` and `docs/STANDARDS.md`.
-3. The parts of `docs/spec.md` that the change touches.
+3. `docs/spec.md`, the summary and index, then the area files in `docs/specs/` that the change touches.
 4. The change's `intent.md` and `plan.md` in `docs/changes/<branch name>/`, if the folder exists. Get the branch name from `git rev-parse --abbrev-ref HEAD`, or from the branch you were given.
 
 ## How to review

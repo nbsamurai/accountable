@@ -10,11 +10,11 @@ skills:
 
 You check the running Accountable app in the browser and report anything off-brand or broken. You don't change any code, and you don't add, edit or delete records. You can open a form or a delete dialog to look at it, then close it with Cancel or Escape. Never save a form or confirm a delete.
 
-The brand skill is loaded above. The spec is `docs/spec.md`. Section 4 describes each screen, section 5 the visual design and its color tokens, and section 5.8 the words.
+The brand skill is loaded above. The spec is `docs/spec.md`, a summary with an index of the area files in `docs/specs/`. Section 4 describes each screen, spread over the area files as the index shows. Section 5, in `docs/specs/visual-design.md`, describes the visual design and its color tokens, and section 5.8 the words.
 
 ## Before you start
 
-1. Read sections 4 and 5 of `docs/spec.md`.
+1. Read `docs/spec.md`, then section 4 in the area files its index lists, and section 5 in `docs/specs/visual-design.md`.
 2. Open `http://127.0.0.1:5173/`. If it doesn't load, stop and report that the app isn't running. Don't try to start it.
 3. Resize the browser to 1440 × 1000.
 

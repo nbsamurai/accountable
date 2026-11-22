@@ -1,6 +1,6 @@
 # Status
 
-All nine phases in the [MVP plan](changes/mvp/plan.md) are complete. The findings of both MVP reviews are resolved. The [hands-on Chrome acceptance check](spec.md#104-the-hands-on-check) passed on Nov 20, 2026, in light and dark mode.
+All nine phases in the [MVP plan](changes/mvp/plan.md) are complete. The findings of both MVP reviews are resolved. The [hands-on Chrome acceptance check](specs/testing.md#104-the-hands-on-check) passed on Nov 20, 2026, in light and dark mode.
 
 [Dark mode](#dark-mode-nov-20-2026) is built from [its plan](changes/dark-mode/plan.md) and waits for review.
 
@@ -216,6 +216,12 @@ Two project subagents in `.claude/agents/`, from [the subagents plan](changes/su
 - **ui-check** opens `http://127.0.0.1:5173/`, which must already be running, and checks every page in light and dark mode at 1440 × 1000 against the brand skill and spec sections 4 and 5. It saves full-page screenshots as `.playwright-mcp/ui-check-<page>-<mode>.png`, which git ignores, reads colors and fonts from the page, and checks the console and network. It has no Bash, Edit or Write. Of the Playwright tools, it has none that type, fill forms, upload files or run Playwright code. It has `browser_evaluate`, which runs in the page, to read computed styles. It opens forms and delete dialogs only to look, and switches back to light mode at the end.
 
 Not yet tried: both subagents need a new session before they load.
+
+## Spec split by area (Nov 22, 2026)
+
+[docs/spec.md](spec.md) is now a short summary of the product with an index. The detail moved, word for word, into one file per area in [docs/specs/](specs/): organizations, contacts, deals, pipeline, activities, dashboard, shared rules and screens, visual design, accessibility, performance, sample data, architecture and testing. Every section keeps its number and heading, so "spec 3.2" in code and docs still points to one section. Only two relative links and one "the fields below" changed, to follow the move.
+
+`AGENTS.md` says to read `docs/spec.md` first, then only the area files a change touches, and to update those files in the same change. [docs/REVIEW.md](REVIEW.md) checks the area files and the index. The reviewer and ui-check subagents read the area files. No code changed.
 
 ## Known limits
 
