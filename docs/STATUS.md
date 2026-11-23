@@ -218,7 +218,7 @@ Two project subagents in `.claude/agents/`, from [the subagents plan](changes/su
 - **reviewer** reviews the current branch against `main`, or a commit or branch it's given, with [docs/REVIEW.md](REVIEW.md). It reports Important findings, other findings and at most five nits, then a verdict. Its tools are Read, Glob, Grep and Bash. Its hook denies any Bash command that isn't on a read-only list: `git diff`, `log`, `show`, `grep`, `status`, `blame` and a few more, plus `grep`, `rg`, `find`, `cat`, `head`, `tail`, `ls` and `wc`. It also denies redirects to files, command substitution, `find -exec` and `-delete`, `git -c`, `git diff --output` and `git grep -O`. The hook never approves a command, so allowed ones still go through the normal permission prompts. 45 commands, 17 to allow and 28 to deny, gave the expected result.
 - **ui-check** opens `http://127.0.0.1:5173/`, which must already be running, and checks every page in light and dark mode at 1440 × 1000 against the brand skill and spec sections 4 and 5. It saves full-page screenshots as `.playwright-mcp/ui-check-<page>-<mode>.png`, which git ignores, reads colors and fonts from the page, and checks the console and network. It has no Bash, Edit or Write. Of the Playwright tools, it has none that type, fill forms, upload files or run Playwright code. It has `browser_evaluate`, which runs in the page, to read computed styles. It opens forms and delete dialogs only to look, and switches back to light mode at the end.
 
-Not yet tried: both subagents need a new session before they load.
+Both have run on the sign-in change: ui-check twice, and the reviewer at Deploy.
 
 ## Spec split by area (Nov 22, 2026)
 
@@ -321,6 +321,16 @@ Each fix has a test that failed before it and passes after it. `npm run check` p
 
 **A shorter hands-on check** ran on a new local copy, with no `node_modules/`, `.venv/`, `data/` or settings file, in Chrome through the Playwright MCP server, at 1,440 × 1,000. A token left from an earlier run got 401 and "Your session has ended. Sign in again." Alex Rivera signed in, added "Review Fix Labs" and saw "Added by Alex Rivera on Nov 23, 2026." After signing out, Jordan Blake signed in, changed its website, and the caption added "Last changed by Jordan Blake on Nov 23, 2026." Pipeline and Dashboard loaded. A request with no token got 401. After SIGINT and `npm run dev` again, the old token got 401, and after signing in the change was still there. The console showed only those 401s. The Supabase fix can't be seen on a local copy, so it waits for the Supabase step below. The rest of spec 10.4 didn't run again, because nothing else changed.
 
+### Improve the harness (Nov 23, 2026)
+
+[docs/IMPROVE.md](IMPROVE.md) ran after the review fixes. The person had no corrections beyond those recorded, and every test file the plan names exists.
+
+- **Twice: a test that depends on the clock.** Dark mode's screenshot test failed when the minute changed, and `keyboard.spec.ts` failed before 10:42 each morning. `AGENTS.md` now says tests must pass at any time of day, and how.
+- **Twice: "can't reach Supabase" treated as "not signed in".** The plan had no case for signing keys that can't be fetched, so the backend would have answered 401. The build made that a 503. Then the frontend sent no token when Supabase couldn't renew one, and the review caught it. It's a coding rule, so it's suggested for `docs/STANDARDS.md`, for the person to add.
+- **Seen once, now on the watch list:** the connection that opened before the token check, the SQL for Postgres that never ran on Postgres, and the banner that followed whichever request answered last.
+- **Out of date:** the hands-on copy in `AGENTS.md` now leaves out `.env` too, as spec 10.4 does, and names the command that lists the files to copy. The subagents' "not yet tried" line is gone.
+- **IMPROVE.md** now checks the plan's test files, reads the plans' departures for earlier times, and counts a mistake made in a plan or caught before the review.
+
 ### Still open
 
 - **Spec 5.4 and 5.6 disagree** on contact initials: 11 px, against nothing smaller than 12 px. It came before this change.
@@ -338,4 +348,4 @@ Each fix has a test that failed before it and passes after it. `npm run check` p
 ## Next
 
 - Review dark mode, then merge it.
-- Sign-in, search and a user menu: the review and its fixes are done. Next, the [Supabase step](#still-open), then `docs/IMPROVE.md` and the merge.
+- Sign-in, search and a user menu: the review, its fixes and `docs/IMPROVE.md` are done. Next, the [Supabase step](#still-open), then the merge.
