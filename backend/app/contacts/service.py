@@ -5,9 +5,11 @@ from typing import Any, Literal
 
 from sqlalchemy import Connection, Row, case, delete, func, insert, select, update
 
+from .. import authors
+from ..auth.people import Person
 from ..deals import service as deals
 from ..errors import invalid, not_found
-from ..lists import Direction, Paging, Sortable, order, page_of, search
+from ..lists import Direction, Paging, Sortable, fold, order, page_of, search
 from ..tables import activities, contacts, organizations
 from ..tables import deals as deals_table
 from .schemas import ContactIn, ContactPatch
@@ -86,6 +88,7 @@ def detail(conn: Connection, contact_id: int, today: date) -> dict[str, Any]:
         raise not_found("contact")
     return {
         **to_out(row),
+        **authors.of(conn, contacts, contact_id),
         "deals": deals.deals_where(conn, deals_table.c.contact_id == contact_id, today),
     }
 
@@ -150,7 +153,7 @@ def contacts_at(conn: Connection, organization_id: int) -> list[dict[str, Any]]:
             contacts.c.email,
         )
         .where(contacts.c.organization_id == organization_id)
-        .order_by(contacts.c.name.collate("NOCASE"), contacts.c.id)
+        .order_by(fold(contacts.c.name), contacts.c.id)
     ).all()
     return [row._asdict() for row in rows]
 
@@ -166,19 +169,25 @@ def _check_organization(conn: Connection, organization_id: int | None) -> None:
 
 
 def create(
-    conn: Connection, data: ContactIn, *, today: date, now: datetime
+    conn: Connection, data: ContactIn, *, person: Person, today: date, now: datetime
 ) -> dict[str, Any]:
     _check_organization(conn, data.organization_id)
     contact_id = conn.execute(
         insert(contacts)
-        .values(**data.model_dump(), created_at=now, updated_at=now)
+        .values(**data.model_dump(), **authors.added(person, now))
         .returning(contacts.c.id)
     ).scalar_one()
     return detail(conn, contact_id, today)
 
 
 def patch(
-    conn: Connection, contact_id: int, data: ContactPatch, *, today: date, now: datetime
+    conn: Connection,
+    contact_id: int,
+    data: ContactPatch,
+    *,
+    person: Person,
+    today: date,
+    now: datetime,
 ) -> dict[str, Any]:
     """Changes the fields sent. A contact who moves to another organization stays on their deals."""
     get_row(conn, contact_id)
@@ -189,7 +198,7 @@ def patch(
         conn.execute(
             update(contacts)
             .where(contacts.c.id == contact_id)
-            .values(**values, updated_at=now)
+            .values(**values, **authors.changed(person, now))
         )
     return detail(conn, contact_id, today)
 

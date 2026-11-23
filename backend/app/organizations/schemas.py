@@ -4,6 +4,7 @@ from datetime import datetime
 
 from pydantic import MISSING, BaseModel, Field
 
+from ..authors import PersonRef
 from ..contacts.schemas import ContactSummary
 from ..deals.schemas import DealOut
 from ..fields import Name, Text, Website
@@ -47,6 +48,8 @@ class Figures(BaseModel):
 class OrganizationDetail(OrganizationOut):
     # For the delete message (spec 4.10): every deal, open or closed.
     deal_count: int
+    created_by: PersonRef | None
+    updated_by: PersonRef | None
     figures: Figures
     contacts: list[ContactSummary]
     deals: list[DealOut]

@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Response
 
-from ..deps import Conn, Now, Today
+from ..deps import Conn, CurrentPerson, Now, Today
 from ..lists import Direction, Paging, paging
 from . import service
 from .schemas import DealChange, DealDetail, DealIn, DealPage, DealPatch, MoveIn
@@ -27,8 +27,8 @@ def list_deals(
 
 
 @router.post("", status_code=201, response_model=DealChange)
-def add_deal(data: DealIn, conn: Conn, today: Today, now: Now):
-    return service.create(conn, data, today=today, now=now)
+def add_deal(data: DealIn, conn: Conn, person: CurrentPerson, today: Today, now: Now):
+    return service.create(conn, data, person=person, today=today, now=now)
 
 
 @router.get("/{deal_id}", response_model=DealDetail)
@@ -37,13 +37,29 @@ def get_deal(deal_id: int, conn: Conn, today: Today):
 
 
 @router.patch("/{deal_id}", response_model=DealChange)
-def change_deal(deal_id: int, data: DealPatch, conn: Conn, today: Today, now: Now):
-    return service.patch(conn, deal_id, data, today=today, now=now)
+def change_deal(
+    deal_id: int,
+    data: DealPatch,
+    conn: Conn,
+    person: CurrentPerson,
+    today: Today,
+    now: Now,
+):
+    return service.patch(conn, deal_id, data, person=person, today=today, now=now)
 
 
 @router.post("/{deal_id}/move", response_model=DealChange)
-def move_deal(deal_id: int, data: MoveIn, conn: Conn, today: Today, now: Now):
-    return service.move(conn, deal_id, data.stage, data.before_id, today=today, now=now)
+def move_deal(
+    deal_id: int,
+    data: MoveIn,
+    conn: Conn,
+    person: CurrentPerson,
+    today: Today,
+    now: Now,
+):
+    return service.move(
+        conn, deal_id, data.stage, data.before_id, person=person, today=today, now=now
+    )
 
 
 @router.delete("/{deal_id}", status_code=204)

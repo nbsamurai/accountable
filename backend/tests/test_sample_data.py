@@ -11,7 +11,7 @@ from sqlalchemy import func, select
 
 from backend.app.db import ROOT, reset
 from backend.app.seed import large_data, sample_data
-from backend.app.tables import activities, contacts, deals, organizations
+from backend.app.tables import activities, contacts, deals, organizations, people
 
 from .conftest import TODAY
 
@@ -101,6 +101,49 @@ def test_the_counts_in_spec_8(seeded, engine):
     assert sorted(a.deal_id for a in stage_changes) == sorted(d["id"] for d in past_new)
 
 
+def recorded(engine) -> tuple[list, dict[str, set]]:
+    """The people, and who added and last changed each table's rows."""
+    with engine.connect() as conn:
+        team = conn.execute(
+            select(people.c.id, people.c.name, people.c.email).order_by(people.c.name)
+        ).all()
+        by = {
+            table.name: set(
+                conn.execute(select(table.c.created_by, table.c.updated_by)).all()
+            )
+            for table in (organizations, contacts, deals, activities)
+        }
+    return team, by
+
+
+def test_three_teammates_added_and_changed_every_sample_record(engine):
+    reset(engine, sample_data.load, TODAY)
+    team, by = recorded(engine)
+    assert [(p.name, p.email) for p in team] == [
+        ("Alex Rivera", "alex.rivera@team.example"),
+        ("Casey Morgan", "casey.morgan@team.example"),
+        ("Jordan Blake", "jordan.blake@team.example"),
+    ]
+    ids = {p.id for p in team}
+    for table, pairs in by.items():
+        people_recorded = {person for pair in pairs for person in pair}
+        assert people_recorded <= ids, table
+        assert None not in people_recorded, table
+    # Every teammate added something, and some records were last changed by someone else.
+    assert {created for created, _ in by["organizations"]} == ids
+    assert any(created != updated for created, updated in by["deals"])
+
+
+def test_the_large_set_records_the_same_teammates_on_every_row(engine):
+    reset(engine, large_data.load, TODAY)
+    team, by = recorded(engine)
+    assert {p.name for p in team} == {"Alex Rivera", "Jordan Blake", "Casey Morgan"}
+    for table, pairs in by.items():
+        assert {person for pair in pairs for person in pair} == {p.id for p in team}, (
+            table
+        )
+
+
 def test_every_won_deals_main_contact_is_a_customer(seeded):
     won = [d for d in everything(seeded, "/api/deals") if d["stage"] == "won"]
     for deal in won:
@@ -149,12 +192,10 @@ def test_loading_on_another_day_moves_the_dates_by_the_same_number_of_days(engin
 
 
 def test_the_seed_command_resets_a_database_another_connection_has_open(tmp_path):
-    from backend.app.main import create_app
-
-    from .conftest import Api, local_client
+    from .conftest import Api, local_app, local_client
 
     path = tmp_path / "running.db"
-    app = create_app(path)  # a new database gets the sample data
+    app = local_app(path, sample_data_on_start=True)  # empty tables get the sample data
     api = Api(local_client(app))
     api.org("Added before the reset")
     assert api.get("/api/organizations")["total"] == 16

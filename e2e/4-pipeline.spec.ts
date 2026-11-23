@@ -67,7 +67,7 @@ test("a failed move restores the card and its totals", async ({ page, allowError
   await expect.poll(() => summary.innerText()).toBe(before);
 });
 
-test("columns create deals at the top, show recent closures and honor stage changes from a deal page", async ({ page, request }) => {
+test("columns create deals at the top, show recent closures and honor stage changes from a deal page", async ({ page, api }) => {
   await page.goto("/pipeline");
   const won = column(page, "Won");
   const lost = column(page, "Lost");
@@ -89,12 +89,12 @@ test("columns create deals at the top, show recent closures and honor stage chan
   await expect(page.getByText("Pipeline test deal moved to Proposal.")).toBeVisible();
   await page.goto("/pipeline");
   await expect(cards(column(page, "Proposal")).first()).toContainText("Pipeline test deal");
-  const response = await request.get(`${API_URL}/api/pipeline`);
+  const response = await api.get(`${API_URL}/api/pipeline`);
   expect(response.ok()).toBe(true);
 });
 
-test("winning a deal updates the customer and close date, and reopening keeps both", async ({ page, request }) => {
-  const created = await request.post(`${API_URL}/api/deals`, { data: { name: "Won from board", stage: "negotiation", organization_id: 4, contact_id: 16 } });
+test("winning a deal updates the customer and close date, and reopening keeps both", async ({ page, api }) => {
+  const created = await api.post(`${API_URL}/api/deals`, { data: { name: "Won from board", stage: "negotiation", organization_id: 4, contact_id: 16 } });
   expect(created.ok()).toBe(true);
   const { deal } = await created.json();
   await page.goto("/pipeline");
@@ -103,24 +103,24 @@ test("winning a deal updates the customer and close date, and reopening keeps bo
   await expect(page.getByText("Won from board moved to Won. Grace Liu is now a customer.")).toBeVisible();
   const won = column(page, "Won");
   await expect(cards(won).first()).toContainText("100%");
-  const saved = await (await request.get(`${API_URL}/api/deals/${deal.id}`)).json();
-  const data = await (await request.get(`${API_URL}/api/pipeline`)).json();
+  const saved = await (await api.get(`${API_URL}/api/deals/${deal.id}`)).json();
+  const data = await (await api.get(`${API_URL}/api/pipeline`)).json();
   expect(saved.close_date).toBe(data.today);
 
   const yesterday = new Date(`${data.today}T00:00:00Z`);
   yesterday.setUTCDate(yesterday.getUTCDate() - 1);
   const earlier = yesterday.toISOString().slice(0, 10);
-  await request.patch(`${API_URL}/api/deals/${deal.id}`, { data: { close_date: earlier } });
+  await api.patch(`${API_URL}/api/deals/${deal.id}`, { data: { close_date: earlier } });
   await page.reload();
   await won.getByRole("button", { name: "More actions for Won from board" }).click();
   await page.getByRole("menuitem", { name: "Negotiation", exact: true }).click();
   await expect(page.getByText("Won from board moved to Negotiation.")).toBeVisible();
   await expect(cards(column(page, "Negotiation")).first()).toContainText("Late");
-  expect((await (await request.get(`${API_URL}/api/deals/${deal.id}`)).json()).close_date).toBe(earlier);
-  expect((await (await request.get(`${API_URL}/api/contacts/16`)).json()).status).toBe("customer");
+  expect((await (await api.get(`${API_URL}/api/deals/${deal.id}`)).json()).close_date).toBe(earlier);
+  expect((await (await api.get(`${API_URL}/api/contacts/16`)).json()).status).toBe("customer");
 });
 
-test("a deal added in Won says its main contact became a customer", async ({ page, request }) => {
+test("a deal added in Won says its main contact became a customer", async ({ page, api }) => {
   await page.goto("/pipeline");
   await column(page, "Won").getByRole("button", { name: "Add deal to Won" }).click();
   const form = page.getByRole("dialog", { name: "Add deal" });
@@ -130,6 +130,6 @@ test("a deal added in Won says its main contact became a customer", async ({ pag
   await form.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText("Deal added. Lucy Grant is now a customer.")).toBeVisible();
   await expect(cards(column(page, "Won")).first()).toContainText("Signed on the spot");
-  const contacts = await (await request.get(`${API_URL}/api/contacts`, { params: { q: "Lucy Grant" } })).json();
+  const contacts = await (await api.get(`${API_URL}/api/contacts`, { params: { q: "Lucy Grant" } })).json();
   expect(contacts.items[0].status).toBe("customer");
 });

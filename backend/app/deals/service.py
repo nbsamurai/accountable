@@ -15,6 +15,8 @@ from sqlalchemy import (
     update,
 )
 
+from .. import authors
+from ..auth.people import Person
 from ..errors import invalid, not_found
 from ..lists import Direction, Paging, Sortable, order, page_of, search
 from ..tables import activities, contacts, deals, organizations
@@ -130,7 +132,11 @@ def detail(conn: Connection, deal_id: int, today: date) -> dict[str, Any]:
             activities.c.deal_id == deal_id, activities.c.type == "stage_change"
         )
     ).scalar_one()
-    return {**to_out(row, today), "stage_change_count": stage_changes}
+    return {
+        **to_out(row, today),
+        **authors.of(conn, deals, deal_id),
+        "stage_change_count": stage_changes,
+    }
 
 
 def deals_where(conn: Connection, condition: Any, today: date) -> list[dict[str, Any]]:
@@ -240,15 +246,16 @@ def drop_position(
 
 
 def _promote_contact(
-    conn: Connection, contact_id: int | None, now: datetime
+    conn: Connection, contact_id: int | None, person: Person, now: datetime
 ) -> dict[str, Any] | None:
+    """Makes a Won deal's main contact a customer, as a change by whoever won it."""
     if contact_id is None:
         return None
     contact = (
         conn.execute(
             update(contacts)
             .where(contacts.c.id == contact_id, contacts.c.status != "customer")
-            .values(status="customer", updated_at=now)
+            .values(status="customer", **authors.changed(person, now))
             .returning(contacts.c.id, contacts.c.name, contacts.c.status)
         )
         .mappings()
@@ -262,6 +269,7 @@ def change_stage(
     deal_id: int,
     new_stage: Stage,
     *,
+    person: Person,
     today: date,
     now: datetime,
     sent: dict[str, Any] | None = None,
@@ -272,7 +280,7 @@ def change_stage(
     1. The probability becomes the new stage's usual one.
     2. For Won or Lost, the close date becomes today.
     3. For Won, the main contact becomes a customer.
-    4. A stage_change activity is written on the deal.
+    4. A stage_change activity is written on the deal, by the person who moved it.
     5. Unless the move came from the board, the card goes to the top of its new column.
 
     Steps 1 and 2 apply only to the fields the request didn't send, which are in `sent`.
@@ -284,7 +292,7 @@ def change_stage(
         return None
     sent = sent or {}
 
-    values: dict[str, Any] = {"stage": new_stage, "updated_at": now}
+    values: dict[str, Any] = {"stage": new_stage, **authors.changed(person, now)}
     values["probability"] = (
         sent["probability"] if "probability" in sent else PROBABILITY[new_stage]
     )
@@ -297,7 +305,9 @@ def change_stage(
     conn.execute(update(deals).where(deals.c.id == deal_id).values(**values))
 
     changed = (
-        _promote_contact(conn, deal.contact_id, now) if new_stage == "won" else None
+        _promote_contact(conn, deal.contact_id, person, now)
+        if new_stage == "won"
+        else None
     )
 
     conn.execute(
@@ -307,8 +317,7 @@ def change_stage(
             description=move_description(old_stage, new_stage),
             occurred_at=now,
             done=False,
-            created_at=now,
-            updated_at=now,
+            **authors.added(person, now),
         )
     )
     return changed
@@ -318,7 +327,7 @@ def change_stage(
 
 
 def create(
-    conn: Connection, data: DealIn, *, today: date, now: datetime
+    conn: Connection, data: DealIn, *, person: Person, today: date, now: datetime
 ) -> dict[str, Any]:
     """Adds a deal at the top of its column. Creating at a stage writes no activity.
 
@@ -344,19 +353,26 @@ def create(
             probability=probability,
             close_date=close_date,
             board_position=ordering.top(first_position(conn, data.stage)),
-            created_at=now,
-            updated_at=now,
+            **authors.added(person, now),
         )
         .returning(deals.c.id)
     ).scalar_one()
     changed = (
-        _promote_contact(conn, data.contact_id, now) if data.stage == "won" else None
+        _promote_contact(conn, data.contact_id, person, now)
+        if data.stage == "won"
+        else None
     )
     return {"deal": detail(conn, deal_id, today), "contact": changed}
 
 
 def patch(
-    conn: Connection, deal_id: int, data: DealPatch, *, today: date, now: datetime
+    conn: Connection,
+    deal_id: int,
+    data: DealPatch,
+    *,
+    person: Person,
+    today: date,
+    now: datetime,
 ) -> dict[str, Any]:
     deal = get_row(conn, deal_id)
     values = data.model_dump(exclude_unset=True)
@@ -376,12 +392,14 @@ def patch(
         }
     if values:
         conn.execute(
-            update(deals).where(deals.c.id == deal_id).values(**values, updated_at=now)
+            update(deals)
+            .where(deals.c.id == deal_id)
+            .values(**values, **authors.changed(person, now))
         )
     changed = None
     if new_stage != deal.stage:
         changed = change_stage(
-            conn, deal_id, new_stage, today=today, now=now, sent=sent
+            conn, deal_id, new_stage, person=person, today=today, now=now, sent=sent
         )
     return {"deal": detail(conn, deal_id, today), "contact": changed}
 
@@ -392,19 +410,25 @@ def move(
     stage: Stage,
     before_id: int | None,
     *,
+    person: Person,
     today: date,
     now: datetime,
 ) -> dict[str, Any]:
-    """A move on the board: to a stage and a place. Within a column, only the place changes."""
+    """A move on the board: to a stage and a place. Within a column, only the place changes.
+
+    Either way, it's a change by the person who moved the card.
+    """
     deal = get_row(conn, deal_id)
     position = drop_position(conn, deal_id, stage, before_id)
     changed = None
     if stage != deal.stage:
         changed = change_stage(
-            conn, deal_id, stage, today=today, now=now, from_board=True
+            conn, deal_id, stage, person=person, today=today, now=now, from_board=True
         )
     conn.execute(
-        update(deals).where(deals.c.id == deal_id).values(board_position=position)
+        update(deals)
+        .where(deals.c.id == deal_id)
+        .values(board_position=position, **authors.changed(person, now))
     )
     return {"deal": detail(conn, deal_id, today), "contact": changed}
 

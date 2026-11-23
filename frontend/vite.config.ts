@@ -18,6 +18,8 @@ export default defineConfig({
     environment: "jsdom",
     include: ["src/**/*.test.{ts,tsx}"],
     setupFiles: ["./src/setupTests.ts"],
+    // Every unit test runs in under a second here, because CI runs on a slower machine.
+    testTimeout: 1000,
     coverage: {
       include: ["src/**/*.{ts,tsx}"],
       exclude: ["src/**/*.test.{ts,tsx}", "src/setupTests.ts"],

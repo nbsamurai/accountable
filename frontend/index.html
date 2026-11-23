@@ -5,11 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="data:," />
     <title>Accountable</title>
-    <!-- A dark choice turns the blank page dark before the scripts and styles load, so a reload
-         never shows a white page first. lib/theme.ts does the same once the app starts. -->
+    <!-- A dark choice, or System on a device set to dark, turns the blank page dark before the
+         scripts and styles load, so a reload never shows a white page first. lib/theme.ts does
+         the same once the app starts. -->
     <script>
       try {
-        if (localStorage.getItem("accountable-theme") === "dark") {
+        var theme = localStorage.getItem("accountable-theme");
+        if (
+          theme === "dark" ||
+          (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches)
+        ) {
           document.documentElement.setAttribute("data-theme", "dark");
         }
       } catch {}

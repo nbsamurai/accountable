@@ -4,9 +4,9 @@ import { FUNNEL_STAGES, isOpen, OPEN_STAGES, type Stage } from "../frontend/src/
 
 type Deal = { value: number | null; probability: number; stage: Stage; close_date: string | null };
 
-test("the scoreboard, stage bar, and chart tables match the deals API", async ({ page, request }) => {
-  const deals: Deal[] = (await (await request.get(`${API_URL}/api/deals`)).json()).items;
-  const { today } = await (await request.get(`${API_URL}/api/pipeline`)).json();
+test("the scoreboard, stage bar, and chart tables match the deals API", async ({ page, api }) => {
+  const deals: Deal[] = (await (await api.get(`${API_URL}/api/deals`)).json()).items;
+  const { today } = await (await api.get(`${API_URL}/api/pipeline`)).json();
   const month = today.slice(0, 7);
   const open = deals.filter((deal) => isOpen(deal.stage));
   const value = (deals: Deal[]) => deals.reduce((sum, deal) => sum + (deal.value ?? 0), 0);

@@ -5,6 +5,7 @@ from typing import Literal
 
 from pydantic import MISSING, BaseModel, Field
 
+from ..authors import PersonRef
 from ..deals.schemas import DealOut, Ref
 from ..fields import Email, Name, Text
 
@@ -48,6 +49,8 @@ class ContactOut(BaseModel):
 
 class ContactDetail(ContactOut):
     deals: list[DealOut]
+    created_by: PersonRef | None
+    updated_by: PersonRef | None
 
 
 class StatusCounts(BaseModel):

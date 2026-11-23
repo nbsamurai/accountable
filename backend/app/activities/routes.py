@@ -6,7 +6,7 @@ from fastapi import APIRouter, Query, Response
 
 from ..contacts import service as contacts_service
 from ..deals import service as deals_service
-from ..deps import Conn, Now
+from ..deps import Conn, CurrentPerson, Now
 from . import service, timelines
 from .schemas import ActivityIn, ActivityOut, ActivityPatch, Timeline
 
@@ -17,13 +17,15 @@ Limit = Annotated[int, Query(ge=1, le=200)]
 
 
 @router.post("/activities", status_code=201, response_model=ActivityOut)
-def log_activity(data: ActivityIn, conn: Conn, now: Now):
-    return service.create(conn, data, now=now)
+def log_activity(data: ActivityIn, conn: Conn, person: CurrentPerson, now: Now):
+    return service.create(conn, data, person=person, now=now)
 
 
 @router.patch("/activities/{activity_id}", response_model=ActivityOut)
-def change_activity(activity_id: int, data: ActivityPatch, conn: Conn, now: Now):
-    return service.patch(conn, activity_id, data, now=now)
+def change_activity(
+    activity_id: int, data: ActivityPatch, conn: Conn, person: CurrentPerson, now: Now
+):
+    return service.patch(conn, activity_id, data, person=person, now=now)
 
 
 @router.delete("/activities/{activity_id}", status_code=204)

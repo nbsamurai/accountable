@@ -1,0 +1,5 @@
+.caption {
+  flex-basis: 100%;
+  color: var(--ink-muted);
+  font-size: var(--text-caption);
+}

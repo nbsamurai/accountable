@@ -111,11 +111,11 @@ test("in the deal form, the organization limits the contacts, and a contact fill
   await expect(organization).toHaveValue("Larkspur Health");
 });
 
-test("a contact who moved makes their deal's form ask for a new main contact", async ({ page, request }) => {
-  const deals = await (await request.get(`${API_URL}/api/deals?q=website redesign`)).json();
+test("a contact who moved makes their deal's form ask for a new main contact", async ({ page, api }) => {
+  const deals = await (await api.get(`${API_URL}/api/deals?q=website redesign`)).json();
   const deal = deals.items[0];
-  const brightlane = (await (await request.get(`${API_URL}/api/organizations?q=brightlane`)).json()).items[0];
-  await request.patch(`${API_URL}/api/contacts/${deal.contact.id}`, { data: { organization_id: brightlane.id } });
+  const brightlane = (await (await api.get(`${API_URL}/api/organizations?q=brightlane`)).json()).items[0];
+  await api.patch(`${API_URL}/api/contacts/${deal.contact.id}`, { data: { organization_id: brightlane.id } });
 
   await page.goto("/deals?q=website");
   await page.getByRole("button", { name: "Edit Website redesign" }).click();

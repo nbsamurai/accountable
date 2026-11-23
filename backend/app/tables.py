@@ -1,4 +1,6 @@
-"""All four tables, their foreign keys (spec 3.7) and their indexes.
+"""The people and the four record tables, their foreign keys (spec 3.7) and their indexes.
+
+The migrations in backend/migrations make these tables. A test checks that they match.
 
 Dates without a time (close and follow-up dates) are stored as YYYY-MM-DD.
 Timestamps are stored in UTC and read back with their time zone, so the API
@@ -22,6 +24,7 @@ from sqlalchemy import (
     Table,
     Text,
     TypeDecorator,
+    false,
 )
 
 NAME_LENGTH = 200
@@ -56,6 +59,29 @@ def _stamps() -> list[Column]:
     ]
 
 
+def _authors(table: str) -> list[Column]:
+    """Who added the record and who last changed it (spec 3.11). Empty for older rows."""
+    return [
+        Column(
+            column,
+            String,
+            ForeignKey("people.id", name=f"fk_{table}_{column}_people"),
+        )
+        for column in ("created_by", "updated_by")
+    ]
+
+
+# Someone on the team (spec 2, Person). `id` is their Supabase user id. Never deleted.
+people = Table(
+    "people",
+    metadata,
+    Column("id", String, primary_key=True),
+    Column("email", String, nullable=False),
+    Column("name", String),
+    *_stamps(),
+)
+
+
 organizations = Table(
     "organizations",
     metadata,
@@ -65,6 +91,7 @@ organizations = Table(
     Column("industry", String),
     Column("notes", Text),
     *_stamps(),
+    *_authors("organizations"),
     Index("ix_organizations_name", "name"),
     Index("ix_organizations_industry", "industry"),
     Index("ix_organizations_website", "website"),
@@ -83,6 +110,7 @@ contacts = Table(
     ),
     Column("status", String, nullable=False, server_default="lead"),
     *_stamps(),
+    *_authors("contacts"),
     CheckConstraint(
         "status IN ('lead', 'qualified', 'customer')", name="ck_contacts_status"
     ),
@@ -109,6 +137,7 @@ deals = Table(
     Column("close_date", Date),
     Column("board_position", Float, nullable=False),
     *_stamps(),
+    *_authors("deals"),
     CheckConstraint(
         "stage IN ('new', 'qualified', 'proposal', 'negotiation', 'won', 'lost')",
         name="ck_deals_stage",
@@ -134,8 +163,9 @@ activities = Table(
     Column("description", Text, nullable=False),
     Column("occurred_at", UtcDateTime, nullable=False),
     Column("follow_up_date", Date),
-    Column("done", Boolean, nullable=False, server_default="0"),
+    Column("done", Boolean, nullable=False, server_default=false()),
     *_stamps(),
+    *_authors("activities"),
     CheckConstraint(
         "type IN ('note', 'call', 'email', 'stage_change')", name="ck_activities_type"
     ),

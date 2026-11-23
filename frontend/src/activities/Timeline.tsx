@@ -5,7 +5,7 @@ import { Button } from "../components/Button";
 import { IconButton } from "../components/IconButton";
 import { Panel } from "../components/Panel";
 import { SkeletonLines } from "../components/Skeleton";
-import { dateNear, dateTime, todayIso } from "../lib/format";
+import { dateNear, dateTime, EMPTY, todayIso } from "../lib/format";
 import { DeleteActivityDialog, EditActivityDialog } from "./ActivityDialog";
 import { ActivityIcon, activityLabel } from "./ActivityIcon";
 import { FollowUpCheckbox } from "./FollowUpCheckbox";
@@ -55,7 +55,8 @@ export function Timeline({ target }: { target: ActivityTarget }) {
                   )}
                   <p className={styles.description}>{activity.description}</p>
                   <p className={styles.muted}>
-                    <time dateTime={activity.occurred_at}>{dateTime(activity.occurred_at)}</time>
+                    <time dateTime={activity.occurred_at}>{dateTime(activity.occurred_at)}</time> by{" "}
+                    {activity.created_by?.name ?? EMPTY}
                     {target.area === "contacts" && activity.deal && (
                       <>
                         {" "}

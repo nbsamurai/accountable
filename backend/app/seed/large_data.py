@@ -2,7 +2,8 @@
 
 About 1,000 organizations, 5,000 contacts, 2,000 deals and 20,000 activities, made by a
 generator with a fixed random seed, so the same seed and the same day make the same data.
-Half the deals are open, and the rest closed over the last two years.
+Half the deals are open, and the rest closed over the last two years. The sample data's
+three teammates added and changed every row, in turn.
 """
 
 import random
@@ -13,6 +14,7 @@ from sqlalchemy import Connection, insert
 
 from ..deals.stages import OPEN_STAGES, PROBABILITY
 from ..tables import activities, contacts, deals, organizations
+from .sample_data import add_teammates, authors
 
 SEED = 20261119
 COUNTS = {"organizations": 1000, "contacts": 5000, "deals": 2000, "activities": 20000}
@@ -156,6 +158,7 @@ def generate(
                 "website": f"https://org{org_id}.example",
                 "notes": None,
                 **stamp,
+                **authors(org_id),
             }
         )
 
@@ -174,6 +177,7 @@ def generate(
                 "organization_id": org_id,
                 "status": rng.choice(["lead", "lead", "qualified", "customer"]),
                 **stamp,
+                **authors(contact_id),
             }
         )
         by_org.setdefault(org_id, []).append(contact_id)
@@ -205,6 +209,7 @@ def generate(
                 "close_date": close_date,
                 "board_position": float(positions[stage]),
                 **stamp,
+                **authors(deal_id),
             }
         )
 
@@ -231,6 +236,7 @@ def generate(
                 "done": bool(follow_up) and rng.random() < 0.5,
                 "created_at": occurred_at,
                 "updated_at": occurred_at,
+                **authors(activity_id),
             }
         )
 
@@ -243,6 +249,8 @@ def generate(
 
 
 def load(conn: Connection, today: date) -> None:
-    rows = generate(today, datetime.now(UTC))
+    now = datetime.now(UTC)
+    rows = generate(today, now)
+    add_teammates(conn, now)
     for table in (organizations, contacts, deals, activities):
         conn.execute(insert(table), rows[table.name])

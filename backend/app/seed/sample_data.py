@@ -10,16 +10,51 @@ today, so the screens look the same whenever it's loaded. Times of day are local
   10 Won (2 in the last 30 days) and 4 Lost (1 in the last 30 days).
 - 80 notes, calls and emails: 4 overdue follow-ups, 5 due in the next 7 days (one today)
   and 3 done. Each deal past New also has one stage change, for its last move.
+- 3 made-up teammates, who added and last changed every record and logged every activity.
+  They have no Supabase accounts. A local copy offers them on its sign-in screen.
 """
 
 from datetime import UTC, date, datetime, time
+from typing import NamedTuple
 
 from sqlalchemy import Connection, insert
 
 from ..deals.stages import NAMES, PROBABILITY, Stage
-from ..tables import activities, contacts, deals, organizations
+from ..tables import activities, contacts, deals, organizations, people
 
 REFERENCE = date(2026, 11, 19)
+
+
+class Teammate(NamedTuple):
+    id: str
+    name: str
+    email: str
+
+
+TEAMMATES = (
+    Teammate("sample-alex-rivera", "Alex Rivera", "alex.rivera@team.example"),
+    Teammate("sample-jordan-blake", "Jordan Blake", "jordan.blake@team.example"),
+    Teammate("sample-casey-morgan", "Casey Morgan", "casey.morgan@team.example"),
+)
+
+
+def add_teammates(conn: Connection, now: datetime) -> None:
+    conn.execute(
+        insert(people),
+        [
+            {**teammate._asdict(), "created_at": now, "updated_at": now}
+            for teammate in TEAMMATES
+        ],
+    )
+
+
+def authors(index: int) -> dict[str, str]:
+    """Who added the record at `index` and who last changed it, shared out in turn."""
+    return {
+        "created_by": TEAMMATES[index % 3].id,
+        "updated_by": TEAMMATES[(index // 2) % 3].id,
+    }
+
 
 # name, industry, website, notes
 ORGANIZATIONS = [
@@ -1167,8 +1202,10 @@ def load(conn: Connection, today: date) -> None:
         )
         return local.astimezone().astimezone(UTC)
 
+    add_teammates(conn, now)
+
     org_ids: dict[str, int] = {}
-    for name, industry, website, notes in ORGANIZATIONS:
+    for index, (name, industry, website, notes) in enumerate(ORGANIZATIONS):
         org_ids[name] = conn.execute(
             insert(organizations)
             .values(
@@ -1178,6 +1215,7 @@ def load(conn: Connection, today: date) -> None:
                 notes=notes,
                 created_at=now,
                 updated_at=now,
+                **authors(index),
             )
             .returning(organizations.c.id)
         ).scalar_one()
@@ -1195,14 +1233,17 @@ def load(conn: Connection, today: date) -> None:
                 status=status,
                 created_at=now,
                 updated_at=now,
+                **authors(index + 1),
             )
             .returning(contacts.c.id)
         ).scalar_one()
 
     deal_ids: dict[str, int] = {}
     positions: dict[Stage, int] = {}
-    for name, organization, contact, stage, value, close_date, last_move in DEALS:
+    for index, deal in enumerate(DEALS):
+        name, organization, contact, stage, value, close_date, last_move = deal
         positions[stage] = positions.get(stage, 0) + 1
+        by = authors(index + 2)
         deal_id = conn.execute(
             insert(deals)
             .values(
@@ -1216,12 +1257,14 @@ def load(conn: Connection, today: date) -> None:
                 board_position=float(positions[stage]),
                 created_at=now,
                 updated_at=now,
+                **by,
             )
             .returning(deals.c.id)
         ).scalar_one()
         deal_ids[name] = deal_id
         if last_move is not None:
             came_from, when = last_move
+            # The last person to change the deal moved it.
             conn.execute(
                 insert(activities).values(
                     type="stage_change",
@@ -1231,10 +1274,14 @@ def load(conn: Connection, today: date) -> None:
                     done=False,
                     created_at=moment(when),
                     updated_at=moment(when),
+                    created_by=by["updated_by"],
+                    updated_by=by["updated_by"],
                 )
             )
 
-    for when, kind, record, record_name, description, follow_up, done in ACTIVITIES:
+    for index, activity in enumerate(ACTIVITIES):
+        when, kind, record, record_name, description, follow_up, done = activity
+        logged_by = TEAMMATES[index % 3].id
         conn.execute(
             insert(activities).values(
                 type=kind,
@@ -1246,5 +1293,7 @@ def load(conn: Connection, today: date) -> None:
                 done=done,
                 created_at=moment(when),
                 updated_at=moment(when),
+                created_by=logged_by,
+                updated_by=logged_by,
             )
         )

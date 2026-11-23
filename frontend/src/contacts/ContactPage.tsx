@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router";
 import { ActivityForm } from "../activities/ActivityForm";
 import { Timeline } from "../activities/Timeline";
 import { Button } from "../components/Button";
+import { AddedBy } from "../components/AddedBy";
 import { PageHeader } from "../components/PageHeader";
 import { Panel } from "../components/Panel";
 import { StatusPill } from "../components/Pill";
@@ -60,6 +61,7 @@ function ContactRecord({ contact }: { contact: ContactDetail }) {
           {contact.email && <a href={`mailto:${contact.email}`}>{contact.email}</a>}
           {contact.phone && <a href={`tel:${contact.phone}`}>{contact.phone}</a>}
         </div>
+        <AddedBy record={contact} />
       </PageHeader>
       <div className={styles.split}>
         <div className={styles.stack}>

@@ -298,6 +298,7 @@ Then Deploy: the review against `docs/REVIEW.md`, the fixes, `docs/IMPROVE.md`, 
 17. **The end-to-end suite's direct API calls.** About 30 calls in eight files would get 401. *Mitigation:* the `api` fixture, in phase 1, part 6, before any new spec.
 18. **FastAPI's own pages.** `/docs` and `/openapi.json` would be open, and would take the app's page from those addresses. *Mitigation:* `main.py` turns them off.
 19. **Parts built in parallel don't fit together.** *Mitigation:* the shared names in section 1, a fixed merge order, and `npm run check:quick` after each merge.
+20. **SQLite's table rebuild loses links.** Found while building phase 1. Batch mode rebuilds each record table to add its foreign keys, and drops the old table. With foreign keys on, as every connection has them, that drop set `contacts.organization_id` to null and deleted the activities that cascade from the table. An experiment on a file with rows showed both. *Mitigation:* `init_db` runs the migrations on SQLite with foreign keys off, then `PRAGMA foreign_key_check` in the same transaction, and turns them back on. `test_migrations.py` fails without it.
 
 ## 4. Proof
 
@@ -497,3 +498,39 @@ Every test runs as a local copy. It signs in as Alex Rivera through local sign-i
 | 4. Search finds an organization, a contact and a deal by part of a name, in any case | `test_search.py`, `test_dialects.py`, `SearchBox.test.tsx` and `9-search.spec.ts` |
 | 5. The menu's theme choice is remembered, and System follows the device's setting | `theme.test.ts`, `UserMenu.test.tsx` and `7-theme.spec.ts` |
 | 6. The built app runs on this computer the way Render runs it, signed in against Supabase | `npm start` on Supabase, in 4.4 |
+
+## 5. Departures from the plan
+
+One agent built the parts one after another, in the order of section 2, so nothing was merged from worktrees. The build kept to the plan apart from these.
+
+### Phase 1
+
+- **Migrations on SQLite run with foreign keys off** (risk 20). The plan didn't know that SQLite's rebuild drops linked rows. `db.py` gained `_foreign_keys_off` and a `foreign_key_check`.
+- **`[tool.alembic]` in `pyproject.toml`,** so `uv run alembic revision -m "…"` finds `backend/migrations` and its `script.py.mako`. `env.py` refuses to run without the app's connection, because the app runs the migrations itself.
+- **The built frontend uses FastAPI's own `app.frontend(..., fallback="index.html")`,** new in FastAPI 0.165, in place of `StaticFiles` and a hand-written fallback. It sends `index.html` only to GET and HEAD requests that accept HTML. An unknown address under `/api` gets a JSON 404 from a catch-all route that `mount_frontend` adds before it.
+- **`create_app` takes `settings` and `frontend`,** so tests run a local copy whatever the environment holds, and serve a built frontend only when they make one. The plan's shared names didn't list them.
+- **The key fetch for an unknown `kid` runs at most once a minute.** The plan said "again only for an unknown `kid`", which would let made-up keys make the backend call Supabase on every request. A token that arrives while the keys can't be fetched gets 503, not 401, so a network blip doesn't sign anyone out. Spec 9.3 and 9.7 say so.
+- **`POST /auth/local` answers 403** on a connection that isn't to `127.0.0.1`, and 422 for anyone but a teammate. Spec 9.4 says so.
+- **The teammates' ids are readable,** such as `sample-alex-rivera`, so they can't clash with Supabase's UUIDs and the tests read well.
+- **Small shared files the plan didn't list:** `components/Logo.tsx` (the mark, now shared by the top bar and the sign-in screen, which sits outside the router), `dayOf` in `lib/format.ts` (a timestamp's local date, for the caption), `PersonRef` and `Authored` in `lib/api.ts`, and `forgetFocusedPath` in `components/PageHeader.tsx`, so the screen that opens after signing in takes focus even at the same address.
+- **The sign-in screen has a state the spec didn't describe:** when `/api/auth/config` gets no answer, it says "Can't reach Accountable. Check your internet connection, then try again." with a "Try again" button. Spec 4.13 says so.
+- **The end-to-end sign-in** stores the token with an init script that runs only on a tab's first load, so a test that signs out stays signed out after a reload.
+- **The caption** counts a record as changed when its `updated_at` or its `updated_by` differs from when it was added, so a sample record that one teammate added and another last changed says both.
+- **Phase 1, step 4 waits for the person who owns the Supabase account.** Phases 2 and 3 change no schema, so they went ahead as local copies. `render.yaml` uses `oregon` and `America/New_York` until that person names the Supabase project's region and the team's time zone: a Render service can't change region after it's made.
+
+### Phase 2
+
+- **`lib/useDebounced.ts`,** a file the plan didn't list. The picker's own wait moved there, so the search box and the pickers share it.
+- **axe runs without `aria-hidden-focus` while the search results are open.** While any combobox's list is open, React Aria's `useComboBox` sets `aria-hidden` on the rest of the page, with no option to use `inert`. axe then flags the links and buttons there, though focus can't reach them: Tab leaves the box and closes the list first. React Spectrum lists it as a [known false positive](https://github.com/adobe/react-spectrum/wiki/Known-accessibility-false-positives). The pickers pass only because they sit in a dialog, and axe allows hidden content while a modal is open. Moving the box to `Autocomplete`, which hides nothing, would mean writing the combobox's roles and keys by hand. So the test leaves out that one rule while the list is open, then checks what the rule guards: Tab closes the list, nothing stays hidden, and axe passes with every rule. Spec 10.3 says so.
+- **Each group in the results has an `aria-label`.** Without it, VoiceOver said "Entered group , with 2 options", with no name, because React Aria reads the label for that announcement, not the group's header.
+- **The performance test measures search last.** An open list hides the rest of the page from Playwright's role queries, so the board and table checks run first. It times from typing to the live region's count, which speaks only once the term's own matches arrive, not while the last term's still show.
+- **A test that depended on the time of day.** `keyboard.spec.ts` expected the deal's new stage change before the sample one, but the sample one is dated today at 10:42. Before 10:42, the new one is older, and the test failed. It was there before this change. It now checks the two moves in any order.
+
+### Phase 3
+
+- **The initials button's accessible name adds the initials:** "Account: Alex Rivera, AR". The tooltip still says "Account: Alex Rivera". With the name alone, axe's `label-content-name-mismatch` (WCAG 2.5.3, Level A) failed, because the visible "AR" wasn't in it. Someone using speech input says what they see, so the name now holds both labels. axe drops text in parentheses, so "(AR)" wouldn't do. Spec 4.14 says so.
+- **The button while the person loads, and when they can't be loaded.** A plain circle holds its place while `/api/me` loads. If it fails, the button shows a person icon and is named "Account", so signing out still works. Spec 4.14 says so.
+- **The name and email sit in the popover above the menu,** as text, with a rule under them, so they aren't menu items.
+- **`theme.ts` keeps the choice in memory too,** so it lasts until a reload when storage is blocked, and gains `startTheme()`, which `main.tsx` calls, and `useShownTheme()`, which gives the messages light or dark. `frontend/test/device.ts`, a stand-in for the device's setting, is shared by two tests.
+- **The "Can't reach Accountable" banner no longer hides when an older request succeeds.** It showed while the last request to answer had failed. With the user menu, every screen also asks for `/api/me`, so when a screen's request failed, `/me` could answer just after and hide the banner, leaving the screen empty with no "Try again". `1-start.spec.ts` caught it, and holding `/me` back in Chrome showed the banner going as `/me` answered. Now `api.ts` numbers its requests, and only one sent after the failure clears the banner. `api.test.ts` checks it.
+- **Step 3, the flash check, ran as a script in Chrome,** against the end-to-end servers, not a copy: Chrome set to dark, System chosen, and the app's script held back 3 seconds. Before the script loaded, `<html>` already had `data-theme="dark"` and `color-scheme: dark`.

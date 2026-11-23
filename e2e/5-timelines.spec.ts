@@ -50,10 +50,10 @@ test("record activities appear newest first, follow the deal to its contact, and
   }
 });
 
-test("Show older loads the timeline beyond the first 50 entries", async ({ page, request }) => {
-  const contact = await (await request.post(`${API_URL}/api/contacts`, { data: { name: "Timeline paging" } })).json();
+test("Show older loads the timeline beyond the first 50 entries", async ({ page, api }) => {
+  const contact = await (await api.post(`${API_URL}/api/contacts`, { data: { name: "Timeline paging" } })).json();
   for (let index = 1; index <= 52; index++) {
-    const response = await request.post(`${API_URL}/api/activities`, { data: { contact_id: contact.id, type: "note", description: `Note ${index}` } });
+    const response = await api.post(`${API_URL}/api/activities`, { data: { contact_id: contact.id, type: "note", description: `Note ${index}` } });
     expect(response.ok()).toBe(true);
   }
   await page.goto(`/contacts/${contact.id}`);
@@ -67,15 +67,15 @@ test("Show older loads the timeline beyond the first 50 entries", async ({ page,
   await expect(page.getByRole("button", { name: "Show older" })).toBeHidden();
 });
 
-test("the dashboard lists new and overdue follow-ups and reflects done and reopened states", async ({ page, request }) => {
-  const { today } = await (await request.get(`${API_URL}/api/dashboard`)).json();
+test("the dashboard lists new and overdue follow-ups and reflects done and reopened states", async ({ page, api }) => {
+  const { today } = await (await api.get(`${API_URL}/api/dashboard`)).json();
   const shift = (days: number) => {
     const date = new Date(`${today}T00:00:00Z`);
     date.setUTCDate(date.getUTCDate() + days);
     return date.toISOString().slice(0, 10);
   };
   for (const [description, days] of [["Overdue follow-up", -1], ["Upcoming follow-up", 3]] as const) {
-    const response = await request.post(`${API_URL}/api/activities`, {
+    const response = await api.post(`${API_URL}/api/activities`, {
       data: { contact_id: 16, type: "note", description, follow_up_date: shift(days) },
     });
     expect(response.ok()).toBe(true);

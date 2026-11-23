@@ -11,6 +11,7 @@ import DealPage from "./deals/DealPage";
 import OrganizationListPage from "./organizations/OrganizationListPage";
 import OrganizationPage from "./organizations/OrganizationPage";
 import PipelinePage from "./pipeline/PipelinePage";
+import { AuthGate } from "./signin/AuthGate";
 
 export const routes = [
   {
@@ -48,7 +49,9 @@ const queryClient = makeQueryClient();
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <AuthGate>
+        <RouterProvider router={router} />
+      </AuthGate>
     </QueryClientProvider>
   );
 }

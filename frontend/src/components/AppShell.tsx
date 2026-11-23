@@ -2,10 +2,12 @@ import { Menu as MenuIcon, X } from "lucide-react";
 import { useId, useRef, useState, type KeyboardEvent } from "react";
 import { Link, NavLink, Outlet, ScrollRestoration, useLocation } from "react-router";
 import { Toaster } from "sonner";
-import { useTheme } from "../lib/theme";
+import { useShownTheme } from "../lib/theme";
+import { SearchBox } from "../search/SearchBox";
 import styles from "./AppShell.module.css";
+import { Logo } from "./Logo";
 import { ServerBanner } from "./ServerBanner";
-import { ThemeToggle } from "./ThemeToggle";
+import { UserMenu } from "./UserMenu";
 
 const SECTIONS = [
   { to: "/", label: "Dashboard", end: true },
@@ -18,17 +20,7 @@ const SECTIONS = [
 function Wordmark() {
   return (
     <Link to="/" className={styles.wordmark}>
-      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
-        <rect width="28" height="28" rx="8" fill="var(--primary)" />
-        <path
-          d="M8 14.5l4 4 8-9"
-          fill="none"
-          stroke="var(--on-bright)"
-          strokeWidth="2.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <Logo />
       Accountable
     </Link>
   );
@@ -54,7 +46,10 @@ function SectionLinks({
   );
 }
 
-/** In narrow windows the sections move into a "Menu" button (spec 4.1). */
+/**
+ * At 1,100 px and below the sections move into a "Menu" button, and at 640 px and below the
+ * search box goes in it too, above the sections (spec 4.1).
+ */
 function NarrowMenu() {
   const [open, setOpen] = useState(false);
   const id = useId();
@@ -80,9 +75,12 @@ function NarrowMenu() {
         {open ? <X size={18} aria-hidden="true" /> : <MenuIcon size={18} aria-hidden="true" />}
         Menu
       </button>
-      <nav id={id} aria-label="Sections" hidden={!open} className={styles.narrowNav}>
-        <SectionLinks className={styles.narrowList} onKeyDown={closeOnEscape} />
-      </nav>
+      <div id={id} hidden={!open} className={styles.narrowNav}>
+        <SearchBox className={styles.menuSearch} />
+        <nav aria-label="Sections">
+          <SectionLinks className={styles.narrowList} onKeyDown={closeOnEscape} />
+        </nav>
+      </div>
     </div>
   );
 }
@@ -91,7 +89,7 @@ function NarrowMenu() {
 export function AppShell() {
   const main = useRef<HTMLElement>(null);
   const { pathname } = useLocation();
-  const [theme] = useTheme();
+  const theme = useShownTheme();
   return (
     <>
       <a
@@ -112,8 +110,9 @@ export function AppShell() {
             <SectionLinks className={styles.list} />
           </nav>
           <div className={styles.end}>
+            <SearchBox className={styles.barSearch} />
             <NarrowMenu key={pathname} />
-            <ThemeToggle />
+            <UserMenu />
           </div>
         </div>
       </header>

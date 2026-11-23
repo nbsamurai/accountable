@@ -24,9 +24,12 @@ export const queryKeys = {
   },
   pipeline: ["pipeline"] as const,
   dashboard: ["dashboard"] as const,
+  search: (term: string) => ["search", term] as const,
+  /** The signed-in person. No change to a record changes it. */
+  me: ["me"] as const,
 };
 
-const RECORD_AREAS = ["organizations", "contacts", "deals", "pipeline", "dashboard"];
+const RECORD_AREAS = ["organizations", "contacts", "deals", "pipeline", "dashboard", "search"];
 
 /**
  * Fetches again every query the filter matches. A fetch already on its way may have read the

@@ -9,20 +9,25 @@ from typing import Any
 
 from sqlalchemy import ColumnElement, Connection, desc, func, or_, select
 
-from ..tables import activities, contacts, deals
+from .. import authors
+from ..tables import activities, contacts, deals, people
 
 TIMELINE_PAGE = 50
 
+logged_by = people.alias("logged_by")
+
 
 def select_with_links():
+    """Activities with their contact's or deal's name, and who logged them."""
     return select(
         activities,
         contacts.c.name.label("contact_name"),
         deals.c.name.label("deal_name"),
+        authors.shows_as(logged_by, "created_by_name"),
     ).select_from(
-        activities.outerjoin(
-            contacts, contacts.c.id == activities.c.contact_id
-        ).outerjoin(deals, deals.c.id == activities.c.deal_id)
+        activities.outerjoin(contacts, contacts.c.id == activities.c.contact_id)
+        .outerjoin(deals, deals.c.id == activities.c.deal_id)
+        .outerjoin(logged_by, logged_by.c.id == activities.c.created_by)
     )
 
 
@@ -40,6 +45,7 @@ def to_out(row) -> dict[str, Any]:
         "deal": {"id": row.deal_id, "name": row.deal_name} if row.deal_id else None,
         "created_at": row.created_at,
         "updated_at": row.updated_at,
+        "created_by": authors.ref(row.created_by, row.created_by_name),
     }
 
 

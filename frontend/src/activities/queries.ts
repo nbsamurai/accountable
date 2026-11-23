@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, type Page, type Ref } from "../lib/api";
+import { api, type Page, type PersonRef, type Ref } from "../lib/api";
 import { queryKeys, refreshAfterChange } from "../lib/queryKeys";
 
 export type LoggedType = "note" | "call" | "email";
@@ -13,6 +13,8 @@ export type Activity = {
   done: boolean;
   contact: Ref | null;
   deal: Ref | null;
+  /** Who logged it, or for a stage change, who moved the deal. */
+  created_by: PersonRef | null;
 };
 
 export type EditableActivity = Activity & { type: LoggedType };

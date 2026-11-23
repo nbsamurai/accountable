@@ -5,10 +5,10 @@ import { expect, test } from "./fixtures";
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
 /** Runs axe on the page as it is now, and lists any violations with the elements they're on. */
-async function expectNoViolations(page: Page) {
+async function expectNoViolations(page: Page, { skip = [] as string[] } = {}) {
   // Colors are only final once a dialog has finished fading in.
   await page.waitForFunction(() => document.getAnimations().every((a) => a.playState !== "running"));
-  const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+  const results = await new AxeBuilder({ page }).withTags(TAGS).disableRules(skip).analyze();
   const found = results.violations.map((v) => `${v.id}: ${v.help} (${v.nodes.map((n) => n.target.join(" ")).join(", ")})`);
   expect(found).toEqual([]);
 }
@@ -21,6 +21,32 @@ for (const theme of ["light", "dark"] as const) {
     test.afterEach(async ({ page }) => {
       const shown = await page.locator("html").getAttribute("data-theme");
       expect(shown ?? "light", "the mode the test ran in").toBe(theme);
+    });
+
+    test.describe("signed out", () => {
+      test.use({ person: null });
+
+      test("axe finds nothing on local sign-in", async ({ page }) => {
+        await page.goto("/");
+        await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sign in");
+        await expect(page.getByRole("button", { name: "Sign in as Alex Rivera" })).toBeVisible();
+        await expectNoViolations(page);
+      });
+
+      test("axe finds nothing on the sign-in form, with and without its errors", async ({ page }) => {
+        // The form a Supabase copy shows. Its client points at this computer and is never called.
+        await page.route("**/api/auth/config", (route) =>
+          route.fulfill({ json: { mode: "supabase", supabase_url: "http://127.0.0.1:9", publishable_key: "test-publishable-key" } }),
+        );
+        await page.goto("/contacts");
+        await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sign in");
+        await expect(page.getByRole("textbox", { name: "Email" })).toBeVisible();
+        await expectNoViolations(page);
+        await page.getByRole("button", { name: "Sign in" }).click();
+        await expect(page.getByText("Enter your email.")).toBeVisible();
+        await expect(page.getByText("Enter your password.")).toBeVisible();
+        await expectNoViolations(page);
+      });
     });
 
     const SCREENS = [
@@ -108,6 +134,38 @@ for (const theme of ["light", "dark"] as const) {
       await expectNoViolations(page);
     });
 
+    // While the list is open, React Aria hides the rest of the page from screen readers with
+    // aria-hidden, as it does for every open combobox. axe's aria-hidden-focus rule then flags
+    // the links and buttons in it, though focus can't reach them: React Spectrum lists it as a
+    // known false positive. So this one rule is left out here, and the test checks what it
+    // guards instead: Tab leaves the box, closes the list and hides nothing.
+    test("axe finds nothing with search results open, and with no matches", async ({ page }) => {
+      const OPEN_COMBOBOX = { skip: ["aria-hidden-focus"] };
+      await page.goto("/");
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Dashboard");
+      const box = page.getByRole("banner").getByRole("combobox", { name: "Search organizations, contacts and deals" });
+      await box.fill("ran");
+      const list = page.getByRole("listbox");
+      await expect(list.getByRole("group")).toHaveCount(3);
+      await expect(list.getByRole("group", { name: "Contacts" })).toBeVisible();
+      await expect(page.getByText("3 matches.")).toBeAttached();
+      await page.keyboard.press("ArrowDown");
+      await expect(box).toHaveAttribute("aria-activedescendant", /.+/);
+      await expectNoViolations(page, OPEN_COMBOBOX);
+
+      await box.fill("zz");
+      await expect(list).toContainText('No matches for "zz".');
+      await expectNoViolations(page, OPEN_COMBOBOX);
+
+      await page.keyboard.press("Tab");
+      await expect(list).toBeHidden();
+      await expect(box).not.toBeFocused();
+      for (const shown of [page.locator("#main"), page.getByRole("link", { name: "Skip to main content" }), page.getByRole("navigation", { name: "Sections" })]) {
+        await expect(shown).not.toHaveAttribute("aria-hidden", "true");
+      }
+      await expectNoViolations(page);
+    });
+
     test("record pages reflow and activity dialogs pass axe", async ({ page }, testInfo) => {
       await page.setViewportSize({ width: 1440, height: 1000 });
       for (const [path, name, file] of [
@@ -149,10 +207,21 @@ for (const theme of ["light", "dark"] as const) {
 
       await page.mouse.move(0, 500);
       await expect(page.getByRole("tooltip")).toBeHidden();
-      const toggle = page.getByRole("button", { name: "Dark mode" });
+      const account = page.getByRole("button", { name: "Account: Alex Rivera" });
       await page.keyboard.press("Tab");
-      await toggle.focus();
-      await expect(page.getByRole("tooltip")).toHaveText("Dark mode");
+      await account.focus();
+      await expect(page.getByRole("tooltip")).toHaveText("Account: Alex Rivera");
+      await expectNoViolations(page);
+    });
+
+    test("axe finds nothing with the user menu open", async ({ page }) => {
+      await page.goto("/");
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Dashboard");
+      await page.getByRole("button", { name: "Account: Alex Rivera" }).click();
+      const menu = page.getByRole("menu");
+      await expect(menu).toBeVisible();
+      await expect(menu.getByRole("menuitemradio", { name: theme === "dark" ? "Dark" : "Light", checked: true })).toBeVisible();
+      await expect(page.getByText("alex.rivera@team.example")).toBeVisible();
       await expectNoViolations(page);
     });
 

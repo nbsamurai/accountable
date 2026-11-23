@@ -4,6 +4,8 @@ All nine phases in the [MVP plan](changes/mvp/plan.md) are complete. The finding
 
 [Dark mode](#dark-mode-nov-20-2026) is built from [its plan](changes/dark-mode/plan.md) and waits for review.
 
+[Sign-in, search and a user menu](#sign-in-search-and-a-user-menu-nov-23-2026) is built from [its plan](changes/multi-user/plan.md) as a local copy. It waits for the person who owns the Supabase account to [set up Supabase](#set-up-supabase-once) and check the team's copy (plan, phase 1, step 4), then for review.
+
 The [product spec](spec.md) now describes Accountable as it runs today. The MVP's intent and plan live in [its change folder](changes/mvp/), and the review policy checks for product behavior missing from the spec.
 
 `AGENTS.md` points to the [coding standards](STANDARDS.md), and the review policy checks changes against them.
@@ -13,7 +15,7 @@ The [product spec](spec.md) now describes Accountable as it runs today. The MVP'
 1. **Node.js 24 or later.** Install the current LTS from [nodejs.org](https://nodejs.org).
 2. **uv,** which runs the Python backend. Install it from [docs.astral.sh/uv](https://docs.astral.sh/uv/getting-started/installation/).
 
-The first app run downloads everything else, Python 3.12 included, so it needs an internet connection. After that, Accountable needs none. For development checks, install [Gitleaks](https://github.com/gitleaks/gitleaks#installing) and Google Chrome. Run `npm ci` and `uv sync --locked` after pulling a dependency change.
+The first app run downloads everything else, Python 3.12 included, so it needs an internet connection. After that, a local copy needs none. The team's copy needs one, for Supabase. For development checks, install [Gitleaks](https://github.com/gitleaks/gitleaks#installing) and Google Chrome. Run `npm ci` and `uv sync --locked` after pulling a dependency change.
 
 ## Commands
 
@@ -21,8 +23,9 @@ Run them from this folder.
 
 | Command | Does |
 |---|---|
-| `npm run dev` | Installs what's missing, starts the backend on `127.0.0.1:8000` and the app on `127.0.0.1:5173`, and opens the browser. Ctrl+C stops both |
-| `npm run seed` | Resets the database to the sample data. It works while the app runs: refresh the page to see it. `npm run seed -- --large` loads the large data set instead, for the performance test |
+| `npm run dev` | Installs what's missing, starts the backend on `127.0.0.1:8000` and the app on `127.0.0.1:5173`, and opens the browser. Ctrl+C stops both. With the three Supabase settings in `.env`, it uses the team's database and Supabase sign-in, and runs this branch's migrations on that database. Without them, it runs as a local copy, with made-up teammates |
+| `npm start` | Builds the frontend and runs one server on `127.0.0.1:8000`, as Render does. It needs all three Supabase settings in `.env`, and names any that's missing |
+| `npm run seed` | Resets a local copy's database to the sample data. It works while the app runs: refresh the page to see it. `npm run seed -- --large` loads the large data set instead, for the performance test. It refuses when `DATABASE_URL` is set, so nobody resets the team's data by accident |
 | `npm test` | Runs the frontend type check, both unit suites with an 80% coverage floor each, and the end-to-end suite in Chrome |
 | `npm run check` | Checks formatting, linting, function complexity, types and secrets, then runs `npm test`. Attempts every check and exits nonzero if any fail |
 | `npm run check:quick` | Runs the same checks and skips the end-to-end suite |
@@ -223,6 +226,84 @@ Not yet tried: both subagents need a new session before they load.
 
 `AGENTS.md` says to read `docs/spec.md` first, then only the area files a change touches, and to update those files in the same change. [docs/REVIEW.md](REVIEW.md) checks the area files and the index. The reviewer and ui-check subagents read the area files. No code changed.
 
+## Sign-in, search and a user menu (Nov 23, 2026)
+
+Built in the four phases of [the multi-user plan](changes/multi-user/plan.md). Its [departures](changes/multi-user/plan.md#5-departures-from-the-plan) list where the build differs, and why.
+
+- **Sign-in.** Signed out, every address shows the sign-in screen and every API route but `/health`, `/auth/config` and `/auth/local` answers 401. On Supabase, people sign in with an email and password. A local copy lists the three made-up teammates and signs in with no password, only on `127.0.0.1`.
+- **The database.** Alembic migrations run when the backend starts, on SQLite or Postgres, and turn on row-level security on Postgres. A local database from before this change is stamped at the baseline first, and keeps its rows.
+- **Who added and changed a record.** Each record's page says "Added by Alex Rivera on Nov 23, 2026.", then "Last changed by Jordan Blake on …" once someone changes it. Each timeline entry says who logged it.
+- **Search** in the top bar finds organizations, contacts and deals by part of a name, in any case, 5 of each at most.
+- **The user menu** under the person's initials holds their name and email, the theme, Light, Dark or System, and "Sign out". It replaces the "Dark mode" toggle.
+- **Running and deploying.** `npm start` runs the built app as Render does, and `render.yaml` describes the Render service.
+- **Fixed on the way:** a test in `keyboard.spec.ts` that failed before 10:42 each morning, and the "Can't reach Accountable" banner, which an older request's answer could hide.
+
+### Set up Supabase once
+
+The person who owns the Supabase account does this, then writes `.env`. Nothing in the repository holds the three values.
+
+1. **Make the project.** Pick the region nearest the team, and note it for Render below.
+2. **Turn sign-ups off.** In Authentication, under Sign In / Providers, turn off "Allow new users to sign up". Leave the Email provider on.
+3. **Use asymmetric signing keys.** In Project Settings, under JWT Keys, check that the current key is ECC (P-256) or RSA. If the project still signs with the legacy JWT secret, choose "Migrate JWT secret", then "Rotate keys". The backend accepts only ES256 and RS256 tokens, so a project on the old shared secret can't sign anyone in.
+4. **Add the people.** In Authentication, under Users, choose "Add user", then "Create new user", with their email and a password, and auto-confirm them. To give someone a name, run this in the SQL editor with their email:
+
+   ```sql
+   update auth.users
+   set raw_user_meta_data = raw_user_meta_data || '{"full_name": "Alex Rivera"}'
+   where email = 'person@your-team.example';
+   ```
+
+   Without a name, Accountable shows their email. A new name shows within the hour, when their next token arrives.
+5. **Write `.env`** at the repository root, with three lines:
+   - `SUPABASE_URL`, the project's URL, such as `https://<project-ref>.supabase.co`
+   - `SUPABASE_PUBLISHABLE_KEY`, the publishable key from Project Settings, under API Keys. It starts with `sb_publishable_`
+   - `DATABASE_URL`, from Connect, under Session pooler: the URI on port 5432, with the database password in place of `[YOUR-PASSWORD]`. Not the transaction pooler on port 6543, which doesn't support the prepared statements the app uses
+6. **Start it.** `npm run dev` runs the migrations on the empty database and loads the sample data. Sign in with your own password, add a record, and check that its page says you added it. Then try `npm start`, which runs the built app as Render does.
+7. **Check the database,** read-only, through Supabase's MCP server: the tables, row-level security on each one, `alembic_version` included, and no security advisor warnings about them.
+
+### Set up Render once
+
+1. In Render's dashboard, choose New, then Blueprint, connect this repository, and pick `main`.
+2. Before the first deploy, check `region` and `TZ` in `render.yaml`. They're `oregon` and `America/New_York` for now. Use the Render region nearest the Supabase project, because a service's region can't change after it's made, and the team's time zone.
+3. Render asks for the three Supabase settings. Enter the same values as in `.env`.
+4. Render deploys `main` each time CI passes on it. Read the first deploy's logs: the Node version, the migrations and the health check on `/api/health`.
+
+### Checks (Nov 23, 2026)
+
+`npm run check` passed twice: in the working tree, and in a copy of it with no `node_modules/`, `.venv/`, `data/` or `.env`, after `npm ci` and `uv sync --locked`. Each run passed formatting, linting, complexity, both type checks, Gitleaks, and all 483 tests: 193 frontend, 182 backend and 108 Chrome. Frontend line coverage is 85.0% and backend statement coverage is 98%. Every unit test ran in under a second. `.env` is protected from the agent, so the run in the working tree can't say whether it held the Supabase settings. `scripts/test.mjs` removes them either way.
+
+On the large data set, Chrome opened every screen in 626 to 906 ms, and the top bar's search showed its matches 53 to 63 ms after its 250 ms wait.
+
+### The hands-on check (Nov 23, 2026)
+
+Claude ran spec 10.4 as a local copy, in the copy above, with `npm run dev`, which said "Running as a local copy, on data/accountable.db, with made-up teammates." The Claude in Chrome extension wasn't connected, so Claude drove Google Chrome 157 through the Playwright MCP server, at 1,440 × 1,000, and read values from the page.
+
+1. **Sign-in screen,** light mode: the title "Sign in · Accountable", focus on the `h1`, a 400 px panel with 32 px padding and a 28 px `h1`, and a button for each teammate. "Sign in as Alex Rivera" opened the dashboard.
+2. **Light mode:** added "Hana Check Labs". The top bar's search found it from "HANA CH", with Healthcare under it, and opening it cleared the box and put focus on the `h1`. The caption said "Added by Alex Rivera on Nov 23, 2026." in 13 px `--ink-muted`. The search box is 280 × 36 px, and the initials button a 36 px `--subtle` circle with "AR" at 13 px, weight 700, that turns Midnight with white initials on hover and while open. Its tooltip said "Account: Alex Rivera" on hover and on keyboard focus. The menu showed the name, the email, the theme with a check on Light, and "Sign out". Choosing Dark switched the app and closed the menu.
+3. **Dark mode, keyboard only:** Tab reached "Add contact", and the keys added "Hana Check" at Hana Check Labs, Qualified, with the organization chosen in the picker by arrow key.
+4. **Dark mode, by mouse:**
+   - In a new deal, choosing Hana Check Labs limited the main contacts to Hana Check.
+   - Dragging "Lab pilot" from New to Qualified, then to Won, said "Lab pilot moved to Won. Hana Check is now a customer." Its timeline said "Moved from Qualified to Won … by Alex Rivera".
+   - A call logged on the deal with a follow-up today showed on the dashboard under Today, and Won this month rose from $18,000 from 1 deal to $48,000 from 2. Marking it done there said "Follow-up marked done".
+   - Signing out from the user menu showed the sign-in screen, still dark, with focus on its `h1`. Back showed the sign-in screen at `/deals/31`, with no records. Signing in as Jordan Blake there opened the deal.
+   - As Jordan, editing the organization's website made its caption "Added by Alex Rivera on Nov 23, 2026. Last changed by Jordan Blake on Nov 23, 2026."
+5. **Restart:** after SIGINT, as Ctrl+C sends, and `npm run dev` again, the old token got 401 and the sign-in screen showed, still dark. After signing in again, every change was there.
+6. **Delete:** the dialog said "Delete Hana Check Labs? Its 1 contact and 1 deal will be kept, without an organization. This can't be undone.", with Cancel focused. The organization went, and the deal kept Alex Rivera as the last to change it.
+7. **Reset:** `npm run seed` restored the sample data in the running app.
+8. **Back to light, keyboard only:** 9 Tab presses reached the initials button, with its focus outline and tooltip. Enter opened the menu on Light, and Enter chose it. Focus went back to the button.
+9. **Narrow windows:** at 1,100 and 641 px the search box is 280 px, and at 1,101 px, with the sections showing, 249 px, as it narrows towards 200. At 320 px it's in the Menu, and the initials button stays in the top bar. Nothing scrolls sideways at any of them.
+
+Chrome's console showed no errors but the two expected 401s after the restart. After the restart, the old tab's Vite client reloaded the page by itself, and that load got the 401s, so the next load showed the sign-in screen without "Your session has ended. Sign in again.", which lives only in memory. `8-sign-in.spec.ts` checks that message.
+
+Phase 3, step 3, the check for a flash of light with System on a dark device, ran as a script in Chrome: with the app's script held back 3 seconds, `<html>` already had `data-theme="dark"` and `color-scheme: dark`.
+
+**ui-check** then ran on the same local copy, at 1,440 × 1,000, in light and dark mode. It checked the sign-in screen, every screen, one record of each kind, the search results for "ran" and "zz", the user menu and its tooltip, and the captions. It found nothing broken, off-brand or out of line with the spec, no console errors and no failed requests. Its screenshots are in `.playwright-mcp/`, which Git ignores.
+
+### Still open
+
+- **Phase 1, step 4, on Supabase,** with the person who owns the account: [set up Supabase](#set-up-supabase-once), then `npm run dev` and `npm start` on it, signing in with their own password, adding a record and finding it with search, and a read-only look through Supabase's MCP server. Then the second half of the hands-on check in spec 10.4. Until then, the migrations aren't final.
+- **The Render region and time zone** in `render.yaml`, once the Supabase project's region and the team's time zone are known.
+
 ## Known limits
 
 - Search ignores case only for A to Z, as SQLite does, so "émile" won't find "Émile".
@@ -232,4 +313,4 @@ Not yet tried: both subagents need a new session before they load.
 ## Next
 
 - Review dark mode, then merge it.
-- Agree [the plan for sign-in, search and a user menu](changes/multi-user/plan.md), then build it phase by phase.
+- Sign-in, search and a user menu: the [Supabase step](#still-open), then Deploy: the review against `docs/REVIEW.md`, the fixes, `docs/IMPROVE.md`, and the merge.

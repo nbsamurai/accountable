@@ -1,14 +1,15 @@
 // The one command: `npm run dev`. Installs what's missing, starts the backend and the
 // frontend, waits until they answer, opens the browser, and stops both on Ctrl+C.
 // It uses only Node's own modules, so it runs before anything is installed.
+// With the Supabase settings in .env, the app uses the team's database and Supabase
+// sign-in. Without them, it runs as a local copy (spec 9.8).
 
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync, statSync } from "node:fs";
 import { createServer } from "node:net";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
+import { missingSettings, root, SUPABASE_SETTINGS, withEnvFile } from "./env.mjs";
 
-const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const isWindows = process.platform === "win32";
 const HOST = "127.0.0.1";
 const API_PORT = 8000;
@@ -95,18 +96,27 @@ function start(name, command, args, options = {}) {
   return child;
 }
 
+// The settings in .env go to the backend only. It stops on a partial set and names the
+// missing ones.
+const backendEnv = withEnvFile();
+
+function sayMode() {
+  const missing = missingSettings(backendEnv);
+  if (missing.length === 0) {
+    say("Using the team's database and sign-in on Supabase, from the settings in .env.");
+    say("Starting runs this branch's migrations on that database.");
+  } else if (missing.length === SUPABASE_SETTINGS.length) {
+    say("Running as a local copy, on data/accountable.db, with made-up teammates.");
+  }
+}
+
 function startServers() {
-  start("backend", "uv", [
-    "run",
-    "--quiet",
-    "uvicorn",
-    "--factory",
-    "backend.app.main:create_app",
-    "--host",
-    HOST,
-    "--port",
-    String(API_PORT),
-  ]);
+  start(
+    "backend",
+    "uv",
+    ["run", "--quiet", "uvicorn", "--factory", "backend.app.main:create_app", "--host", HOST, "--port", String(API_PORT)],
+    { env: backendEnv },
+  );
   const vite = join(root, "node_modules", "vite", "bin", "vite.js");
   start("frontend", process.execPath, [vite, "--host", HOST, "--port", String(WEB_PORT), "--strictPort"], {
     cwd: join(root, "frontend"),
@@ -175,6 +185,7 @@ process.on("SIGTERM", () => stop(0));
 checkTools();
 installPackages();
 await checkPorts();
+sayMode();
 startServers();
 await waitForHealth();
 if (!stopping) {

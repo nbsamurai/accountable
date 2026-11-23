@@ -10,6 +10,7 @@
   },
   "scripts": {
     "dev": "node scripts/dev.mjs",
+    "start": "node scripts/start.mjs",
     "check": "node scripts/test.mjs check:static test",
     "check:quick": "node scripts/test.mjs check:static test:quick",
     "check:static": "node scripts/test.mjs format:check:frontend format:check:backend lint:frontend lint:backend typecheck:backend check:secrets",
@@ -29,7 +30,7 @@
     "test:frontend": "npm run test --workspace frontend",
     "test:backend": "uv run pytest --cov=backend/app --cov-report=term-missing --cov-fail-under=80",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
-    "seed": "uv run python -m backend.app.seed"
+    "seed": "node scripts/seed.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

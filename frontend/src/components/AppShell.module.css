@@ -76,12 +76,24 @@
   font-weight: 600;
 }
 
-/* The Menu button, when it shows, and the theme toggle, at the right end of the top bar. */
+/* The search box, the Menu button when it shows, and the initials button, at the right end of
+   the top bar. The search box narrows from 280 to 200 px when the bar is short of space. */
 .end {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  justify-content: flex-end;
+  gap: var(--space-2);
   margin-left: auto;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.barSearch {
+  margin-right: var(--space-2);
+}
+
+.menuSearch {
+  display: none;
 }
 
 .narrow {
@@ -103,6 +115,8 @@
 }
 
 .narrowNav {
+  display: grid;
+  gap: 6px;
   position: absolute;
   right: 0;
   top: calc(100% + 8px);
@@ -130,9 +144,12 @@
   outline: none;
 }
 
-@media (max-width: 860px) {
-  /* Only the wordmark and the end group are left, and the end group sits at the right anyway.
-     A smaller minimum gap lets the theme toggle fit at 320 px. */
+.narrowNav[hidden] {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  /* The sections go into the Menu. A smaller minimum gap lets the end group fit at 320 px. */
   .inner {
     gap: var(--space-2);
   }
@@ -143,5 +160,22 @@
 
   .narrow {
     display: block;
+  }
+}
+
+@media (max-width: 640px) {
+  /* The search box goes into the Menu too, above the sections, as wide as the menu. */
+  .barSearch {
+    display: none;
+  }
+
+  .menuSearch {
+    display: block;
+    flex-basis: auto;
+    margin: 2px 2px 4px;
+  }
+
+  .narrowNav {
+    width: min(300px, calc(100vw - 32px));
   }
 }

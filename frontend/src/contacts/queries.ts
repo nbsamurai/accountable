@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Deal } from "../deals/queries";
-import { api, type Page, type Ref } from "../lib/api";
+import { api, type Authored, type Page, type Ref } from "../lib/api";
 import { queryKeys, refreshAfterChange, refreshAfterDelete } from "../lib/queryKeys";
 import type { Status } from "../lib/stages";
 import type { TableState } from "../lib/useUrlState";
@@ -19,7 +19,7 @@ export type Contact = {
   updated_at: string;
 };
 
-export type ContactDetail = Contact & { deals: Deal[] };
+export type ContactDetail = Contact & Authored & { deals: Deal[] };
 
 /** A contact in an organization's Contacts panel. */
 export type ContactSummary = {

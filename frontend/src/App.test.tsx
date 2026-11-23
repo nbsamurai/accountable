@@ -1,5 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter } from "react-router";
 import { RouterProvider } from "react-router/dom";
@@ -16,16 +16,29 @@ import {
   stageChange,
 } from "../test/records";
 import { makeQueryClient, routes } from "./App";
+import { LOCAL_TOKEN_KEY, resetSession } from "./lib/session";
+import { AuthGate } from "./signin/AuthGate";
 
 function renderAt(path: string) {
   const router = createMemoryRouter(routes, { initialEntries: [path] });
   render(
     <QueryClientProvider client={makeQueryClient()}>
-      <RouterProvider router={router} />
+      <AuthGate>
+        <RouterProvider router={router} />
+      </AuthGate>
     </QueryClientProvider>,
   );
   return router;
 }
+
+// A stand-in session: a local copy, signed in as Alex Rivera unless a test signs out first.
+const SIGN_IN = {
+  "GET /api/auth/config": {
+    mode: "local",
+    people: [{ id: "sample-alex-rivera", name: "Alex Rivera", email: "alex@team.example" }],
+  },
+  "POST /api/auth/local": { access_token: "new-token" },
+};
 
 test("the dashboard is the current section at /", async () => {
   renderAt("/");
@@ -54,9 +67,10 @@ test("the skip link comes first", async () => {
 type Handler = (url: URL, init: RequestInit) => unknown;
 
 function serve(routes: Record<string, unknown>) {
-  const fetch = vi.fn(async (path: string, init: RequestInit) => {
+  const all: Record<string, unknown> = { ...SIGN_IN, ...routes };
+  const fetch = vi.fn(async (path: string, init: RequestInit = {}) => {
     const url = new URL(path, "http://localhost");
-    const route = routes[`${init.method} ${url.pathname}`];
+    const route = all[`${init.method ?? "GET"} ${url.pathname}`];
     const result = typeof route === "function" ? (route as Handler)(url, init) : route;
     if (result instanceof Response) return result;
     if (result !== undefined) return Response.json(result);
@@ -68,17 +82,61 @@ function serve(routes: Record<string, unknown>) {
 
 function sent(fetch: ReturnType<typeof serve>, method: string, path: string) {
   return fetch.mock.calls
-    .filter(([url, init]) => url === `/api${path}` && init.method === method)
-    .map(([, init]) => init.body && JSON.parse(String(init.body)));
+    .filter(([url, init]) => url === `/api${path}` && init?.method === method)
+    .map(([, init]) => init?.body && JSON.parse(String(init.body)));
 }
 
 beforeEach(() => {
   vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+  resetSession();
+  localStorage.setItem(LOCAL_TOKEN_KEY, "test-token");
+  serve({});
 });
 
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  localStorage.clear();
+});
+
+test("signed out, every address shows the sign-in screen with no top bar", async () => {
+  for (const path of ["/", "/organizations", "/contacts/2", "/deals/3", "/pipeline", "/nowhere"]) {
+    resetSession();
+    localStorage.clear();
+    renderAt(path);
+    expect(await screen.findByRole("heading", { level: 1, name: "Sign in" })).toBeInTheDocument();
+    expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
+    expect(document.title).toBe("Sign in · Accountable");
+    cleanup();
+  }
+});
+
+test("a 401 during a session shows the sign-in screen, and signing in returns to the same page", async () => {
+  const user = userEvent.setup();
+  let signedIn = false;
+  const refuse = () => Response.json({ detail: "Sign in to continue." }, { status: 401 });
+  const fetch = serve({
+    "GET /api/contacts/2": () => (signedIn ? contact : refuse()),
+    "GET /api/contacts/2/timeline": () => (signedIn ? page(note) : refuse()),
+    "POST /api/auth/local": () => {
+      signedIn = true;
+      return { access_token: "new-token" };
+    },
+  });
+  const router = renderAt("/contacts/2");
+  expect(await screen.findByText("Your session has ended. Sign in again.")).toBeInTheDocument();
+  expect(screen.getByRole("heading", { level: 1, name: "Sign in" })).toHaveFocus();
+
+  await user.click(screen.getByRole("button", { name: "Sign in as Alex Rivera" }));
+  const heading = await screen.findByRole("heading", { level: 1, name: "Jane Doe" });
+  expect(router.state.location.pathname).toBe("/contacts/2");
+  await waitFor(() => expect(heading).toHaveFocus());
+  expect(await screen.findByText("Send quote")).toBeInTheDocument();
+  const tokens = fetch.mock.calls
+    .filter(([url]) => url === "/api/contacts/2")
+    .map(([, init]) => new Headers(init?.headers).get("Authorization"));
+  expect(tokens.at(0)).toBe("Bearer test-token");
+  expect(tokens.at(-1)).toBe("Bearer new-token");
 });
 
 test("search, sorting and paging keep their state in the URL", async () => {

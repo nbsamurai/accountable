@@ -46,7 +46,7 @@ The lockfiles record the dependency versions used by the app.
 - The tables and the rules in section 3 live in their own modules, so the routes stay thin and the rules can be unit tested without HTTP.
 - One shared dependency checks the token and gives each route the signed-in person (section 9.7). Functions that record who added or changed a record take that person as an argument.
 - Functions that depend on today take it as an argument, so tests can fix the date.
-- Errors use FastAPI's shapes: 401 for a missing or invalid token, 422 for invalid input, with the field and the message, 404 for a missing record, and 409 for editing or deleting a stage change.
+- Errors use FastAPI's shapes: 401 for a missing or invalid token, 422 for invalid input, with the field and the message, 404 for a missing record, and 409 for editing or deleting a stage change. On Supabase, a token that arrives while the project's signing keys can't be fetched gets 503, so a short loss of the network doesn't sign anyone out.
 
 ### 9.4 API
 
@@ -56,7 +56,7 @@ All paths start with `/api`. Every route needs a valid token in an `Authorizatio
 |---|---|
 | `GET /health` | Says the server is up, and nothing else. Open to everyone |
 | `GET /auth/config` | How to sign in. Open to everyone. On Supabase: `{ "mode": "supabase", "supabase_url", "publishable_key" }`. On a local copy: `{ "mode": "local", "people": [...] }`, with the made-up teammates |
-| `POST /auth/local` | Local sign-in (section 3.10). Body `{ "person_id" }`. Returns a token for that teammate. 404 on Supabase |
+| `POST /auth/local` | Local sign-in (section 3.10). Body `{ "person_id" }`. Returns `{ "access_token" }` for that teammate. 404 on Supabase, 403 on a connection that isn't to `127.0.0.1`, and 422 for anyone but a made-up teammate |
 | `GET /me` | The signed-in person: `{ "id", "email", "name" }` |
 | `GET /search?q` | Up to 5 organizations, 5 contacts and 5 deals whose names match (section 4.12): `{ "organizations": [...], "contacts": [...], "deals": [...] }`, each with its detail |
 | `GET /organizations?q&sort&dir&page&page_size` | Lists organizations, with contact and deal counts and open pipeline |
@@ -85,7 +85,8 @@ Each record's `GET` also returns the counts its delete message needs (section 4.
 - **On Supabase,** the data lives in the Postgres database that `DATABASE_URL` points at (section 9.8). That's the shared app's database.
 - **On a local copy,** it lives in one SQLite file, `data/accountable.db`. The `ACCOUNTABLE_DB` environment variable points elsewhere, and the tests use it to keep their own databases.
 - The same SQLAlchemy Core queries run on both. Searches and text sorts fold case the same way on both, so they give the same results (section 4.3).
-- **Migrations:** the app brings the schema up to date with its migrations when it starts, on either database. Each change to the schema comes with a new migration. When the tables are empty after the migrations, the app loads the sample data (section 8).
+- **Migrations:** the app brings the schema up to date with its migrations when it starts, on either database. Each change to the schema comes with a new migration, made with `uv run alembic revision -m "…"`. When the tables are empty after the migrations, the app loads the sample data (section 8).
+- SQLite can't add a foreign key to a table, so a migration that needs one rebuilds the table. The app runs the migrations on SQLite with foreign keys off, because dropping the old table with them on would set links to it to null and delete the activities that cascade from it. A check after the migrations, in the same transaction, makes sure every link still points at a row.
 - On SQLite, foreign keys are switched on for every connection, so the delete rules in section 3.7 hold. Postgres always enforces them.
 - On Postgres, every table has row-level security turned on, with no policies, so Supabase's Data API, which anyone with the publishable key can call, returns none of their rows. The backend connects as the tables' owner, which row-level security doesn't limit. A table that a later change adds needs the same.
 - Timestamps are stored in UTC.
@@ -112,7 +113,7 @@ The first run needs an internet connection to download packages and Python. With
 
 ### 9.7 Security
 
-- **Tokens:** the browser sends its Supabase access token in the `Authorization: Bearer` header. The backend checks the token's signature with the project's public signing keys, from `SUPABASE_URL/auth/v1/.well-known/jwks.json`. It fetches them when it first needs them and keeps them, and fetches them again only when a token names a key it doesn't have. It also checks that the token hasn't expired, that its audience is `authenticated` and that its issuer is `SUPABASE_URL/auth/v1`. The person is the token's `sub`, with the email and name from its claims. Nothing else in a request can name or change the person.
+- **Tokens:** the browser sends its Supabase access token in the `Authorization: Bearer` header. The backend checks the token's signature with the project's public signing keys, from `SUPABASE_URL/auth/v1/.well-known/jwks.json`. It fetches them when it first needs them and keeps them, and fetches them again only when a token names a key it doesn't have, at most once a minute, so made-up keys can't flood Supabase. It also checks that the token hasn't expired, that its audience is `authenticated` and that its issuer is `SUPABASE_URL/auth/v1`. The person is the token's `sub`, with the email and name from its claims. Nothing else in a request can name or change the person.
 - **Keys:** the browser holds only the publishable key, which is public by design. The database password lives only in `DATABASE_URL`, in `.env` or in Render's settings. Accountable uses no secret or service-role key.
 - **Sign-ups are off** in the Supabase project, so nobody can make an account with the publishable key. People are added in Supabase's dashboard.
 - **Row-level security** on every table keeps Supabase's Data API from serving the data (section 9.5).

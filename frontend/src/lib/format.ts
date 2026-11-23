@@ -111,6 +111,11 @@ export function dateFull(iso: string): string {
   return fullDate.format(parseDay(iso));
 }
 
+/** The local date of a timestamp: `Nov 19, 2026`. */
+export function dayOf(timestamp: string): string {
+  return longDate.format(new Date(timestamp));
+}
+
 /** A timestamp in local time: `Nov 19, 2026, 2:30 PM`. */
 export function dateTime(timestamp: string): string {
   const at = new Date(timestamp);

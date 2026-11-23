@@ -5,6 +5,7 @@ from typing import Literal
 
 from pydantic import MISSING, AwareDatetime, BaseModel, Field
 
+from ..authors import PersonRef
 from ..deals.schemas import Ref
 from ..fields import RequiredText
 
@@ -48,6 +49,8 @@ class ActivityOut(BaseModel):
     deal: Ref | None
     created_at: datetime
     updated_at: datetime
+    # Who logged it, or for a stage change, who moved the deal (spec 4.9).
+    created_by: PersonRef | None
 
 
 class Timeline(BaseModel):

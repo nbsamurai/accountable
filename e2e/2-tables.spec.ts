@@ -168,7 +168,7 @@ test("a server error shows under its field", async ({ page, allowError }) => {
   await expect(dialog(page).getByRole("textbox", { name: "Email" })).toBeFocused();
 });
 
-test("delete dialogs say what happens to linked records, and the links go", async ({ page, request }) => {
+test("delete dialogs say what happens to linked records, and the links go", async ({ page, api }) => {
   await page.goto("/organizations?q=northpeak");
   await page.getByRole("button", { name: "Delete Northpeak Energy" }).click();
   await expect(page.getByRole("alertdialog")).toContainText(
@@ -189,7 +189,7 @@ test("delete dialogs say what happens to linked records, and the links go", asyn
   await page.goto("/deals?q=lab results");
   await expect(page.getByRole("row", { name: /Lab results integration/ }).getByRole("cell").nth(2)).toHaveText("–");
 
-  const deals = await (await request.get(`${API_URL}/api/deals?q=patient`)).json();
+  const deals = await (await api.get(`${API_URL}/api/deals?q=patient`)).json();
   expect(deals.items[0].contact).toBeNull();
 });
 
@@ -234,10 +234,10 @@ test("a sort clicked right after a search keeps the search, on a slow computer",
   await expect(page).toHaveURL(/\?q=an&sort=email&dir=desc$/);
 });
 
-test("paging comes back after a reload", async ({ page, request }) => {
-  const before = (await (await request.get(`${API_URL}/api/contacts`)).json()).total as number;
+test("paging comes back after a reload", async ({ page, api }) => {
+  const before = (await (await api.get(`${API_URL}/api/contacts`)).json()).total as number;
   for (let n = 0; n < 60 - before; n++) {
-    await request.post(`${API_URL}/api/contacts`, { data: { name: `Paging Person ${n}` } });
+    await api.post(`${API_URL}/api/contacts`, { data: { name: `Paging Person ${n}` } });
   }
   await page.goto("/contacts");
   await expect(page.getByText("1–50 of 60")).toBeVisible();
@@ -250,14 +250,14 @@ test("paging comes back after a reload", async ({ page, request }) => {
   await expect(page.getByText("1–50 of 60")).toBeVisible();
 });
 
-test("stale pages and deleting the last row return to the last available page", async ({ page, request }) => {
+test("stale pages and deleting the last row return to the last available page", async ({ page, api }) => {
   seed();
-  const before = (await (await request.get(`${API_URL}/api/contacts`)).json()).total as number;
+  const before = (await (await api.get(`${API_URL}/api/contacts`)).json()).total as number;
   for (let n = before; n < 50; n++) {
-    const response = await request.post(`${API_URL}/api/contacts`, { data: { name: `Paging Person ${n}` } });
+    const response = await api.post(`${API_URL}/api/contacts`, { data: { name: `Paging Person ${n}` } });
     expect(response.ok()).toBe(true);
   }
-  const response = await request.post(`${API_URL}/api/contacts`, { data: { name: "ZZZ Last Contact" } });
+  const response = await api.post(`${API_URL}/api/contacts`, { data: { name: "ZZZ Last Contact" } });
   expect(response.ok()).toBe(true);
 
   await page.goto("/organizations");
@@ -287,9 +287,9 @@ test("no results shows a message and Clear search clears it", async ({ page }) =
   await expect(page.getByRole("link", { name: "Ana Lopez" })).toBeVisible();
 });
 
-test("after changes, the seed command brings back the sample data", async ({ page, request }) => {
-  const before = (await (await request.get(`${API_URL}/api/organizations`)).json()).total as number;
-  await request.post(`${API_URL}/api/organizations`, { data: { name: "Temporary Co" } });
+test("after changes, the seed command brings back the sample data", async ({ page, api }) => {
+  const before = (await (await api.get(`${API_URL}/api/organizations`)).json()).total as number;
+  await api.post(`${API_URL}/api/organizations`, { data: { name: "Temporary Co" } });
   await page.goto("/organizations");
   await expect(page.getByText(`1–${before + 1} of ${before + 1}`)).toBeVisible();
   seed();

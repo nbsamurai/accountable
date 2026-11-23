@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Response
 
-from ..deps import Conn, Now, Today
+from ..deps import Conn, CurrentPerson, Now, Today
 from ..lists import Direction, Paging, paging
 from . import service
 from .schemas import ContactDetail, ContactIn, ContactPage, ContactPatch, Status
@@ -34,8 +34,10 @@ def list_contacts(
 
 
 @router.post("", status_code=201, response_model=ContactDetail)
-def add_contact(data: ContactIn, conn: Conn, today: Today, now: Now):
-    return service.create(conn, data, today=today, now=now)
+def add_contact(
+    data: ContactIn, conn: Conn, person: CurrentPerson, today: Today, now: Now
+):
+    return service.create(conn, data, person=person, today=today, now=now)
 
 
 @router.get("/{contact_id}", response_model=ContactDetail)
@@ -45,9 +47,14 @@ def get_contact(contact_id: int, conn: Conn, today: Today):
 
 @router.patch("/{contact_id}", response_model=ContactDetail)
 def change_contact(
-    contact_id: int, data: ContactPatch, conn: Conn, today: Today, now: Now
+    contact_id: int,
+    data: ContactPatch,
+    conn: Conn,
+    person: CurrentPerson,
+    today: Today,
+    now: Now,
 ):
-    return service.patch(conn, contact_id, data, today=today, now=now)
+    return service.patch(conn, contact_id, data, person=person, today=today, now=now)
 
 
 @router.delete("/{contact_id}", status_code=204)

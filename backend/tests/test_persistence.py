@@ -1,14 +1,13 @@
 """Every change is kept: a new app on the same file, as after a restart, sees it all."""
 
 from backend.app.deps import get_today
-from backend.app.main import create_app
 
-from .conftest import TODAY, Api, local_client
+from .conftest import TODAY, Api, local_app, local_client
 
 
 def test_data_written_by_one_app_is_there_when_the_next_starts(tmp_path):
     path = tmp_path / "accountable.db"
-    first = create_app(path, sample_data_on_start=False)
+    first = local_app(path)
     api = Api(local_client(first))
     org = api.org(website="northpeak.example")
     jane = api.contact(organization_id=org["id"], status="qualified")
@@ -19,7 +18,7 @@ def test_data_written_by_one_app_is_there_when_the_next_starts(tmp_path):
     api.activity("Called", contact_id=jane["id"], follow_up_date="2026-11-24")
     first.state.engine.dispose()
 
-    second = create_app(path, sample_data_on_start=False)
+    second = local_app(path)
     second.dependency_overrides[get_today] = lambda: TODAY
     again = Api(local_client(second))
     assert (

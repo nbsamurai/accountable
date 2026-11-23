@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Button,
   ComboBox,
@@ -14,6 +14,7 @@ import {
   type Key,
 } from "react-aria-components";
 import { api } from "../lib/api";
+import { useDebounced } from "../lib/useDebounced";
 import { fieldStyles } from "./Field";
 import styles from "./Picker.module.css";
 
@@ -36,15 +37,6 @@ type Props<T extends PickerItem> = {
   noneLabel?: string;
   description?: string;
 };
-
-function useDebounced<T>(value: T, delay: number): T {
-  const [settled, setSettled] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setSettled(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-  return settled;
-}
 
 /** A searchable picker (spec 4.8): it searches the server as the person types. */
 export function Picker<T extends PickerItem>({

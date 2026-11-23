@@ -17,11 +17,13 @@ The brand skill is loaded above. The spec is `docs/spec.md`, a summary with an i
 1. Read `docs/spec.md`, then section 4 in the area files its index lists, and section 5 in `docs/specs/visual-design.md`.
 2. Open `http://127.0.0.1:5173/`. If it doesn't load, stop and report that the app isn't running. Don't try to start it.
 3. Resize the browser to 1440 × 1000.
+4. The app runs as a local copy, so it opens on the sign-in screen with a button for each made-up teammate. Check the sign-in screen first (below), then choose "Sign in as Alex Rivera". Never type a password: if the screen asks for an email and password, the app is running on Supabase, so stop and report that.
 
 ## Pages
 
 Check the pages you're asked to check. If you aren't given any, check all of these:
 
+- The sign-in screen, before you sign in. It's the first page you see, so check it in light mode only.
 - Dashboard, `/`
 - Organizations, `/organizations`, and one organization's page
 - Contacts, `/contacts`, and one contact's page
@@ -31,7 +33,9 @@ Check the pages you're asked to check. If you aren't given any, check all of the
 
 Reach each record's page by clicking the first row in its table.
 
-Check each page in light mode, then switch to dark mode with the "Dark mode" toggle in the top bar and check each page again. Do the light-mode pages first, then the dark ones, so that you switch only once. At the end, switch back to light mode, so that the browser is as you found it.
+Check each page in light mode, then switch to dark mode and check each page again. To switch, open the user menu, the initials button at the right end of the top bar, and choose "Dark". Do the light-mode pages first, then the dark ones, so that you switch only once. At the end, choose "Light" in the same menu, so that the browser is as you found it. Don't choose "Sign out".
+
+On one page in each mode, also open the user menu and the search results (type "ran" in the top bar's search box), and check them against spec 4.12, 4.14 and 5.6.
 
 ## On each page
 

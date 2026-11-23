@@ -10,6 +10,20 @@ async function tabTo(page: Page, target: ReturnType<Page["getByRole"]>, max = 60
   throw new Error("Couldn't reach the element with Tab");
 }
 
+test.describe("signed out", () => {
+  test.use({ person: null });
+
+  test("sign in with the keyboard only", async ({ page }) => {
+    await page.goto("/contacts");
+    await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
+    await tabTo(page, page.getByRole("button", { name: "Sign in as Alex Rivera" }));
+    await page.keyboard.press("Enter");
+    const heading = page.getByRole("heading", { level: 1 });
+    await expect(heading).toHaveText("Contacts");
+    await expect(heading).toBeFocused();
+  });
+});
+
 test("add a contact with the keyboard only", async ({ page }) => {
   await page.goto("/contacts");
   await tabTo(page, page.getByRole("button", { name: "Add contact" }));
@@ -135,8 +149,8 @@ test("move, reorder and cancel a card using the keyboard and its menu", async ({
   await expect(negotiation.getByRole("listitem").nth(1)).toContainText("Website redesign");
 });
 
-test("choose a far stage on a deal's stage path with the keyboard only", async ({ page, request }) => {
-  const found = await (await request.get(`${API_URL}/api/deals`, { params: { q: "Payments gateway" } })).json();
+test("choose a far stage on a deal's stage path with the keyboard only", async ({ page, api }) => {
+  const found = await (await api.get(`${API_URL}/api/deals`, { params: { q: "Payments gateway" } })).json();
   const deal = found.items[0];
   expect(deal.stage).toBe("negotiation");
   expect(deal.contact.name).toBe("Sam Okafor");
@@ -156,25 +170,68 @@ test("choose a far stage on a deal's stage path with the keyboard only", async (
   await expect(page.getByText("Payments gateway moved to Lost.")).toBeVisible();
   await expect(lost).toBeChecked();
 
-  const timeline = await (await request.get(`${API_URL}/api/deals/${deal.id}/timeline`)).json();
+  const timeline = await (await api.get(`${API_URL}/api/deals/${deal.id}/timeline`)).json();
   const moves = timeline.items.filter((item: { type: string }) => item.type === "stage_change");
-  expect(moves.map((item: { description: string }) => item.description)).toEqual([
+  // Only the one new move. The sample move is dated today at 10:42, so before then it's the
+  // newer of the two, and the order depends on the time of day.
+  expect(moves.map((item: { description: string }) => item.description).sort()).toEqual([
     "Moved from Negotiation to Lost",
     "Moved from Proposal to Negotiation",
   ]);
-  const contact = await (await request.get(`${API_URL}/api/contacts/${deal.contact.id}`)).json();
+  const contact = await (await api.get(`${API_URL}/api/contacts/${deal.contact.id}`)).json();
   expect(contact.status).toBe("qualified");
 });
 
-test("switch to dark mode and back with the keyboard only", async ({ page }) => {
+test("search for a deal in the top bar and open it with the keyboard only", async ({ page }) => {
+  await page.goto("/contacts");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Contacts");
+  const box = page.getByRole("banner").getByRole("combobox", { name: "Search organizations, contacts and deals" });
+  await tabTo(page, box);
+  await page.keyboard.type("ran");
+  // One match in each group: an organization, a contact, then the deal.
+  await expect(page.getByRole("listbox").getByRole("option")).toHaveCount(3);
+  const deal = page.getByRole("option", { name: /^Branch kiosk pilot/ });
+  for (let step = 0; step < 3; step++) await page.keyboard.press("ArrowDown");
+  await expect(deal).toHaveAttribute("data-focused", "true");
+  await page.keyboard.press("Enter");
+  const heading = page.getByRole("heading", { level: 1 });
+  await expect(heading).toHaveText("Branch kiosk pilot");
+  await expect(page).toHaveURL(/\/deals\/\d+$/);
+  await expect(box).toHaveValue("");
+});
+
+test("open the user menu, choose Dark, then Light, and sign out with the keyboard only", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Dashboard");
-  const toggle = page.getByRole("button", { name: "Dark mode" });
-  await tabTo(page, toggle);
-  await page.keyboard.press("Space");
-  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  const account = page.getByRole("button", { name: "Account: Alex Rivera" });
+  const menu = page.getByRole("menu");
+  await tabTo(page, account);
+
+  await page.keyboard.press("Enter");
+  await expect(menu).toBeVisible();
+  const dark = menu.getByRole("menuitemradio", { name: "Dark" });
+  for (let i = 0; i < 4 && !(await dark.evaluate((el) => el === document.activeElement)); i++) {
+    await page.keyboard.press("ArrowDown");
+  }
+  await page.keyboard.press("Enter");
+  await expect(menu).toBeHidden();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(account).toBeFocused();
+
   await page.keyboard.press("Space");
-  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect(menu).toBeVisible();
+  await page.keyboard.press("Home");
+  await expect(menu.getByRole("menuitemradio", { name: "Light" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(menu).toBeHidden();
   await expect(page.locator("html")).not.toHaveAttribute("data-theme");
+  await expect(account).toBeFocused();
+
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("End");
+  await expect(menu.getByRole("menuitem", { name: "Sign out" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  const heading = page.getByRole("heading", { level: 1 });
+  await expect(heading).toHaveText("Sign in");
+  await expect(heading).toBeFocused();
 });

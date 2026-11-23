@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, type Page, type Ref } from "../lib/api";
+import { api, type Authored, type Page, type Ref } from "../lib/api";
 import { queryKeys, refreshAfterChange, refreshAfterDelete } from "../lib/queryKeys";
 import type { Stage } from "../lib/stages";
 import type { TableState } from "../lib/useUrlState";
@@ -26,7 +26,7 @@ export type Deal = {
   updated_at: string;
 };
 
-export type DealDetail = Deal & { stage_change_count: number };
+export type DealDetail = Deal & Authored & { stage_change_count: number };
 
 /** A deal after a change, and the contact it made a customer, if any. */
 export type DealChange = {

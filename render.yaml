@@ -1,0 +1,31 @@
+# The shared Accountable app on Render's free plan, as one web service (spec 9.9).
+# Set it up once as a Blueprint in Render's dashboard. Render asks for the three Supabase
+# settings then. They're entered there and never written in this file.
+services:
+  - type: web
+    runtime: python
+    name: accountable
+    plan: free
+    # The Render region nearest the Supabase project, since every query crosses between them.
+    # A service's region can't change after it's made, so check it before the first deploy.
+    region: oregon
+    buildCommand: uv sync --locked && npm ci && npm run build --workspace frontend
+    # The migrations run when the app starts, then it serves the built frontend and the API.
+    startCommand: uv run --no-sync uvicorn --factory backend.app.main:create_app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    # Deploys main once CI passes on it.
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.13
+      - key: NODE_VERSION
+        value: "24"
+      # The team's time zone, for today (spec 3.8).
+      - key: TZ
+        value: America/New_York
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false

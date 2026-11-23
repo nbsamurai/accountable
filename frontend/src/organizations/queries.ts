@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, type Page } from "../lib/api";
+import { api, type Authored, type Page } from "../lib/api";
 import { queryKeys, refreshAfterChange, refreshAfterDelete } from "../lib/queryKeys";
 import type { TableState } from "../lib/useUrlState";
 import type { ContactSummary } from "../contacts/queries";
@@ -18,12 +18,13 @@ export type Organization = {
   updated_at: string;
 };
 
-export type OrganizationDetail = Organization & {
-  deal_count: number;
-  figures: { open_pipeline: number; expected_revenue: number; won_to_date: number };
-  contacts: ContactSummary[];
-  deals: Deal[];
-};
+export type OrganizationDetail = Organization &
+  Authored & {
+    deal_count: number;
+    figures: { open_pipeline: number; expected_revenue: number; won_to_date: number };
+    contacts: ContactSummary[];
+    deals: Deal[];
+  };
 
 export type OrganizationValues = {
   name: string;

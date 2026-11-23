@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { ActivityForm } from "../activities/ActivityForm";
 import { Timeline } from "../activities/Timeline";
 import { LateBadge } from "../components/LateBadge";
+import { AddedBy } from "../components/AddedBy";
 import { PageHeader } from "../components/PageHeader";
 import { Panel } from "../components/Panel";
 import { StagePill } from "../components/Pill";
@@ -48,7 +49,9 @@ function DealRecord({ deal }: { deal: DealDetail }) {
         actions={
           <RecordActions onEdit={() => setDialog("edit")} onDelete={() => setDialog("delete")} />
         }
-      />
+      >
+        <AddedBy record={deal} />
+      </PageHeader>
       <div className={styles.stack}>
         <Panel title="Deal details">
           <dl className={styles.facts}>

@@ -7,6 +7,11 @@ import styles from "./PageHeader.module.css";
 // so the skip link stays the first thing to get it.
 let focusedPath: string | null = typeof window === "undefined" ? null : window.location.pathname;
 
+/** After the sign-in screen, the screen that opens takes focus, even at the same address. */
+export function forgetFocusedPath() {
+  focusedPath = null;
+}
+
 type Props = {
   title: string;
   /** Shown beside the title, such as the dashboard's tagline or a status pill. */

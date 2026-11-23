@@ -4,6 +4,7 @@ from datetime import date, datetime
 
 from pydantic import MISSING, BaseModel, Field
 
+from ..authors import PersonRef
 from ..fields import Money, Name, Percent
 from .stages import Stage
 
@@ -69,6 +70,8 @@ class DealOut(BaseModel):
 class DealDetail(DealOut):
     # For the delete message (spec 4.10).
     stage_change_count: int
+    created_by: PersonRef | None
+    updated_by: PersonRef | None
 
 
 class DealPage(BaseModel):

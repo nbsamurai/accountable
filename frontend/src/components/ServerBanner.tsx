@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { useState } from "react";
-import { api, useServerReachable } from "../lib/api";
+import { api, UNREACHABLE, useServerReachable } from "../lib/api";
 import { Button } from "./Button";
 import styles from "./ServerBanner.module.css";
 
@@ -27,7 +27,7 @@ export function ServerBanner() {
 
   return (
     <div className={styles.banner} role="alert">
-      <p>Can't reach Accountable. Check that it's still running, then try again.</p>
+      <p>{UNREACHABLE}</p>
       <Button
         variant="secondary"
         icon={<RefreshCw size={16} aria-hidden="true" />}

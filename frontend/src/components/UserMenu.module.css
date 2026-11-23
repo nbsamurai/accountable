@@ -1,0 +1,103 @@
+/* The initials button (spec 5.6): a 36 px circle that turns Midnight on hover and while its
+   menu is open. */
+.button {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border: 0;
+  border-radius: 50%;
+  background: var(--subtle);
+  color: var(--ink);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition:
+    background-color var(--ease),
+    color var(--ease);
+}
+
+.button[data-hovered],
+.button[data-pressed],
+.button[aria-expanded="true"] {
+  background: var(--fill-strong);
+  color: var(--on-fill-strong);
+}
+
+/* Holds the button's place while the person loads. */
+.placeholder {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--subtle);
+}
+
+/* The menu (spec 5.6, Menus). */
+.popover {
+  min-width: 220px;
+  max-width: min(300px, calc(100vw - 32px));
+  padding: 6px;
+  background: var(--panel);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-menu);
+}
+
+.who {
+  padding: 6px 10px;
+  overflow-wrap: anywhere;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.email {
+  font-size: var(--text-caption);
+  color: var(--ink-muted);
+}
+
+.menu {
+  outline: none;
+}
+
+.header {
+  padding: 6px 10px 2px;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 34px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  outline: none;
+}
+
+.item[data-hovered],
+.item[data-focused] {
+  background: var(--subtle);
+}
+
+.item[data-focus-visible] {
+  outline: 2px solid var(--info-ink);
+  outline-offset: -2px;
+}
+
+.check {
+  margin-left: auto;
+}
+
+.separator {
+  margin: 6px 4px;
+  border: 0;
+  height: 1px;
+  background: var(--line);
+}

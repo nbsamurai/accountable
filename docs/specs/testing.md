@@ -74,6 +74,7 @@ No test touches Supabase or needs anyone's password, and CI needs no secrets. Ev
   9. search in the top bar: an organization, a contact and a deal found by part of a name in another case, at full width and from the Menu at 320 px
   10. who added and changed a record: a record added by one teammate and changed by another shows both names, and an activity shows who logged it
 - **Accessibility:** axe (`@axe-core/playwright`, with the tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa` and `wcag22aa`) on every screen, the sign-in screen included, on each form dialog and on each delete dialog, with an icon button's tooltip open, with the user menu open and with search results open, in light mode and in dark mode. It must find no violations in either. The tooltip shows the button's name on hover and on keyboard focus.
+  - One rule is left out while the search results are open: `aria-hidden-focus`. React Aria hides the rest of the page from screen readers with `aria-hidden` while any combobox's list is open, and axe flags the links and buttons in it, though focus can't reach them. React Spectrum lists this as a known false positive. A dialog's picker passes, because axe allows it while a modal is open. In its place, the test checks that Tab leaves the box, closes the list and leaves nothing hidden, then runs axe with every rule.
 - **Keyboard only:**
   - sign in
   - add a contact

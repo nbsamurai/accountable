@@ -63,11 +63,13 @@ A person is someone on the team. People are added and removed in Supabase's dash
   - No answer from Supabase: "Can't reach the sign-in service. Check your internet connection, then try again."
   - Anything else, such as too many attempts: "Couldn't sign in. Try again in a few minutes."
 - When a session has ended (section 3.10), "Your session has ended. Sign in again." shows at the top of the form until the person signs in.
+- If Accountable itself doesn't answer, so the screen can't tell how to sign in, the panel says "Can't reach Accountable. Check your internet connection, then try again." with a primary "Try again" button in place of the form.
 - **Local sign-in** (section 3.10) uses the same panel and `h1`, with "This copy runs on this computer with made-up teammates." and a secondary button for each teammate, such as "Sign in as Alex Rivera", in place of the fields.
 
 ### 4.14 The user menu
 
-- **The button** is the signed-in person's initials in a circle at the right end of the top bar, at every width (section 5.6). Its tooltip and accessible name say "Account: Alex Rivera", or the email when the person has no name.
+- **The button** is the signed-in person's initials in a circle at the right end of the top bar, at every width (section 5.6). Its tooltip says "Account: Alex Rivera", or the email when the person has no name. Its accessible name adds the initials it shows, "Account: Alex Rivera, AR", so someone using speech input can say either label they see (WCAG 2.5.3).
+- While the person loads, a plain circle holds the button's place. If they can't be loaded, the button shows a Lucide user icon and is named "Account", so signing out still works.
 - **The menu** opens under the button, lined up with its right edge (section 5.6, Menus). It has three groups:
   1. The person's name and email, as text, not as menu items. A person with no name shows the email once.
   2. "Theme", then "Light", "Dark" and "System", each with its Lucide icon (sun, moon and monitor). A check marks the current choice. Choosing one applies it at once (section 4.1) and closes the menu.

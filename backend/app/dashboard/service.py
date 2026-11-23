@@ -3,7 +3,7 @@
 from datetime import date, datetime, timedelta
 from typing import TypedDict
 
-from sqlalchemy import Connection, func, select
+from sqlalchemy import Connection, Select, extract, func, select
 
 from ..activities import timelines
 from ..deals.stages import CLOSED_STAGES, FUNNEL_STAGES, OPEN_STAGES, Stage, round_cents
@@ -36,7 +36,8 @@ def open_pipeline(conn: Connection) -> dict:
     stages: list[StageValue] = [
         {
             "stage": stage,
-            "value": (grouped[stage].value or 0) if stage in grouped else 0,
+            # Postgres returns sums as Decimal.
+            "value": int(grouped[stage].value or 0) if stage in grouped else 0,
         }
         for stage in OPEN_STAGES
     ]
@@ -44,18 +45,20 @@ def open_pipeline(conn: Connection) -> dict:
         "count": sum(row.count for row in grouped.values()),
         "value": sum(item["value"] for item in stages),
         "expected_revenue": round_cents(
-            sum(row.weighted or 0 for row in grouped.values())
+            int(sum(row.weighted or 0 for row in grouped.values()))
         ),
         "stages": stages,
     }
 
 
-def closed_figures(conn: Connection, today: date) -> dict:
+def closed_by_month(today: date) -> Select:
+    """Closed deals in the last 12 months, counted and summed by month and stage."""
     d = deals.c
-    months = [month_from(today, index).isoformat() for index in range(-11, 1)]
-    month = func.strftime("%Y-%m-01", d.close_date)
-    rows = conn.execute(
+    year = extract("year", d.close_date)
+    month = extract("month", d.close_date)
+    return (
         select(
+            year.label("year"),
             month.label("month"),
             d.stage,
             func.count().label("count"),
@@ -66,13 +69,22 @@ def closed_figures(conn: Connection, today: date) -> dict:
             d.close_date >= month_from(today, -11),
             d.close_date < month_from(today, 1),
         )
-        .group_by(month, d.stage)
-    ).all()
-    won = {row.month: row for row in rows if row.stage == "won"}
+        .group_by(year, month, d.stage)
+    )
+
+
+def closed_figures(conn: Connection, today: date) -> dict:
+    months = [month_from(today, index).isoformat() for index in range(-11, 1)]
+    rows = conn.execute(closed_by_month(today)).all()
+    won = {
+        date(int(row.year), int(row.month), 1).isoformat(): row
+        for row in rows
+        if row.stage == "won"
+    }
     series = [
         {
             "month": key,
-            "value": (won[key].value or 0) if key in won else 0,
+            "value": int(won[key].value or 0) if key in won else 0,
             "count": won[key].count if key in won else 0,
         }
         for key in months
@@ -104,11 +116,11 @@ def funnel(conn: Connection) -> list[dict]:
             )
         )
     values = conn.execute(select(*aggregates).select_from(deals)).mappings().one()
-    total = values["new_value"]
+    total = int(values["new_value"])
     return [
         {
             "stage": stage,
-            "value": values[f"{stage}_value"],
+            "value": int(values[f"{stage}_value"]),
             "count": values[f"{stage}_count"],
             "share": values[f"{stage}_value"] * 100 / total if total else 0,
         }

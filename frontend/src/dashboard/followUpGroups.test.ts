@@ -12,6 +12,7 @@ function activity(id: number, follow_up_date: string, done = false): Activity {
     done,
     contact: null,
     deal: null,
+    created_by: null,
   };
 }
 

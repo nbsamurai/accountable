@@ -9,6 +9,9 @@ import type { BoardData } from "../src/pipeline/queries";
 export const today = "2026-11-19";
 const timestamp = `${today}T15:00:00Z`;
 const dates = { created_at: timestamp, updated_at: timestamp };
+export const alex = { id: "sample-alex-rivera", name: "Alex Rivera" };
+export const jordan = { id: "sample-jordan-blake", name: "Jordan Blake" };
+const authors = { created_by: alex, updated_by: alex };
 const company = { id: 1, name: "Northpeak Energy" };
 const person = { id: 2, name: "Jane Doe" };
 
@@ -27,6 +30,7 @@ export const deal: DealDetail = {
   activity_count: 2,
   stage_change_count: 1,
   ...dates,
+  ...authors,
 };
 
 export const contact: ContactDetail = {
@@ -40,6 +44,7 @@ export const contact: ContactDetail = {
   activity_count: 1,
   deals: [deal],
   ...dates,
+  ...authors,
 };
 
 export const organization: OrganizationDetail = {
@@ -55,6 +60,7 @@ export const organization: OrganizationDetail = {
   contacts: [contact],
   deals: [deal],
   ...dates,
+  ...authors,
 };
 
 export const note = {
@@ -66,6 +72,7 @@ export const note = {
   done: false,
   contact: person,
   deal: null,
+  created_by: alex,
 } satisfies Activity;
 
 export const stageChange: Activity = {

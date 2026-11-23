@@ -1,7 +1,9 @@
 // The requests to the backend, and its errors in FastAPI's shapes (spec 9.3):
 // 422 has a list of { loc, msg }, and 404 and 409 have a message in `detail`.
+// Every request sends the session's token, and a 401 ends the session (spec 3.10).
 
 import { useSyncExternalStore } from "react";
+import { endSession, getAccessToken, SESSION_ENDED } from "./session";
 
 export type Params = Record<string, string | number | boolean | null | undefined>;
 
@@ -10,6 +12,12 @@ export type Page<T> = { items: T[]; total: number };
 
 /** A link to a record. */
 export type Ref = { id: number; name: string };
+
+/** Someone on the team, as they show: their name, or their email when they have no name. */
+export type PersonRef = { id: string; name: string };
+
+/** Who added a record and who last changed it (spec 3.11). Null when no one is recorded. */
+export type Authored = { created_by: PersonRef | null; updated_by: PersonRef | null };
 
 /** The server answered with an error. `fields` holds the messages for each field of a 422. */
 export class ApiError extends Error {
@@ -24,22 +32,36 @@ export class ApiError extends Error {
   }
 }
 
+export const UNREACHABLE =
+  "Can't reach Accountable. Check your internet connection, then try again.";
+
 /** The server didn't answer: it isn't running, or the frontend can't reach it. */
 export class UnreachableError extends Error {
   constructor() {
-    super("Can't reach Accountable. Check that it's still running, then try again.");
+    super(UNREACHABLE);
     this.name = "UnreachableError";
   }
 }
 
-// Whether the last request reached the server. The banner shows while it's false.
+// Whether the server can be reached. The banner shows while it's false.
 let reachable = true;
 const listeners = new Set<() => void>();
+// Requests are numbered as they're sent. When one finds the server unreachable, the ones
+// already on their way prove nothing: the user menu's /me can answer just after the screen's
+// own request failed. Only a request sent after the failure shows the server is back.
+let sent = 0;
+let sentBeforeFailure = 0;
 
 function setReachable(value: boolean) {
   if (reachable === value) return;
   reachable = value;
   listeners.forEach((listener) => listener());
+}
+
+function unreachable(): UnreachableError {
+  sentBeforeFailure = sent;
+  setReachable(false);
+  return new UnreachableError();
 }
 
 export function useServerReachable(): boolean {
@@ -79,23 +101,30 @@ export function query(params: Params = {}): string {
 }
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const token = await getAccessToken();
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  if (body !== undefined) headers["Content-Type"] = "application/json";
   let response: Response;
+  const number = ++sent;
   try {
     response = await fetch(`/api${path}`, {
       method,
-      headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+      headers,
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
-    setReachable(false);
-    throw new UnreachableError();
+    throw unreachable();
   }
   // Vite's proxy answers 502 when the backend isn't running.
   if (response.status === 502 || response.status === 503 || response.status === 504) {
-    setReachable(false);
-    throw new UnreachableError();
+    throw unreachable();
   }
-  setReachable(true);
+  if (number > sentBeforeFailure) setReachable(true);
+  if (response.status === 401) {
+    void endSession();
+    throw new ApiError(401, SESSION_ENDED);
+  }
   if (response.status === 204) return undefined as T;
   const data: unknown = await response.json().catch(() => null);
   if (!response.ok) throw errorFrom(response.status, data);

@@ -5,6 +5,8 @@ from typing import Any, Literal
 
 from sqlalchemy import Connection, Row, case, delete, func, insert, select, update
 
+from .. import authors
+from ..auth.people import Person
 from ..contacts import service as contacts_service
 from ..deals import service as deals_service
 from ..deals.stages import OPEN_STAGES, round_cents
@@ -115,6 +117,7 @@ def detail(conn: Connection, organization_id: int, today: date) -> dict[str, Any
     ).scalar_one()
     return {
         **to_out(row),
+        **authors.of(conn, organizations, organization_id),
         "deal_count": deal_count,
         "figures": figures(conn, organization_id),
         "contacts": contacts_service.contacts_at(conn, organization_id),
@@ -145,11 +148,16 @@ def list_organizations(
 
 
 def create(
-    conn: Connection, data: OrganizationIn, *, today: date, now: datetime
+    conn: Connection,
+    data: OrganizationIn,
+    *,
+    person: Person,
+    today: date,
+    now: datetime,
 ) -> dict[str, Any]:
     organization_id = conn.execute(
         insert(organizations)
-        .values(**data.model_dump(), created_at=now, updated_at=now)
+        .values(**data.model_dump(), **authors.added(person, now))
         .returning(organizations.c.id)
     ).scalar_one()
     return detail(conn, organization_id, today)
@@ -160,6 +168,7 @@ def patch(
     organization_id: int,
     data: OrganizationPatch,
     *,
+    person: Person,
     today: date,
     now: datetime,
 ) -> dict[str, Any]:
@@ -169,7 +178,7 @@ def patch(
         conn.execute(
             update(organizations)
             .where(organizations.c.id == organization_id)
-            .values(**values, updated_at=now)
+            .values(**values, **authors.changed(person, now))
         )
     return detail(conn, organization_id, today)
 

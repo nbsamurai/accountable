@@ -5,6 +5,8 @@ from typing import Any
 
 from sqlalchemy import Connection, Row, delete, insert, select, update
 
+from .. import authors
+from ..auth.people import Person
 from ..errors import conflict, invalid, not_found
 from ..tables import activities, contacts, deals
 from . import timelines
@@ -39,21 +41,30 @@ def _check_record(
         raise invalid("deal_id", "This deal no longer exists.")
 
 
-def create(conn: Connection, data: ActivityIn, *, now: datetime) -> dict[str, Any]:
+def create(
+    conn: Connection, data: ActivityIn, *, person: Person, now: datetime
+) -> dict[str, Any]:
+    """Logs an activity. It changes the activity, not the contact or deal it's on."""
     _check_record(conn, data.contact_id, data.deal_id)
     values = data.model_dump()
     values["occurred_at"] = data.occurred_at or now
     activity_id = conn.execute(
         insert(activities)
-        .values(**values, created_at=now, updated_at=now)
+        .values(**values, **authors.added(person, now))
         .returning(activities.c.id)
     ).scalar_one()
     return timelines.one(conn, activity_id)
 
 
 def patch(
-    conn: Connection, activity_id: int, data: ActivityPatch, *, now: datetime
+    conn: Connection,
+    activity_id: int,
+    data: ActivityPatch,
+    *,
+    person: Person,
+    now: datetime,
 ) -> dict[str, Any]:
+    """Changes the fields sent, marking a follow-up done or not done included."""
     row = get_row(conn, activity_id)
     if row.type == "stage_change":
         raise conflict(READ_ONLY)
@@ -66,7 +77,7 @@ def patch(
         conn.execute(
             update(activities)
             .where(activities.c.id == activity_id)
-            .values(**values, updated_at=now)
+            .values(**values, **authors.changed(person, now))
         )
     return timelines.one(conn, activity_id)
 

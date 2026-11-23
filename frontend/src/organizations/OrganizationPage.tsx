@@ -2,6 +2,7 @@ import { ExternalLink, Plus } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Button } from "../components/Button";
+import { AddedBy } from "../components/AddedBy";
 import { PageHeader } from "../components/PageHeader";
 import { Panel } from "../components/Panel";
 import { StatusPill } from "../components/Pill";
@@ -56,6 +57,7 @@ function OrganizationRecord({ organization }: { organization: OrganizationDetail
             )}
           </div>
         )}
+        <AddedBy record={organization} />
       </PageHeader>
       <div className={styles.stack}>
         <Panel aria-label="Organization figures">

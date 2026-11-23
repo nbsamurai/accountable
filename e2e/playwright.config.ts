@@ -5,10 +5,13 @@ import { defineConfig } from "@playwright/test";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 // The tests run their own servers on their own ports, with their own database,
-// so they never touch a running copy of Accountable or its data.
+// so they never touch a running copy of Accountable or its data. The three Supabase
+// settings are empty, so the app runs as a local copy whatever the shell holds.
 export const API_URL = "http://127.0.0.1:8100";
 export const APP_URL = "http://127.0.0.1:5174";
 export const TEST_DB = join(root, "data", "test.db");
+/** The backend treats an empty setting as not set. */
+export const NO_SUPABASE = { DATABASE_URL: "", SUPABASE_URL: "", SUPABASE_PUBLISHABLE_KEY: "" };
 
 export default defineConfig({
   testDir: ".",
@@ -36,7 +39,7 @@ export default defineConfig({
       command: "uv run --quiet uvicorn --factory backend.app.main:create_app --host 127.0.0.1 --port 8100",
       cwd: root,
       url: `${API_URL}/api/health`,
-      env: { ACCOUNTABLE_DB: TEST_DB },
+      env: { ACCOUNTABLE_DB: TEST_DB, ...NO_SUPABASE },
       reuseExistingServer: false,
       timeout: 60_000,
     },
@@ -45,7 +48,7 @@ export default defineConfig({
       command: "node ../node_modules/vite/bin/vite.js --host 127.0.0.1 --port 5174 --strictPort",
       cwd: join(root, "frontend"),
       url: APP_URL,
-      env: { ACCOUNTABLE_API: API_URL },
+      env: { ACCOUNTABLE_API: API_URL, ...NO_SUPABASE },
       reuseExistingServer: false,
       timeout: 60_000,
     },
