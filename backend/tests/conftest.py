@@ -2,7 +2,8 @@
 
 - No test touches Supabase: the three settings are cleared, and every app runs as a local copy.
 - The migrations run once per session. Each test gets a copy of that database file.
-- Any test that takes more than a second fails, because CI runs on a slower machine.
+- Any test that takes more than a second on a developer's computer fails, because CI runs on a
+  much slower machine. On CI, where `CI` is set, the limit is off.
 """
 
 import os
@@ -32,13 +33,15 @@ LOCAL = Settings()
 # Tests never serve a built frontend, unless they make one.
 NO_FRONTEND = Path(__file__).parent / "no-frontend"
 LIMIT_SECONDS = 1.0
+# CI runs on a much slower machine, so the limit holds only on a developer's computer (spec 10).
+ON_CI = bool(os.environ.get("CI"))
 
 
 @pytest.hookimpl(wrapper=True)
 def pytest_runtest_makereport(item, call):
-    """Fails any test whose setup or body takes more than a second."""
+    """Fails any test whose setup or body takes more than a second, except on CI."""
     report = yield
-    too_slow = call.duration > LIMIT_SECONDS
+    too_slow = not ON_CI and call.duration > LIMIT_SECONDS
     if report.when in ("setup", "call") and report.passed and too_slow:
         report.outcome = "failed"
         report.longrepr = (

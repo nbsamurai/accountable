@@ -4,7 +4,7 @@ Part of the [Accountable product spec](../spec.md). Sections keep their numbers 
 
 ## 10. Testing
 
-No test touches Supabase or needs anyone's password, and CI needs no secrets. Every test run leaves the Supabase settings out, so the app under test is a local copy (section 9.8). Every unit test runs in under a second on a developer's computer, because CI runs on a much slower machine.
+No test touches Supabase or needs anyone's password, and CI needs no secrets. Every test run leaves the Supabase settings out, so the app under test is a local copy (section 9.8). Every unit test runs in under a second on a developer's computer, because CI runs on a much slower machine. On CI, where `CI` is set, the one-second limit doesn't apply.
 
 ### 10.1 Backend unit tests (pytest)
 

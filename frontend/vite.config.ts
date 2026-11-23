@@ -18,8 +18,9 @@ export default defineConfig({
     environment: "jsdom",
     include: ["src/**/*.test.{ts,tsx}"],
     setupFiles: ["./src/setupTests.ts"],
-    // Every unit test runs in under a second here, because CI runs on a slower machine.
-    testTimeout: 1000,
+    // Every unit test runs in under a second on a developer's computer (spec 10). CI runs on a
+    // much slower machine, so a test there gets Vitest's usual 5 seconds.
+    testTimeout: process.env.CI ? 5000 : 1000,
     coverage: {
       include: ["src/**/*.{ts,tsx}"],
       exclude: ["src/**/*.test.{ts,tsx}", "src/setupTests.ts"],
