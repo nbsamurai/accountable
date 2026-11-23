@@ -299,7 +299,20 @@ Phase 3, step 3, the check for a flash of light with System on a dark device, ra
 
 **ui-check** then ran on the same local copy, at 1,440 × 1,000, in light and dark mode. It checked the sign-in screen, every screen, one record of each kind, the search results for "ran" and "zz", the user menu and its tooltip, and the captions. It found nothing broken, off-brand or out of line with the spec, no console errors and no failed requests. Its screenshots are in `.playwright-mcp/`, which Git ignores.
 
+### ui-check again, and a search fix (Nov 23, 2026)
+
+ui-check ran again on a new local copy, at 1,440 × 1,000, in light and dark mode, on the sign-in screen and every screen after signing in. It found a bug that the first run missed: the second Escape cleared the search box, but the list opened again, with the old matches or "Searching…", until a third Escape.
+
+- **Cause:** React Aria opens a combobox's list when its text changes while it has focus, if the list has items or `allowsEmptyCollection` is set. The search box had both when the box was cleared.
+- **Fix:** an empty box now has no groups, and `allowsEmptyCollection` holds only while the box has text. Clearing the box with Escape or Backspace leaves the list closed. Spec 4.12 now says so.
+- **Tests:** the Escape test in `SearchBox.test.tsx` now also checks that the list stays closed. It failed before the fix and passes after it.
+- **In Chrome,** through the Playwright MCP server: two Escapes left the box empty, with the list still closed a second later, in both modes. Backspace closed the list too. "zz" still said no matches, and the Down arrow and Enter still opened Granite Bay Foods. The console showed no errors.
+
+ui-check also found that the pipeline's contact initials, 11 px by spec 5.6, break the rule in spec 5.4 that nothing is smaller than 12 px. Both lines were on `main` before this change, so this change leaves them.
+
 ### Still open
+
+- **Spec 5.4 and 5.6 disagree** on contact initials: 11 px, against nothing smaller than 12 px. It came before this change.
 
 - **Phase 1, step 4, on Supabase,** with the person who owns the account: [set up Supabase](#set-up-supabase-once), then `npm run dev` and `npm start` on it, signing in with their own password, adding a record and finding it with search, and a read-only look through Supabase's MCP server. Then the second half of the hands-on check in spec 10.4. Until then, the migrations aren't final.
 - **The Render region and time zone** in `render.yaml`, once the Supabase project's region and the team's time zone are known.

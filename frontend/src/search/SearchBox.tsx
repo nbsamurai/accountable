@@ -80,7 +80,15 @@ export function SearchBox({ className }: { className?: string }) {
   const typed = input.trim();
   const term = useDebounced(typed, SEARCH_WAIT);
   const search = useSearch(term);
-  const groups = useMemo(() => groupsOf(term ? search.data : undefined), [term, search.data]);
+  // An empty box has no list (spec 4.12). React Aria opens the list when the box's text
+  // changes while it has focus, unless the collection is empty and empty collections aren't
+  // allowed. So with no groups, and empty collections allowed only while there's text,
+  // clearing the box (Escape or Backspace) leaves the list closed, without old matches or
+  // "Searching…".
+  const groups = useMemo(
+    () => groupsOf(typed && term ? search.data : undefined),
+    [typed, term, search.data],
+  );
   const settled = term !== "" && term === typed && search.isSuccess && !search.isPlaceholderData;
   const count = groups.reduce((total, group) => total + group.matches.length, 0);
 
@@ -107,7 +115,7 @@ export function SearchBox({ className }: { className?: string }) {
         onChange={choose}
         onOpenChange={setOpen}
         allowsCustomValue
-        allowsEmptyCollection
+        allowsEmptyCollection={typed !== ""}
         className={styles.combobox}
       >
         <div className={styles.field}>

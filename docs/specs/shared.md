@@ -94,7 +94,7 @@ Parts with a count of 0 are left out. After deleting from a record's page, the a
 
 - **The search box** sits in the top bar, between the sections and the initials button (section 5.6). Its placeholder is "Search", and its accessible name is "Search organizations, contacts and deals". It's 280 px wide, and narrows to 200 px when the bar is short of space. At 640 px and below, it moves into the Menu (section 4.1).
 - **What it finds:** organizations, contacts and deals by any part of their name. Case folding covers A to Z, the same on SQLite and on Postgres. It waits 250 ms after typing stops, as the tables do, and searches from the first character.
-- **Results** drop down under the box, in up to three groups: "Organizations", "Contacts" and "Deals". Each group shows up to 5 matches. Names that start with the search come first, then the rest, each A to Z. A group with no matches is left out.
+- **Results** drop down under the box, in up to three groups: "Organizations", "Contacts" and "Deals". Each group shows up to 5 matches. Names that start with the search come first, then the rest, each A to Z. A group with no matches is left out. An empty box has no list, so clearing the box closes it.
 - **Each match** shows its name and, under it, one detail: an organization's industry, a contact's organization, or a deal's organization and stage. A detail with nothing in it shows “–”.
 - **No matches:** "No matches for "zz"."
 - **Choosing a match** opens its page and clears the box. The arrow keys move through the matches across the groups, Enter opens one, and Escape closes the list, then clears the box. A live region announces the number of matches, such as "7 matches."

@@ -165,4 +165,9 @@ test("Escape closes the list, then clears the box", async () => {
   expect(box()).toHaveValue("pe");
   await user.keyboard("{Escape}");
   expect(box()).toHaveValue("");
+  // Clearing the box mustn't open the list again, with old matches or "Searching…".
+  expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+  await act(() => vi.advanceTimersByTimeAsync(250));
+  expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+  expect(box()).toHaveAttribute("aria-expanded", "false");
 });
