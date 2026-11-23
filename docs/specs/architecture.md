@@ -44,7 +44,7 @@ The lockfiles record the dependency versions used by the app.
 - Python 3.12, with FastAPI, Uvicorn, Pydantic 2 and SQLAlchemy 2.1 Core for application queries.
 - SQLAlchemy reaches Postgres through psycopg 3. Alembic runs the migrations. PyJWT checks Supabase's tokens.
 - The tables and the rules in section 3 live in their own modules, so the routes stay thin and the rules can be unit tested without HTTP.
-- One shared dependency checks the token and gives each route the signed-in person (section 9.7). Functions that record who added or changed a record take that person as an argument.
+- One shared dependency checks the token and gives each route the signed-in person (section 9.7). It checks the token before it opens a database connection, so a request without a valid token never holds one. Functions that record who added or changed a record take that person as an argument.
 - Functions that depend on today take it as an argument, so tests can fix the date.
 - Errors use FastAPI's shapes: 401 for a missing or invalid token, 422 for invalid input, with the field and the message, 404 for a missing record, and 409 for editing or deleting a stage change. On Supabase, a token that arrives while the project's signing keys can't be fetched gets 503, so a short loss of the network doesn't sign anyone out.
 

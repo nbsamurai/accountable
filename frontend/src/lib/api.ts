@@ -101,7 +101,13 @@ export function query(params: Params = {}): string {
 }
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const token = await getAccessToken();
+  let token: string | null;
+  try {
+    token = await getAccessToken();
+  } catch {
+    // Supabase didn't answer to renew the token. As with the backend's 503, the session stays.
+    throw unreachable();
+  }
   const headers: Record<string, string> = {};
   if (token) headers.Authorization = `Bearer ${token}`;
   if (body !== undefined) headers["Content-Type"] = "application/json";

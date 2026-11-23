@@ -20,6 +20,8 @@ from backend.app.auth.tokens import (
     verify,
 )
 
+from .conftest import connections_opened
+
 SUPABASE_URL = "https://project.supabase.example"
 ISSUER = f"{SUPABASE_URL}/auth/v1"
 
@@ -188,7 +190,10 @@ def test_keys_that_cant_be_fetched_give_503(app, anonymous, ec_key):
         raise KeysUnavailable("no network")
 
     app.state.sign_in = SupabaseSignIn(SUPABASE_URL, "test-publishable-key", fetch=fail)
+    opened = connections_opened(app.state.engine)
     response = anonymous.get(
         "/api/me", headers={"Authorization": f"Bearer {token(ec_key)}"}
     )
     assert response.status_code == 503
+    # The key fetch can take seconds, so it mustn't hold a database connection.
+    assert opened == []

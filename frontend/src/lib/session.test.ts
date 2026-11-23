@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { api, UnreachableError } from "./api";
 import {
   endSession,
   getAccessToken,
@@ -22,8 +23,13 @@ vi.mock("@supabase/supabase-js", () => {
   return { createClient: supabase.createClient };
 });
 
+type GetSession = { data: { session: typeof supabase.session }; error: unknown };
+
 const auth = {
-  getSession: vi.fn(async () => ({ data: { session: supabase.session } })),
+  getSession: vi.fn(async (): Promise<GetSession> => ({
+    data: { session: supabase.session },
+    error: null,
+  })),
   onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe() {} } } })),
   signInWithPassword: vi.fn(async (): Promise<{ data: object; error: unknown }> => {
     supabase.session = { access_token: "supabase-token" };
@@ -158,6 +164,40 @@ describe("on Supabase", () => {
     expect(await getAccessToken()).toBe("kept-token");
     await endSession();
     expect(auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(await getAccessToken()).toBeNull();
+  });
+
+  test("a token that can't be renewed because Supabase doesn't answer keeps the session", async () => {
+    serveConfig(SUPABASE);
+    supabase.session = { access_token: "kept-token" };
+    await startSession();
+    // The token ran out, such as while the laptop slept, and renewing it got no answer.
+    // Supabase keeps the session and answers with a retryable error.
+    auth.getSession.mockResolvedValueOnce({
+      data: { session: null },
+      error: { name: "AuthRetryableFetchError", status: 0 },
+    });
+    const fetch = vi.fn(async () =>
+      Response.json({ detail: "Sign in to continue." }, { status: 401 }),
+    );
+    vi.stubGlobal("fetch", fetch);
+
+    await expect(api.get("/contacts")).rejects.toBeInstanceOf(UnreachableError);
+    expect(fetch).not.toHaveBeenCalled();
+    expect(auth.signOut).not.toHaveBeenCalled();
+
+    // Once Supabase answers, the same session carries on.
+    expect(await getAccessToken()).toBe("kept-token");
+  });
+
+  test("a token Supabase refuses to renew gives no token, so the API's 401 ends the session", async () => {
+    serveConfig(SUPABASE);
+    supabase.session = { access_token: "kept-token" };
+    await startSession();
+    auth.getSession.mockResolvedValueOnce({
+      data: { session: null },
+      error: { name: "AuthApiError", status: 400, code: "refresh_token_not_found" },
+    });
     expect(await getAccessToken()).toBeNull();
   });
 });

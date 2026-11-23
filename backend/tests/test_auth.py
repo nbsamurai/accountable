@@ -9,7 +9,7 @@ from backend.app.auth.local import LocalSignIn
 from backend.app.auth.tokens import SupabaseSignIn
 from backend.app.settings import Settings
 
-from .conftest import ALEX, JORDAN, TEAMMATES, local_client
+from .conftest import ALEX, JORDAN, TEAMMATES, connections_opened, local_client
 
 OPEN = {"/api/health", "/api/auth/config", "/api/auth/local"}
 SUPABASE_URL = "https://project.supabase.example"
@@ -55,6 +55,20 @@ def test_every_route_but_the_three_open_ones_answers_401_without_a_token(
                 assert response.status_code != 401, (method, path)
             else:
                 assert response.status_code == 401, (method, path, headers)
+
+
+def test_a_request_without_a_valid_token_opens_no_database_connection(
+    app, client, anonymous
+):
+    opened = connections_opened(app.state.engine)
+    for headers in ({}, {"Authorization": "Bearer not-a-token"}):
+        for path in ("/api/me", "/api/organizations"):
+            assert anonymous.get(path, headers=headers).status_code == 401
+    assert opened == []
+
+    # A signed-in request does open one, so the count above means something.
+    assert client.get("/api/me").status_code == 200
+    assert len(opened) == 1
 
 
 def test_auth_config_on_a_local_copy_lists_the_teammates(anonymous):

@@ -31,6 +31,7 @@ A person is someone on the team. People are added and removed in Supabase's dash
 - Signed out, every address shows the sign-in screen (section 4.13). Every API route answers 401, apart from the three that section 9.4 leaves open, which hold no records.
 - The browser holds the session and sends its access token with every API request. The backend checks the token on every request (section 9.7) and takes the person from it, never from the request's body, address or other headers.
 - Supabase's client renews the token before it runs out, so a person stays signed in across reloads and restarts until they sign out.
+- If the token has run out and Supabase doesn't answer to renew it, the app sends no request and shows "Can't reach Accountable" (section 4.11). The session stays, so it carries on once Supabase answers.
 - If the API answers 401 during a session, because the session ended or the person was removed, the app shows the sign-in screen with "Your session has ended. Sign in again." After signing in, the person is back on the same page.
 - **Signing out** ends the session in that browser, clears the records the browser holds, and shows the sign-in screen. The theme stays.
 - **Two people at once:** when two people change the same record, the later save wins. Another person's changes show when a screen next loads its data: when it opens, when the browser tab comes back into focus, or after a reload. Nothing updates live.

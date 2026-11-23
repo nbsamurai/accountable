@@ -55,14 +55,14 @@ def _bearer(request: Request) -> str:
     return token.strip()
 
 
-def get_person(request: Request, conn: Conn, now: Now) -> Person:
-    """Checks the token and gives the route the signed-in person (spec 9.7).
+def get_token_person(request: Request) -> Person:
+    """Checks the token and gives the person it names (spec 9.7). Opens no connection.
 
     The person comes only from the token, never from the request's body, address or
-    other headers. Their row is kept up to date on each request.
+    other headers.
     """
     try:
-        person = request.app.state.sign_in.person(_bearer(request), request)
+        return request.app.state.sign_in.person(_bearer(request), request)
     except InvalidToken as error:
         raise HTTPException(
             status_code=401,
@@ -73,6 +73,17 @@ def get_person(request: Request, conn: Conn, now: Now) -> Person:
         raise HTTPException(
             status_code=503, detail="Can't reach the sign-in service."
         ) from error
+
+
+TokenPerson = Annotated[Person, Depends(get_token_person)]
+
+
+def get_person(person: TokenPerson, conn: Conn, now: Now) -> Person:
+    """Gives the route the signed-in person, and keeps their row up to date.
+
+    FastAPI resolves the parameters in order, so the token is checked before the
+    connection opens. A request without a valid token never holds a connection.
+    """
     people.keep(conn, person, now)
     return person
 

@@ -125,11 +125,20 @@ export function retrySession(): Promise<void> {
   return startSession();
 }
 
-/** The access token to send with each API request, renewed first when it's about to run out. */
+/**
+ * The access token to send with each API request, renewed first when it's about to run out.
+ * Throws when the token ran out and Supabase didn't answer to renew it.
+ */
 export async function getAccessToken(): Promise<string | null> {
   if (state.status !== "signed-in") return null;
   if (state.config.mode === "local") return readLocalToken();
-  const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
+  if (!supabase) return null;
+  const { data, error } = await supabase.auth.getSession();
+  // Supabase keeps the session after a renewal that got no answer, and renews it later.
+  // A request without a token would get a 401 and end it, so none is sent (spec 3.10).
+  if (error?.name === "AuthRetryableFetchError") {
+    throw new Error("Can't reach the sign-in service to renew the session.");
+  }
   return data.session?.access_token ?? null;
 }
 

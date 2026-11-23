@@ -14,6 +14,7 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import event
 
 from backend.app.db import init_db, make_engine, sqlite_url
 from backend.app.deps import get_now, get_today
@@ -96,6 +97,13 @@ def app(tmp_path, clock, migrated_db):
 @pytest.fixture
 def engine(app):
     return app.state.engine
+
+
+def connections_opened(engine) -> list[object]:
+    """Each database connection the engine opens from now on."""
+    opened: list[object] = []
+    event.listen(engine, "engine_connect", opened.append)
+    return opened
 
 
 def local_client(app, person_id: str = ALEX.id) -> TestClient:

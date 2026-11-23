@@ -310,12 +310,24 @@ ui-check ran again on a new local copy, at 1,440 × 1,000, in light and dark mod
 
 ui-check also found that the pipeline's contact initials, 11 px by spec 5.6, break the rule in spec 5.4 that nothing is smaller than 12 px. Both lines were on `main` before this change, so this change leaves them.
 
+### Review and fixes (Nov 23, 2026)
+
+The reviewer subagent reviewed the branch against `main` and found nothing Important. Two of its other findings are fixed. The plan's [Deploy departures](changes/multi-user/plan.md#deploy-review-fixes) give the detail.
+
+- **A request without a valid token no longer opens a database connection.** The connection opened before the token check, so bad tokens could tie up the pool, for up to 5 seconds each while the signing keys couldn't be fetched. Spec 9.3 says so.
+- **A token that Supabase can't renew no longer signs the person out.** When the token had run out and Supabase didn't answer, the app sent no token, got a 401 and deleted the session. Now it shows "Can't reach Accountable" and keeps the session. Spec 3.10 says so.
+
+Each fix has a test that failed before it and passes after it. `npm run check` passed in the working tree: formatting, linting, complexity, both type checks, Gitleaks, and all 486 tests: 195 frontend, 183 backend and 108 Chrome. Frontend line coverage is 85.0% and backend statement coverage is 98%.
+
+**A shorter hands-on check** ran on a new local copy, with no `node_modules/`, `.venv/`, `data/` or settings file, in Chrome through the Playwright MCP server, at 1,440 × 1,000. A token left from an earlier run got 401 and "Your session has ended. Sign in again." Alex Rivera signed in, added "Review Fix Labs" and saw "Added by Alex Rivera on Nov 23, 2026." After signing out, Jordan Blake signed in, changed its website, and the caption added "Last changed by Jordan Blake on Nov 23, 2026." Pipeline and Dashboard loaded. A request with no token got 401. After SIGINT and `npm run dev` again, the old token got 401, and after signing in the change was still there. The console showed only those 401s. The Supabase fix can't be seen on a local copy, so it waits for the Supabase step below. The rest of spec 10.4 didn't run again, because nothing else changed.
+
 ### Still open
 
 - **Spec 5.4 and 5.6 disagree** on contact initials: 11 px, against nothing smaller than 12 px. It came before this change.
 
 - **Phase 1, step 4, on Supabase,** with the person who owns the account: [set up Supabase](#set-up-supabase-once), then `npm run dev` and `npm start` on it, signing in with their own password, adding a record and finding it with search, and a read-only look through Supabase's MCP server. Then the second half of the hands-on check in spec 10.4. Until then, the migrations aren't final.
 - **The Render region and time zone** in `render.yaml`, once the Supabase project's region and the team's time zone are known.
+- **From the review, to check at the first deploy:** that sign-ups and anonymous sign-ins are off in Supabase, since the backend accepts any of the project's signed-in users. And that Render's health check passes the Host allowlist, since a probe with another Host header would get 400.
 
 ## Known limits
 
@@ -326,4 +338,4 @@ ui-check also found that the pipeline's contact initials, 11 px by spec 5.6, bre
 ## Next
 
 - Review dark mode, then merge it.
-- Sign-in, search and a user menu: the [Supabase step](#still-open), then Deploy: the review against `docs/REVIEW.md`, the fixes, `docs/IMPROVE.md`, and the merge.
+- Sign-in, search and a user menu: the review and its fixes are done. Next, the [Supabase step](#still-open), then `docs/IMPROVE.md` and the merge.
